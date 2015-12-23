@@ -5,6 +5,7 @@
 - grab banner, detect ssh1 protocol and zlib compression;
 - gather key-exchange, host-key, encryption and message authentication code algorithms;
 - output algorithm information (available since, removed/disabled, unsafe/weak/legacy, etc);
+- compatible with python2 and python3;
 
 ## Usage
 ```
