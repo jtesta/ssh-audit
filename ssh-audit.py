@@ -40,7 +40,6 @@ def usage():
 
 class Output(object):
 	colors = True
-	full = False
 	verbose = False
 	
 	_colors = {
