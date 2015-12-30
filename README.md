@@ -6,7 +6,7 @@
 - gather key-exchange, host-key, encryption and message authentication code algorithms;
 - output algorithm information (available since, removed/disabled, unsafe/weak/legacy, etc);
 - historical information from OpenSSH and Dropbear SSH;
-- compatible with python2 and python3;
+- no dependencies, compatible with python2 and python3;
 
 ## Usage
 ```
