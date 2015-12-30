@@ -132,8 +132,14 @@ class SockBuf(ReadBuf):
 		self._buf.seek(pos, 0)
 
 
-def get_ssh_ver(v):
-	return 'available since OpenSSH {0}'.format(v)
+def get_ssh_ver(versions):
+	tv = []
+	for v in versions.split(','):
+		if v.startswith('d'):
+			tv.append('Dropbear SSH {0}'.format(v[1:]))
+		else:
+			tv.append('OpenSSH {0}'.format(v))
+	return 'available since ' + ', '.join(tv).rstrip(', ')
 
 WARN_OPENSSH72_LEGACY = 'removed (in client) since OpenSSH 7.2, legacy algorithm'
 WARN_OPENSSH70_LEGACY = 'removed since OpenSSH 7.0, legacy algorithm'
@@ -143,25 +149,29 @@ INFO_OPENSSH69_CHACHA = 'default cipher since OpenSSH 6.9.'
 FAIL_OPENSSH67_UNSAFE = 'removed (in server) since OpenSSH 6.7, unsafe algorithm'
 FAIL_OPENSSH61_REMOVE = 'removed since OpenSSH 6.1, removed from specification'
 FAIL_OPENSSH31_REMOVE = 'removed since OpenSSH 3.1'
+FAIL_DBEAR67_DISABLED = 'disabled since Dropbear SSH 2015.67'
+FAIL_DBEAR53_DISABLED = 'disabled since Dropbear SSH 0.53'
+
 KEX_DB = {
 	'kex': {
-		'diffie-hellman-group1-sha1': ['2.3.0', [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM]],
-		'diffie-hellman-group14-sha1': ['3.9'],
+		'diffie-hellman-group1-sha1': ['2.3.0,d0.28', [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM]],
+		'diffie-hellman-group14-sha1': ['3.9,d0.53'],
 		'diffie-hellman-group-exchange-sha1': ['2.3.0', [FAIL_OPENSSH67_UNSAFE]],
 		'diffie-hellman-group-exchange-sha256': ['4.4'],
-		'ecdh-sha2-nistp256': ['5.7'],
-		'ecdh-sha2-nistp384': ['5.7'],
-		'ecdh-sha2-nistp521': ['5.7'],
-		'curve25519-sha256@libssh.org': ['6.5'],
+		'ecdh-sha2-nistp256': ['5.7,d2013.62'],
+		'ecdh-sha2-nistp384': ['5.7,d2013.62'],
+		'ecdh-sha2-nistp521': ['5.7,d2013.62'],
+		'curve25519-sha256@libssh.org': ['6.5,d2013.62'],
+		'kexguess2@matt.ucc.asn.au': ['d2013.57'],
 	},
 	'key': {
 		'ssh-ed25519': ['6.5'],
 		'ssh-ed25519-cert-v01@openssh.com': ['6.5'],
-		'ssh-rsa': ['2.5.0'],
-		'ssh-dss': ['2.1.0', [FAIL_OPENSSH70_WEAK]],
-		'ecdsa-sha2-nistp256': ['5.7'],
-		'ecdsa-sha2-nistp384': ['5.7'],
-		'ecdsa-sha2-nistp521': ['5.7'],
+		'ssh-rsa': ['2.5.0,d0.28'],
+		'ssh-dss': ['2.1.0,d0.28', [FAIL_OPENSSH70_WEAK]],
+		'ecdsa-sha2-nistp256': ['5.7,d2013.62'],
+		'ecdsa-sha2-nistp384': ['5.7,d2013.62'],
+		'ecdsa-sha2-nistp521': ['5.7,d2013.62'],
 		'ssh-rsa-cert-v00@openssh.com': ['5.4', [], [WARN_OPENSSH70_LEGACY]],
 		'ssh-dss-cert-v00@openssh.com': ['5.4', [FAIL_OPENSSH70_WEAK], [WARN_OPENSSH70_LEGACY]], 
 		'ssh-rsa-cert-v01@openssh.com': ['5.6'],
@@ -171,34 +181,40 @@ KEX_DB = {
 		'ecdsa-sha2-nistp521-cert-v01@openssh.com': ['5.7'],
 	},
 	'enc': {
-		'3des-cbc': ['1.2.2', [FAIL_OPENSSH67_UNSAFE]],
-		'blowfish-cbc': ['1.2.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]], 
+		'3des-cbc': ['1.2.2,d0.28', [FAIL_OPENSSH67_UNSAFE]],
+		'3des-ctr': ['d0.52'],
+		'blowfish-cbc': ['1.2.2,d0.28', [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY]], 
+		'twofish-cbc': ['d0.28', [FAIL_DBEAR67_DISABLED]],
+		'twofish128-cbc': ['d0.47', [FAIL_DBEAR67_DISABLED]],
+		'twofish256-cbc': ['d0.47', [FAIL_DBEAR67_DISABLED]],
+		'twofish128-ctr': ['d2015.68'],
+		'twofish256-ctr': ['d2015.68'],
 		'cast128-cbc': ['2.1.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
 		'arcfour': ['2.1.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
 		'arcfour128': ['4.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
 		'arcfour256': ['4.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
-		'aes128-cbc': ['2.3.0', [FAIL_OPENSSH67_UNSAFE]],
+		'aes128-cbc': ['2.3.0,d0.28', [FAIL_OPENSSH67_UNSAFE]],
 		'aes192-cbc': ['2.3.0', [FAIL_OPENSSH67_UNSAFE]],
-		'aes256-cbc': ['2.3.0', [FAIL_OPENSSH67_UNSAFE]],
+		'aes256-cbc': ['2.3.0,d0.47', [FAIL_OPENSSH67_UNSAFE]],
 		'rijndael128-cbc': ['2.3.0', [FAIL_OPENSSH31_REMOVE]],
 		'rijndael192-cbc': ['2.3.0', [FAIL_OPENSSH31_REMOVE]],
 		'rijndael256-cbc': ['2.3.0', [FAIL_OPENSSH31_REMOVE]],
 		'rijndael-cbc@lysator.liu.se': ['2.3.0', [], [WARN_OPENSSH72_LEGACY]],
-		'aes128-ctr': ['3.7'],
+		'aes128-ctr': ['3.7,d0.52'],
 		'aes192-ctr': ['3.7'],
-		'aes256-ctr': ['3.7'],
+		'aes256-ctr': ['3.7,d0.52'],
 		'aes128-gcm@openssh.com': ['6.2'],
 		'aes256-gcm@openssh.com': ['6.2'],
 		'chacha20-poly1305@openssh.com': ['6.5', [], [], [INFO_OPENSSH69_CHACHA]],
 	},
 	'mac': {
-		'hmac-sha1': ['2.1.0'],
-		'hmac-sha1-96': ['2.5.0', [FAIL_OPENSSH67_UNSAFE]],
-		'hmac-sha2-256': ['5.9'],
+		'hmac-sha1': ['2.1.0,d0.28'],
+		'hmac-sha1-96': ['2.5.0,d0.47', [FAIL_OPENSSH67_UNSAFE]],
+		'hmac-sha2-256': ['5.9,d2013.56'],
 		'hmac-sha2-256-96': ['5.9', [FAIL_OPENSSH61_REMOVE]],
-		'hmac-sha2-512': ['5.9'],
+		'hmac-sha2-512': ['5.9,d2013.56'],
 		'hmac-sha2-512-96': ['5.9', [FAIL_OPENSSH61_REMOVE]],
-		'hmac-md5': ['2.1.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
+		'hmac-md5': ['2.1.0,d0.28', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
 		'hmac-md5-96': ['2.5.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
 		'hmac-ripemd160': ['2.5.0', [FAIL_OPENSSH67_UNSAFE]],
 		'hmac-ripemd160@openssh.com': ['2.1.0', [FAIL_OPENSSH67_UNSAFE]],
