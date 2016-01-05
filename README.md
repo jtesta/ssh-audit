@@ -21,6 +21,10 @@ Verbose flag will fill each row, i.e, not leave blanks, for easier usage with _b
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/12049985/4463fcaa-aef7-11e5-8f35-f1196826631f.png)  
 
 ## ChangeLog
+### v1.0.20160105
+ - better compression handling  
+ - ensure reading enough data (fixes few Linux SSH)  
+
 ### v1.0.20151230
  - Dropbear SSH support  
 
