@@ -152,15 +152,21 @@ FAIL_OPENSSH31_REMOVE = 'removed since OpenSSH 3.1'
 FAIL_DBEAR67_DISABLED = 'disabled since Dropbear SSH 2015.67'
 FAIL_DBEAR53_DISABLED = 'disabled since Dropbear SSH 0.53'
 
+TEXT_CURVES_WEAK      = 'using weak elliptic curves'
+TEXT_RNDSIG_KEY       = 'using weak random number generator could reveal the key'
+TEXT_MODULUS_SIZE     = 'using modulus with small (1024) bit size'
+TEXT_MODULUS_CUSTOM   = 'using modulus with custom (possibly weak) bit sizes'
+TEXT_HASH_WEAK        = 'using weak hashing algorithm'
+
 KEX_DB = {
 	'kex': {
-		'diffie-hellman-group1-sha1': ['2.3.0,d0.28', [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM]],
-		'diffie-hellman-group14-sha1': ['3.9,d0.53'],
-		'diffie-hellman-group-exchange-sha1': ['2.3.0', [FAIL_OPENSSH67_UNSAFE]],
-		'diffie-hellman-group-exchange-sha256': ['4.4'],
-		'ecdh-sha2-nistp256': ['5.7,d2013.62'],
-		'ecdh-sha2-nistp384': ['5.7,d2013.62'],
-		'ecdh-sha2-nistp521': ['5.7,d2013.62'],
+		'diffie-hellman-group1-sha1': ['2.3.0,d0.28', [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [TEXT_MODULUS_SIZE, TEXT_HASH_WEAK]],
+		'diffie-hellman-group14-sha1': ['3.9,d0.53', [], [TEXT_HASH_WEAK]],
+		'diffie-hellman-group-exchange-sha1': ['2.3.0', [FAIL_OPENSSH67_UNSAFE], [TEXT_HASH_WEAK]],
+		'diffie-hellman-group-exchange-sha256': ['4.4', [], [TEXT_MODULUS_CUSTOM]],
+		'ecdh-sha2-nistp256': ['5.7,d2013.62', [], [TEXT_CURVES_WEAK]],
+		'ecdh-sha2-nistp384': ['5.7,d2013.62', [], [TEXT_CURVES_WEAK]],
+		'ecdh-sha2-nistp521': ['5.7,d2013.62', [], [TEXT_CURVES_WEAK]],
 		'curve25519-sha256@libssh.org': ['6.5,d2013.62'],
 		'kexguess2@matt.ucc.asn.au': ['d2013.57'],
 	},
@@ -168,17 +174,17 @@ KEX_DB = {
 		'ssh-ed25519': ['6.5'],
 		'ssh-ed25519-cert-v01@openssh.com': ['6.5'],
 		'ssh-rsa': ['2.5.0,d0.28'],
-		'ssh-dss': ['2.1.0,d0.28', [FAIL_OPENSSH70_WEAK]],
-		'ecdsa-sha2-nistp256': ['5.7,d2013.62'],
-		'ecdsa-sha2-nistp384': ['5.7,d2013.62'],
-		'ecdsa-sha2-nistp521': ['5.7,d2013.62'],
+		'ssh-dss': ['2.1.0,d0.28', [FAIL_OPENSSH70_WEAK], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp256': ['5.7,d2013.62', [], [TEXT_CURVES_WEAK, TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp384': ['5.7,d2013.62', [], [TEXT_CURVES_WEAK, TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp521': ['5.7,d2013.62', [], [TEXT_CURVES_WEAK, TEXT_RNDSIG_KEY]],
 		'ssh-rsa-cert-v00@openssh.com': ['5.4', [], [WARN_OPENSSH70_LEGACY]],
-		'ssh-dss-cert-v00@openssh.com': ['5.4', [FAIL_OPENSSH70_WEAK], [WARN_OPENSSH70_LEGACY]], 
+		'ssh-dss-cert-v00@openssh.com': ['5.4', [FAIL_OPENSSH70_WEAK], [WARN_OPENSSH70_LEGACY, TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]], 
 		'ssh-rsa-cert-v01@openssh.com': ['5.6'],
-		'ssh-dss-cert-v01@openssh.com': ['5.6', [FAIL_OPENSSH70_WEAK]],
-		'ecdsa-sha2-nistp256-cert-v01@openssh.com': ['5.7'],
-		'ecdsa-sha2-nistp384-cert-v01@openssh.com': ['5.7'],
-		'ecdsa-sha2-nistp521-cert-v01@openssh.com': ['5.7'],
+		'ssh-dss-cert-v01@openssh.com': ['5.6', [FAIL_OPENSSH70_WEAK], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp256-cert-v01@openssh.com': ['5.7', [], [TEXT_CURVES_WEAK, TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp384-cert-v01@openssh.com': ['5.7', [], [TEXT_CURVES_WEAK, TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp521-cert-v01@openssh.com': ['5.7', [], [TEXT_CURVES_WEAK, TEXT_RNDSIG_KEY]],
 	},
 	'enc': {
 		'3des-cbc': ['1.2.2,d0.28', [FAIL_OPENSSH67_UNSAFE]],
