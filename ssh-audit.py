@@ -272,9 +272,12 @@ def process_algorithm(alg_type, alg_name, alg_max_len=0):
 				f(' ' * len(prefix + alg_name) + padding + ' `- ' + text)
 
 def process_kex(kex):
-	state = 'zlib@openssh.com' in kex.server.compression
-	state = 'enabled' if state else 'disabled'
-	out.good('[info] compression is ' + state)
+	compressions = [x for x in kex.server.compression if x != 'none']
+	if len(compressions) > 0:
+		cmptxt = 'enabled ({0})'.format(', '.join(compressions))
+	else:
+		cmptxt = 'disabled'
+	out.good('[info] compression is ' + cmptxt)
 	ml = lambda l: max(len(i) for i in l)
 	maxlen = max(ml(kex.kex_algorithms),
 	             ml(kex.key_algorithms),
