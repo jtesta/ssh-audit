@@ -22,6 +22,8 @@ Verbose flag will fill each row, i.e, not leave blanks, for easier usage with _b
 
 ## ChangeLog
 ### v1.0.20160105
+ - multiple additional warnings
+ - support for none algorithm
  - better compression handling  
  - ensure reading enough data (fixes few Linux SSH)  
 
