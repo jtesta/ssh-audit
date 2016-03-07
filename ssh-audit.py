@@ -26,13 +26,13 @@
 from __future__ import print_function
 import os, io, sys, socket, struct
 
-SSH_BANNER = 'SSH-2.0-OpenSSH_7.1'
+SSH_BANNER = 'SSH-2.0-OpenSSH_7.2'
 SOCK_CONN_TIMEOUT = 3.0
 SOCK_READ_TIMEOUT = 5.0
 
 def usage():
 	p = os.path.basename(sys.argv[0])
-	out.head('# {0} v1.0.20160105, moo@arthepsy.eu'.format(p))
+	out.head('# {0} v1.0.20160207, moo@arthepsy.eu'.format(p))
 	out.info('\nusage: {} [-nv] host[:port]\n'.format(p))
 	out.info('   -v  verbose')
 	out.info('   -n  disable colors' + os.linesep)
@@ -141,8 +141,8 @@ def get_ssh_ver(versions):
 			tv.append('OpenSSH {0}'.format(v))
 	return 'available since ' + ', '.join(tv).rstrip(', ')
 
-WARN_OPENSSH72_LEGACY = 'removed (in client) since OpenSSH 7.2, legacy algorithm'
-WARN_OPENSSH70_LEGACY = 'removed since OpenSSH 7.0, legacy algorithm'
+WARN_OPENSSH72_LEGACY = 'disabled (in client) since OpenSSH 7.2, legacy algorithm'
+FAIL_OPENSSH70_LEGACY = 'removed since OpenSSH 7.0, legacy algorithm'
 FAIL_OPENSSH70_WEAK   = 'removed (in server) and disabled (in client) since OpenSSH 7.0, weak algorithm'
 FAIL_OPENSSH70_LOGJAM = 'disabled (in client) since OpenSSH 7.0, logjam attack'
 INFO_OPENSSH69_CHACHA = 'default cipher since OpenSSH 6.9.'
@@ -177,6 +177,8 @@ KEX_DB = {
 		'kexguess2@matt.ucc.asn.au': ['d2013.57'],
 	},
 	'key': {
+		'rsa-sha2-256': ['7.2'],
+		'rsa-sha2-512': ['7.2'],
 		'ssh-ed25519': ['6.5'],
 		'ssh-ed25519-cert-v01@openssh.com': ['6.5'],
 		'ssh-rsa': ['2.5.0,d0.28'],
@@ -184,8 +186,8 @@ KEX_DB = {
 		'ecdsa-sha2-nistp256': ['5.7,d2013.62', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
 		'ecdsa-sha2-nistp384': ['5.7,d2013.62', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
 		'ecdsa-sha2-nistp521': ['5.7,d2013.62', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
-		'ssh-rsa-cert-v00@openssh.com': ['5.4', [], [WARN_OPENSSH70_LEGACY]],
-		'ssh-dss-cert-v00@openssh.com': ['5.4', [FAIL_OPENSSH70_WEAK], [WARN_OPENSSH70_LEGACY, TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]], 
+		'ssh-rsa-cert-v00@openssh.com': ['5.4', [FAIL_OPENSSH70_LEGACY], []],
+		'ssh-dss-cert-v00@openssh.com': ['5.4', [FAIL_OPENSSH70_LEGACY], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]], 
 		'ssh-rsa-cert-v01@openssh.com': ['5.6'],
 		'ssh-dss-cert-v01@openssh.com': ['5.6', [FAIL_OPENSSH70_WEAK], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]],
 		'ecdsa-sha2-nistp256-cert-v01@openssh.com': ['5.7', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
@@ -212,7 +214,7 @@ KEX_DB = {
 		'rijndael128-cbc': ['2.3.0', [FAIL_OPENSSH31_REMOVE], [TEXT_CIPHER_MODE]],
 		'rijndael192-cbc': ['2.3.0', [FAIL_OPENSSH31_REMOVE], [TEXT_CIPHER_MODE]],
 		'rijndael256-cbc': ['2.3.0', [FAIL_OPENSSH31_REMOVE], [TEXT_CIPHER_MODE]],
-		'rijndael-cbc@lysator.liu.se': ['2.3.0', [], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_MODE]],
+		'rijndael-cbc@lysator.liu.se': ['2.3.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_MODE]],
 		'aes128-ctr': ['3.7,d0.52'],
 		'aes192-ctr': ['3.7'],
 		'aes256-ctr': ['3.7,d0.52'],
@@ -223,24 +225,24 @@ KEX_DB = {
 	'mac': {
 		'none': ['d2013.56', [FAIL_PLAINTEXT]],
 		'hmac-sha1': ['2.1.0,d0.28', [], [TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
-		'hmac-sha1-96': ['2.5.0,d0.47', [FAIL_OPENSSH67_UNSAFE], [TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
+		'hmac-sha1-96': ['2.5.0,d0.47', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
 		'hmac-sha2-256': ['5.9,d2013.56', [], [TEXT_ENCRYPT_AND_MAC]],
 		'hmac-sha2-256-96': ['5.9', [FAIL_OPENSSH61_REMOVE], [TEXT_ENCRYPT_AND_MAC]],
 		'hmac-sha2-512': ['5.9,d2013.56', [], [TEXT_ENCRYPT_AND_MAC]],
 		'hmac-sha2-512-96': ['5.9', [FAIL_OPENSSH61_REMOVE], [TEXT_ENCRYPT_AND_MAC]],
 		'hmac-md5': ['2.1.0,d0.28', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
 		'hmac-md5-96': ['2.5.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
-		'hmac-ripemd160': ['2.5.0', [FAIL_OPENSSH67_UNSAFE], [TEXT_ENCRYPT_AND_MAC]],
-		'hmac-ripemd160@openssh.com': ['2.1.0', [FAIL_OPENSSH67_UNSAFE], [TEXT_ENCRYPT_AND_MAC]],
+		'hmac-ripemd160': ['2.5.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC]],
+		'hmac-ripemd160@openssh.com': ['2.1.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC]],
 		'umac-64@openssh.com': ['4.7', [], [TEXT_ENCRYPT_AND_MAC, TEXT_TAG_SIZE]],
 		'umac-128@openssh.com': ['6.2', [], [TEXT_ENCRYPT_AND_MAC]],
-		'hmac-sha1-etm@openssh.com': ['6.2', [], [TEXT_HASH_WEAK]],
+		'hmac-sha1-etm@openssh.com': ['6.2', [], [WARN_OPENSSH72_LEGACY, TEXT_HASH_WEAK]],
 		'hmac-sha1-96-etm@openssh.com': ['6.2', [FAIL_OPENSSH67_UNSAFE], [TEXT_HASH_WEAK]],
 		'hmac-sha2-256-etm@openssh.com': ['6.2'],
 		'hmac-sha2-512-etm@openssh.com': ['6.2'],
 		'hmac-md5-etm@openssh.com': ['6.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_HASH_WEAK]],
 		'hmac-md5-96-etm@openssh.com': ['6.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_HASH_WEAK]],
-		'hmac-ripemd160-etm@openssh.com': ['6.2', [FAIL_OPENSSH67_UNSAFE]],
+		'hmac-ripemd160-etm@openssh.com': ['6.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
 		'umac-64-etm@openssh.com': ['6.2', [], [TEXT_TAG_SIZE]],
 		'umac-128-etm@openssh.com': ['6.2'],
 	}
