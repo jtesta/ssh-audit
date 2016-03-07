@@ -21,6 +21,12 @@ Verbose flag will fill each row, i.e, not leave blanks, for easier usage with _b
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/12120117/fa0ef9f8-b3d7-11e5-9a1b-f410b5217529.png)  
 
 ## ChangeLog
+### v1.0.20160207
+ - use OpenSSH 7.2 banner
+ - additional warnings for OpenSSH 7.2 
+ - fix OpenSSH 7.0 failure messages
+ - add rijndael-cbc failure message from OpenSSH 6.7
+
 ### v1.0.20160105
  - multiple additional warnings
  - support for none algorithm
