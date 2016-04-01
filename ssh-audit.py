@@ -24,7 +24,7 @@
    THE SOFTWARE.
 """
 from __future__ import print_function
-import os, io, sys, socket, struct
+import os, io, sys, socket, struct, random
 
 SSH_BANNER = 'SSH-2.0-OpenSSH_7.2'
 
@@ -226,7 +226,7 @@ class SSH(object):
 			if padding < 4:
 				padding += 8
 			plen = len(payload) + padding + 1
-			pad_bytes = '\x00' * padding
+			pad_bytes = b'\x00' * padding
 			data = struct.pack('>Ib', plen, padding) + payload + pad_bytes
 			self.send(data)
 		
@@ -242,6 +242,47 @@ class SSH(object):
 				self.__sock.close()
 			except:
 				pass
+
+class KexDH(object):
+	def __init__(self, alg, g, p):
+		self.__alg = alg
+		self.__g = g
+		self.__p = p
+		self.__q = (self.__p - 1) // 2
+		self.__x = None
+	
+	def send_init(self, s):
+		r = random.SystemRandom()
+		self.__x = r.randrange(2, self.__q)
+		self.__e = pow(self.__g, self.__x, self.__p)
+		s.write_byte(SSH.MSG_KEXDH_INIT)
+		s.write_mpint(self.__e)
+		s.send_packet()
+
+class KexGroup1(KexDH):
+	def __init__(self):
+		# rfc2409: second oakley group
+		p = int('ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67'
+		        'cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6d'
+		        'f25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff'
+		        '5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece65381'
+		        'ffffffffffffffff', 16)
+		super(KexGroup1, self).__init__('sha1', 2, p)
+
+class KexGroup14(KexDH):
+	def __init__(self):
+		# rfc3526: 2048-bit modp group
+		p = int('ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67'
+		        'cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6d'
+		        'f25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff'
+		        '5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3d'
+		        'c2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3'
+		        'ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08'
+		        'ca18217c32905e462e36ce3be39e772c180e86039b2783a2ec07a28fb5c5'
+		        '5df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa0510'
+		        '15728e5a8aacaa68ffffffffffffffff', 16)
+		super(KexGroup14, self).__init__('sha1', 2, p)
+
 
 def get_ssh_ver(versions):
 	tv = []
