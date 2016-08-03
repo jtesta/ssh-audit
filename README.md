@@ -18,7 +18,7 @@ usage: ssh-audit.py [-nv] host[:port]
 Verbose flag will fill each row, i.e, not leave blanks, for easier usage with _batch_ scripts or with manual grepping.
 
 ### example
-![screenshot](https://cloud.githubusercontent.com/assets/7356025/12120117/fa0ef9f8-b3d7-11e5-9a1b-f410b5217529.png)  
+![screenshot](https://cloud.githubusercontent.com/assets/7356025/17369542/6e55c228-59a1-11e6-8608-873f7f5e172f.png)  
 
 ## ChangeLog
 ### v1.0.20160803
