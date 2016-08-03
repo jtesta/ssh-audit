@@ -21,6 +21,10 @@ Verbose flag will fill each row, i.e, not leave blanks, for easier usage with _b
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/12120117/fa0ef9f8-b3d7-11e5-9a1b-f410b5217529.png)  
 
 ## ChangeLog
+### v1.0.20160803
+ - use OpenSSH 7.3 banner
+ - add new key-exchange algorithms
+
 ### v1.0.20160207
  - use OpenSSH 7.2 banner
  - additional warnings for OpenSSH 7.2 

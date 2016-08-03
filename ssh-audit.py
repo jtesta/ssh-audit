@@ -26,7 +26,7 @@
 from __future__ import print_function
 import os, io, sys, socket, struct, random
 
-SSH_BANNER = 'SSH-2.0-OpenSSH_7.2'
+SSH_BANNER = 'SSH-2.0-OpenSSH_7.3'
 
 def usage():
 	p = os.path.basename(sys.argv[0])
@@ -320,6 +320,9 @@ KEX_DB = {
 	'kex': {
 		'diffie-hellman-group1-sha1': ['2.3.0,d0.28', [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [TEXT_MODULUS_SIZE, TEXT_HASH_WEAK]],
 		'diffie-hellman-group14-sha1': ['3.9,d0.53', [], [TEXT_HASH_WEAK]],
+		'diffie-hellman-group14-sha256': ['7.3,d0216.73', [], []],
+		'diffie-hellman-group16-sha512': ['7.3,d2016.73', [], []],
+		'diffie-hellman-group18-sha512': ['7.3', [], []],
 		'diffie-hellman-group-exchange-sha1': ['2.3.0', [FAIL_OPENSSH67_UNSAFE], [TEXT_HASH_WEAK]],
 		'diffie-hellman-group-exchange-sha256': ['4.4', [], [TEXT_MODULUS_CUSTOM]],
 		'ecdh-sha2-nistp256': ['5.7,d2013.62', [TEXT_CURVES_WEAK]],
