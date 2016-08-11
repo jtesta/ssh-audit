@@ -403,11 +403,11 @@ KEX_DB = {
 	}
 }
 
-def process_algorithms(alg_type, algorithms, maxlen=0):
+def output_algorithms(alg_type, algorithms, maxlen=0):
 	for algorithm in algorithms:
-		process_algorithm(alg_type, algorithm, maxlen)
+		output_algorithm(alg_type, algorithm, maxlen)
 
-def process_algorithm(alg_type, alg_name, alg_max_len=0):
+def output_algorithm(alg_type, alg_name, alg_max_len=0):
 	prefix = '(' + alg_type + ') '
 	if alg_max_len == 0:
 		alg_max_len = len(alg_name)
@@ -461,13 +461,13 @@ def output(banner, kex):
 	             ml(kex.server.encryption),
 	             ml(kex.server.mac))
 	out.head('\n# key exchange algorithms')
-	process_algorithms('kex', kex.kex_algorithms, maxlen)
+	output_algorithms('kex', kex.kex_algorithms, maxlen)
 	out.head('\n# host-key algorithms')
-	process_algorithms('key', kex.key_algorithms, maxlen)
+	output_algorithms('key', kex.key_algorithms, maxlen)
 	out.head('\n# encryption algorithms (ciphers)')
-	process_algorithms('enc', kex.server.encryption, maxlen)
+	output_algorithms('enc', kex.server.encryption, maxlen)
 	out.head('\n# message authentication code algorithms')
-	process_algorithms('mac', kex.server.mac, maxlen)
+	output_algorithms('mac', kex.server.mac, maxlen)
 	out.sep()
 
 
