@@ -442,7 +442,13 @@ def process_algorithm(alg_type, alg_name, alg_max_len=0):
 			else:
 				f(' ' * len(prefix + alg_name) + padding + ' `- ' + text)
 
-def process_kex(kex):
+def output(banner, kex):
+	out.head('# general')
+	out.good('[info] banner: ' + banner)
+	if banner.startswith('SSH-1.99-'):
+		out.fail('[fail] protocol SSH1 enabled')
+	if kex is None:
+		return
 	compressions = [x for x in kex.server.compression if x != 'none']
 	if len(compressions) > 0:
 		cmptxt = 'enabled ({0})'.format(', '.join(compressions))
@@ -492,16 +498,13 @@ def main():
 	host, port = parse_args()
 	s = SSH.Socket(host, port)
 	banner = s.get_banner()
-	out.head('# general')
-	out.good('[info] banner: ' + banner)
-	if banner.startswith('SSH-1.99-'):
-		out.fail('[fail] protocol SSH1 enabled')
 	packet_type, payload = s.read_packet()
 	if packet_type != SSH.MSG_KEXINIT:
+		output(banner, None)
 		out.fail('[exception] did not receive MSG_KEXINIT (20), instead received unknown message ({0})'.format(packet_type))
 		sys.exit(1)
 	kex = Kex.parse(payload)
-	process_kex(kex)
+	output(banner, kex)
 
 if __name__ == '__main__':
 	out = Output()
