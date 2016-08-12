@@ -202,6 +202,9 @@ class SSH(object):
 			if self.unread_len < self.__block_size:
 				self.recv()
 			header = self.read(self.__block_size)
+			if len(header) == 0:
+				out.fail('[exception] empty ssh packet (no data)')
+				sys.exit(1)
 			packet_size = struct.unpack('>I', header[:4])[0]
 			rest = header[4:]
 			lrest = len(rest)
@@ -289,21 +292,40 @@ def get_ssh_version(version_desc):
 	else:
 		return ('OpenSSH', version_desc)
 
-def get_alg_since_text(versions):
+def get_alg_since_text(alg_desc):
 	tv = []
-	for v in versions.split(','):
+	versions = alg_desc[0]
+	for v in versions[0].split(','):
 		ssh_prefix, ssh_version = get_ssh_version(v)
 		tv.append('{0} {1}'.format(ssh_prefix, ssh_version))
 	return 'available since ' + ', '.join(tv).rstrip(', ')
 
 def get_alg_timeframe(alg_desc, result = {}):
-	vsince = alg_desc[0]
-	for v in vsince.split(','):
-		ssh_prefix, ssh_version = get_ssh_version(v)
-		if not ssh_prefix in result:
-			result[ssh_prefix] = [None, None]
-		if result[ssh_prefix][0] is None or result[ssh_prefix][0] < ssh_version:
-			result[ssh_prefix][0] = ssh_version
+	versions = alg_desc[0]
+	vlen = len(versions)
+	for i in range(3):
+		if i > vlen - 1:
+			if i == 2 and vlen > 1:
+				cversions = versions[1]
+			else:
+				continue
+		else:
+			cversions = versions[i]
+		if cversions is None:
+			continue
+		for v in cversions.split(','):
+			ssh_prefix, ssh_version = get_ssh_version(v)
+			if not ssh_prefix in result:
+				result[ssh_prefix] = [None, None, None]
+			prev, push = result[ssh_prefix][i], False
+			if prev is None:
+				push = True
+			elif i == 0 and prev < ssh_version:
+				push = True
+			elif i > 0 and prev > ssh_version:
+				push = True
+			if push:
+				result[ssh_prefix][i] = ssh_version
 	return result
 
 def get_ssh_timeframe(kex):
@@ -345,88 +367,88 @@ TEXT_TAG_SIZE         = 'using small 64-bit tag size'
 
 KEX_DB = {
 	'kex': {
-		'diffie-hellman-group1-sha1': ['2.3.0,d0.28', [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [TEXT_MODULUS_SIZE, TEXT_HASH_WEAK]],
-		'diffie-hellman-group14-sha1': ['3.9,d0.53', [], [TEXT_HASH_WEAK]],
-		'diffie-hellman-group14-sha256': ['7.3,d0216.73', [], []],
-		'diffie-hellman-group16-sha512': ['7.3,d2016.73', [], []],
-		'diffie-hellman-group18-sha512': ['7.3', [], []],
-		'diffie-hellman-group-exchange-sha1': ['2.3.0', [FAIL_OPENSSH67_UNSAFE], [TEXT_HASH_WEAK]],
-		'diffie-hellman-group-exchange-sha256': ['4.4', [], [TEXT_MODULUS_CUSTOM]],
-		'ecdh-sha2-nistp256': ['5.7,d2013.62', [TEXT_CURVES_WEAK]],
-		'ecdh-sha2-nistp384': ['5.7,d2013.62', [TEXT_CURVES_WEAK]],
-		'ecdh-sha2-nistp521': ['5.7,d2013.62', [TEXT_CURVES_WEAK]],
-		'curve25519-sha256@libssh.org': ['6.5,d2013.62'],
-		'kexguess2@matt.ucc.asn.au': ['d2013.57'],
+		'diffie-hellman-group1-sha1': [['2.3.0,d0.28', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [TEXT_MODULUS_SIZE, TEXT_HASH_WEAK]],
+		'diffie-hellman-group14-sha1': [['3.9,d0.53'], [], [TEXT_HASH_WEAK]],
+		'diffie-hellman-group14-sha256': [['7.3,d0216.73']],
+		'diffie-hellman-group16-sha512': [['7.3,d2016.73']],
+		'diffie-hellman-group18-sha512': [['7.3']],
+		'diffie-hellman-group-exchange-sha1': [['2.3.0', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [TEXT_HASH_WEAK]],
+		'diffie-hellman-group-exchange-sha256': [['4.4'], [], [TEXT_MODULUS_CUSTOM]],
+		'ecdh-sha2-nistp256': [['5.7,d2013.62'], [TEXT_CURVES_WEAK]],
+		'ecdh-sha2-nistp384': [['5.7,d2013.62'], [TEXT_CURVES_WEAK]],
+		'ecdh-sha2-nistp521': [['5.7,d2013.62'], [TEXT_CURVES_WEAK]],
+		'curve25519-sha256@libssh.org': [['6.5,d2013.62']],
+		'kexguess2@matt.ucc.asn.au': [['d2013.57']],
 	},
 	'key': {
-		'rsa-sha2-256': ['7.2'],
-		'rsa-sha2-512': ['7.2'],
-		'ssh-ed25519': ['6.5'],
-		'ssh-ed25519-cert-v01@openssh.com': ['6.5'],
-		'ssh-rsa': ['2.5.0,d0.28'],
-		'ssh-dss': ['2.1.0,d0.28', [FAIL_OPENSSH70_WEAK], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]],
-		'ecdsa-sha2-nistp256': ['5.7,d2013.62', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
-		'ecdsa-sha2-nistp384': ['5.7,d2013.62', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
-		'ecdsa-sha2-nistp521': ['5.7,d2013.62', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
-		'ssh-rsa-cert-v00@openssh.com': ['5.4', [FAIL_OPENSSH70_LEGACY], []],
-		'ssh-dss-cert-v00@openssh.com': ['5.4', [FAIL_OPENSSH70_LEGACY], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]], 
-		'ssh-rsa-cert-v01@openssh.com': ['5.6'],
-		'ssh-dss-cert-v01@openssh.com': ['5.6', [FAIL_OPENSSH70_WEAK], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]],
-		'ecdsa-sha2-nistp256-cert-v01@openssh.com': ['5.7', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
-		'ecdsa-sha2-nistp384-cert-v01@openssh.com': ['5.7', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
-		'ecdsa-sha2-nistp521-cert-v01@openssh.com': ['5.7', [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
+		'rsa-sha2-256': [['7.2']],
+		'rsa-sha2-512': [['7.2']],
+		'ssh-ed25519': [['6.5']],
+		'ssh-ed25519-cert-v01@openssh.com': [['6.5']],
+		'ssh-rsa': [['2.5.0,d0.28']],
+		'ssh-dss': [['2.1.0,d0.28', '6.9'], [FAIL_OPENSSH70_WEAK], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp256': [['5.7,d2013.62'], [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp384': [['5.7,d2013.62'], [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp521': [['5.7,d2013.62'], [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
+		'ssh-rsa-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY], []],
+		'ssh-dss-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]], 
+		'ssh-rsa-cert-v01@openssh.com': [['5.6']],
+		'ssh-dss-cert-v01@openssh.com': [['5.6', '6.9'], [FAIL_OPENSSH70_WEAK], [TEXT_MODULUS_SIZE, TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp256-cert-v01@openssh.com': [['5.7'], [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp384-cert-v01@openssh.com': [['5.7'], [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
+		'ecdsa-sha2-nistp521-cert-v01@openssh.com': [['5.7'], [TEXT_CURVES_WEAK], [TEXT_RNDSIG_KEY]],
 	},
 	'enc': {
-		'none': ['1.2.2,d2013.56', [FAIL_PLAINTEXT]],
-		'3des-cbc': ['1.2.2,d0.28', [FAIL_OPENSSH67_UNSAFE], [TEXT_CIPHER_WEAK, TEXT_CIPHER_MODE, TEXT_BLOCK_SIZE]],
-		'3des-ctr': ['d0.52'],
-		'blowfish-cbc': ['1.2.2,d0.28', [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_MODE, TEXT_BLOCK_SIZE]], 
-		'twofish-cbc': ['d0.28', [FAIL_DBEAR67_DISABLED], [TEXT_CIPHER_MODE]],
-		'twofish128-cbc': ['d0.47', [FAIL_DBEAR67_DISABLED], [TEXT_CIPHER_MODE]],
-		'twofish256-cbc': ['d0.47', [FAIL_DBEAR67_DISABLED], [TEXT_CIPHER_MODE]],
-		'twofish128-ctr': ['d2015.68'],
-		'twofish256-ctr': ['d2015.68'],
-		'cast128-cbc': ['2.1.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_MODE, TEXT_BLOCK_SIZE]],
-		'arcfour': ['2.1.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_WEAK]],
-		'arcfour128': ['4.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_WEAK]],
-		'arcfour256': ['4.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_WEAK]],
-		'aes128-cbc': ['2.3.0,d0.28', [FAIL_OPENSSH67_UNSAFE], [TEXT_CIPHER_MODE]],
-		'aes192-cbc': ['2.3.0', [FAIL_OPENSSH67_UNSAFE], [TEXT_CIPHER_MODE]],
-		'aes256-cbc': ['2.3.0,d0.47', [FAIL_OPENSSH67_UNSAFE], [TEXT_CIPHER_MODE]],
-		'rijndael128-cbc': ['2.3.0', [FAIL_OPENSSH31_REMOVE], [TEXT_CIPHER_MODE]],
-		'rijndael192-cbc': ['2.3.0', [FAIL_OPENSSH31_REMOVE], [TEXT_CIPHER_MODE]],
-		'rijndael256-cbc': ['2.3.0', [FAIL_OPENSSH31_REMOVE], [TEXT_CIPHER_MODE]],
-		'rijndael-cbc@lysator.liu.se': ['2.3.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_MODE]],
-		'aes128-ctr': ['3.7,d0.52'],
-		'aes192-ctr': ['3.7'],
-		'aes256-ctr': ['3.7,d0.52'],
-		'aes128-gcm@openssh.com': ['6.2'],
-		'aes256-gcm@openssh.com': ['6.2'],
-		'chacha20-poly1305@openssh.com': ['6.5', [], [], [INFO_OPENSSH69_CHACHA]],
+		'none': [['1.2.2,d2013.56'], [FAIL_PLAINTEXT]],
+		'3des-cbc': [['1.2.2,d0.28', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [TEXT_CIPHER_WEAK, TEXT_CIPHER_MODE, TEXT_BLOCK_SIZE]],
+		'3des-ctr': [['d0.52']],
+		'blowfish-cbc': [['1.2.2,d0.28', '6.6,d0.52', '7.1,d0.52'], [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_MODE, TEXT_BLOCK_SIZE]], 
+		'twofish-cbc': [['d0.28', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [TEXT_CIPHER_MODE]],
+		'twofish128-cbc': [['d0.47', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [TEXT_CIPHER_MODE]],
+		'twofish256-cbc': [['d0.47', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [TEXT_CIPHER_MODE]],
+		'twofish128-ctr': [['d2015.68']],
+		'twofish256-ctr': [['d2015.68']],
+		'cast128-cbc': [['2.1.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_MODE, TEXT_BLOCK_SIZE]],
+		'arcfour': [['2.1.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_WEAK]],
+		'arcfour128': [['4.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_WEAK]],
+		'arcfour256': [['4.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_WEAK]],
+		'aes128-cbc': [['2.3.0,d0.28', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [TEXT_CIPHER_MODE]],
+		'aes192-cbc': [['2.3.0', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [TEXT_CIPHER_MODE]],
+		'aes256-cbc': [['2.3.0,d0.47', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [TEXT_CIPHER_MODE]],
+		'rijndael128-cbc': [['2.3.0', '3.0.2'], [FAIL_OPENSSH31_REMOVE], [TEXT_CIPHER_MODE]],
+		'rijndael192-cbc': [['2.3.0', '3.0.2'], [FAIL_OPENSSH31_REMOVE], [TEXT_CIPHER_MODE]],
+		'rijndael256-cbc': [['2.3.0', '3.0.2'], [FAIL_OPENSSH31_REMOVE], [TEXT_CIPHER_MODE]],
+		'rijndael-cbc@lysator.liu.se': [['2.3.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_CIPHER_MODE]],
+		'aes128-ctr': [['3.7,d0.52']],
+		'aes192-ctr': [['3.7']],
+		'aes256-ctr': [['3.7,d0.52']],
+		'aes128-gcm@openssh.com': [['6.2']],
+		'aes256-gcm@openssh.com': [['6.2']],
+		'chacha20-poly1305@openssh.com': [['6.5'], [], [], [INFO_OPENSSH69_CHACHA]],
 	},
 	'mac': {
-		'none': ['d2013.56', [FAIL_PLAINTEXT]],
-		'hmac-sha1': ['2.1.0,d0.28', [], [TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
-		'hmac-sha1-96': ['2.5.0,d0.47', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
-		'hmac-sha2-256': ['5.9,d2013.56', [], [TEXT_ENCRYPT_AND_MAC]],
-		'hmac-sha2-256-96': ['5.9', [FAIL_OPENSSH61_REMOVE], [TEXT_ENCRYPT_AND_MAC]],
-		'hmac-sha2-512': ['5.9,d2013.56', [], [TEXT_ENCRYPT_AND_MAC]],
-		'hmac-sha2-512-96': ['5.9', [FAIL_OPENSSH61_REMOVE], [TEXT_ENCRYPT_AND_MAC]],
-		'hmac-md5': ['2.1.0,d0.28', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
-		'hmac-md5-96': ['2.5.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
-		'hmac-ripemd160': ['2.5.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC]],
-		'hmac-ripemd160@openssh.com': ['2.1.0', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC]],
-		'umac-64@openssh.com': ['4.7', [], [TEXT_ENCRYPT_AND_MAC, TEXT_TAG_SIZE]],
-		'umac-128@openssh.com': ['6.2', [], [TEXT_ENCRYPT_AND_MAC]],
-		'hmac-sha1-etm@openssh.com': ['6.2', [], [WARN_OPENSSH72_LEGACY, TEXT_HASH_WEAK]],
-		'hmac-sha1-96-etm@openssh.com': ['6.2', [FAIL_OPENSSH67_UNSAFE], [TEXT_HASH_WEAK]],
-		'hmac-sha2-256-etm@openssh.com': ['6.2'],
-		'hmac-sha2-512-etm@openssh.com': ['6.2'],
-		'hmac-md5-etm@openssh.com': ['6.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_HASH_WEAK]],
-		'hmac-md5-96-etm@openssh.com': ['6.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_HASH_WEAK]],
-		'hmac-ripemd160-etm@openssh.com': ['6.2', [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
-		'umac-64-etm@openssh.com': ['6.2', [], [TEXT_TAG_SIZE]],
-		'umac-128-etm@openssh.com': ['6.2'],
+		'none': [['d2013.56'], [FAIL_PLAINTEXT]],
+		'hmac-sha1': [['2.1.0,d0.28'], [], [TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
+		'hmac-sha1-96': [['2.5.0,d0.47', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
+		'hmac-sha2-256': [['5.9,d2013.56'], [], [TEXT_ENCRYPT_AND_MAC]],
+		'hmac-sha2-256-96': [['5.9', '6.0'], [FAIL_OPENSSH61_REMOVE], [TEXT_ENCRYPT_AND_MAC]],
+		'hmac-sha2-512': [['5.9,d2013.56'], [], [TEXT_ENCRYPT_AND_MAC]],
+		'hmac-sha2-512-96': [['5.9', '6.0'], [FAIL_OPENSSH61_REMOVE], [TEXT_ENCRYPT_AND_MAC]],
+		'hmac-md5': [['2.1.0,d0.28', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
+		'hmac-md5-96': [['2.5.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC, TEXT_HASH_WEAK]],
+		'hmac-ripemd160': [['2.5.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC]],
+		'hmac-ripemd160@openssh.com': [['2.1.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_ENCRYPT_AND_MAC]],
+		'umac-64@openssh.com': [['4.7'], [], [TEXT_ENCRYPT_AND_MAC, TEXT_TAG_SIZE]],
+		'umac-128@openssh.com': [['6.2'], [], [TEXT_ENCRYPT_AND_MAC]],
+		'hmac-sha1-etm@openssh.com': [['6.2'], [], [TEXT_HASH_WEAK]],
+		'hmac-sha1-96-etm@openssh.com': [['6.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [TEXT_HASH_WEAK]],
+		'hmac-sha2-256-etm@openssh.com': [['6.2']],
+		'hmac-sha2-512-etm@openssh.com': [['6.2']],
+		'hmac-md5-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_HASH_WEAK]],
+		'hmac-md5-96-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, TEXT_HASH_WEAK]],
+		'hmac-ripemd160-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
+		'umac-64-etm@openssh.com': [['6.2'], [], [TEXT_TAG_SIZE]],
+		'umac-128-etm@openssh.com': [['6.2']],
 	}
 }
 
@@ -445,7 +467,7 @@ def output_algorithm(alg_type, alg_name, alg_max_len=0):
 		ldesc = len(alg_desc)
 		for idx, level in enumerate(['fail', 'warn', 'info']):
 			if level == 'info':
-				texts.append((level, get_alg_since_text(alg_desc[0])))
+				texts.append((level, get_alg_since_text(alg_desc)))
 			idx = idx + 1
 			if ldesc > idx:
 				for t in alg_desc[idx]: 
@@ -469,6 +491,23 @@ def output_algorithm(alg_type, alg_name, alg_max_len=0):
 			else:
 				f(' ' * len(prefix + alg_name) + padding + ' `- ' + text)
 
+def output_compatibility(kex, client=False):
+	ssh_timeframe = get_ssh_timeframe(kex)
+	cp = 2 if client else 1
+	comp_text = []
+	for sshd_name, v in ssh_timeframe.items():
+		if v[cp] is None:
+			comp_text.append('{} {}+'.format(sshd_name, v[0]))
+		elif v[0] == v[1]:
+			comp_text.append('{} {}'.format(sshd_name, v[0]))
+		else:
+			if v[1] < v[0]:
+				comp_text.append('{} {}+ (some functionality from {})'.format(sshd_name, v[0], v[1]))
+			else:
+				comp_text.append('{} {}-{}'.format(sshd_name, v[0], v[1]))
+	if len(comp_text) > 0:
+		out.good('[info] compatibility: ' + ', '.join(comp_text))
+
 def output(banner, kex):
 	out.head('# general')
 	out.good('[info] banner: ' + banner)
@@ -476,9 +515,7 @@ def output(banner, kex):
 		out.fail('[fail] protocol SSH1 enabled')
 	if kex is None:
 		return
-	alg_timeframe = get_ssh_timeframe(kex)
-	guess_text = ', '.join('{} {}'.format(k, ' - '.join([v[0] or '...', v[1] or '...'])) for k, v in alg_timeframe.items())
-	out.good('[info] compatibility: ' + guess_text) 
+	output_compatibility(kex)
 	compressions = [x for x in kex.server.compression if x != 'none']
 	if len(compressions) > 0:
 		cmptxt = 'enabled ({0})'.format(', '.join(compressions))
