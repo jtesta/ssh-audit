@@ -5,6 +5,7 @@
 - grab banner, detect ssh1 protocol and zlib compression;
 - gather key-exchange, host-key, encryption and message authentication code algorithms;
 - output algorithm information (available since, removed/disabled, unsafe/weak/legacy, etc);
+- analyze SSH version compatibility based on algorithm information;
 - historical information from OpenSSH and Dropbear SSH;
 - no dependencies, compatible with python2 and python3;
 
@@ -22,7 +23,7 @@ Verbose flag will fill each row, i.e, not leave blanks, for easier usage with _b
 
 ## ChangeLog
 ### v1.0.20160812
- - implement compatibility feature
+ - implement SSH version compatibility feature
  - fix wrong mac algorithm warning
  - fix Dropbear SSH version typo
  - parse pre-banner header
