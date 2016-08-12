@@ -369,7 +369,7 @@ KEX_DB = {
 	'kex': {
 		'diffie-hellman-group1-sha1': [['2.3.0,d0.28', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [TEXT_MODULUS_SIZE, TEXT_HASH_WEAK]],
 		'diffie-hellman-group14-sha1': [['3.9,d0.53'], [], [TEXT_HASH_WEAK]],
-		'diffie-hellman-group14-sha256': [['7.3,d0216.73']],
+		'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
 		'diffie-hellman-group16-sha512': [['7.3,d2016.73']],
 		'diffie-hellman-group18-sha512': [['7.3']],
 		'diffie-hellman-group-exchange-sha1': [['2.3.0', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [TEXT_HASH_WEAK]],
