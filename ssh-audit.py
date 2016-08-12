@@ -24,7 +24,7 @@
    THE SOFTWARE.
 """
 from __future__ import print_function
-import os, io, sys, socket, struct, random
+import os, io, sys, socket, struct, random, errno
 
 SSH_BANNER = 'SSH-2.0-OpenSSH_7.3'
 
@@ -162,6 +162,7 @@ class SSH(object):
 		def __init__(self, host, port, cto = 3.0, rto = 5.0):
 			self.__block_size = 8
 			self.__state = 0
+			self.__header = []
 			self.__banner = None
 			super(SSH.Socket, self).__init__()
 			try:
@@ -177,20 +178,44 @@ class SSH(object):
 		def get_banner(self):
 			if self.__state < self.SM_BANNER_SENT:
 				self.send_banner()
-			if self.__banner is None:
-				self.recv()
-				self.__banner = self.read_line()
-			return self.__banner
+			while self.__banner is None:
+				s, e = self.recv()
+				if s < 0:
+					break
+				while self.__banner is None and self.unread_len > 0:
+					line = self.read_line()
+					if len(line.strip()) == 0:
+						continue
+					if line.startswith('SSH-'):
+						self.__banner = line
+					else:
+						self.__header.append(line)
+			return self.__banner, self.__header
 		
 		def recv(self, size = 2048):
-			data = self.__sock.recv(size)
+			try:
+				data = self.__sock.recv(size)
+			except socket.timeout as e:
+				r = 0 if e.strerror == 'timed out' else -1
+				return (r, e)
+			except socket.error as e:
+				r = 0 if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK) else -1
+				return (r, e)
+			if len(data) == 0:
+				return (-1, None)
 			pos = self._buf.tell()
 			self._buf.seek(0, 2)
 			self._buf.write(data)
 			self._len += len(data)
 			self._buf.seek(pos, 0)
+			return (len(data), None)
 		
 		def send(self, data):
+			try:
+				self.__sock.send(data)
+				return (0, None)
+			except socket.error as e:
+				return (-1, e)
 			self.__sock.send(data)
 		
 		def send_banner(self, banner = SSH_BANNER):
@@ -199,8 +224,10 @@ class SSH(object):
 				self.__state = self.SM_BANNER_SENT
 		
 		def read_packet(self):
-			if self.unread_len < self.__block_size:
-				self.recv()
+			while self.unread_len < self.__block_size:
+				s, e = self.recv()
+				if s < 0:
+					return -1, e
 			header = self.read(self.__block_size)
 			if len(header) == 0:
 				out.fail('[exception] empty ssh packet (no data)')
@@ -214,8 +241,10 @@ class SSH(object):
 				out.fail('[exception] invalid ssh packet (block size)')
 				sys.exit(1)
 			rlen = packet_size - lrest
-			if self.unread_len < rlen:
-				self.recv()
+			while self.unread_len < rlen:
+				s, e = self.recv()
+				if s < 0:
+					return -1, e
 			buf = self.read(rlen)
 			packet = rest[2:] + buf[0:packet_size - lrest]
 			payload = packet[0:packet_size - padding]
@@ -231,7 +260,7 @@ class SSH(object):
 			plen = len(payload) + padding + 1
 			pad_bytes = b'\x00' * padding
 			data = struct.pack('>Ib', plen, padding) + payload + pad_bytes
-			self.send(data)
+			return self.send(data)
 		
 		def __del__(self):
 			self.__cleanup()
@@ -508,11 +537,15 @@ def output_compatibility(kex, client=False):
 	if len(comp_text) > 0:
 		out.good('[info] compatibility: ' + ', '.join(comp_text))
 
-def output(banner, kex):
-	out.head('# general')
-	out.good('[info] banner: ' + banner)
-	if banner.startswith('SSH-1.99-'):
-		out.fail('[fail] protocol SSH1 enabled')
+def output(banner, header, kex):
+	if banner is not None or kex is not None:
+		out.head('# general')
+	if len(header) > 0:
+		out.info('[info] header: ' + '\n'.join(header))
+	if banner is not None:
+		out.good('[info] banner: ' + banner)
+		if banner.startswith('SSH-1.99-'):
+			out.fail('[fail] protocol SSH1 enabled')
 	if kex is None:
 		return
 	output_compatibility(kex)
@@ -564,14 +597,22 @@ def parse_args():
 def main():
 	host, port = parse_args()
 	s = SSH.Socket(host, port)
-	banner = s.get_banner()
-	packet_type, payload = s.read_packet()
-	if packet_type != SSH.MSG_KEXINIT:
-		output(banner, None)
-		out.fail('[exception] did not receive MSG_KEXINIT (20), instead received unknown message ({0})'.format(packet_type))
+	err = None
+	banner, header = s.get_banner()
+	if banner is None:
+		err = '[exception] did not receive banner.'
+	if err is None:
+		packet_type, payload = s.read_packet()
+		if packet_type < 0:
+			err = '[exception] error reading packet ({0})'.format(payload)
+		elif packet_type != SSH.MSG_KEXINIT:
+			err = '[exception] did not receive MSG_KEXINIT (20), instead received unknown message ({0})'.format(packet_type)
+	if err:
+		output(banner, header, None)
+		out.fail(err)
 		sys.exit(1)
 	kex = Kex.parse(payload)
-	output(banner, kex)
+	output(banner, header, kex)
 
 if __name__ == '__main__':
 	out = Output()
