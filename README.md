@@ -18,9 +18,16 @@ usage: ssh-audit.py [-nv] host[:port]
 Verbose flag will fill each row, i.e, not leave blanks, for easier usage with _batch_ scripts or with manual grepping.
 
 ### example
-![screenshot](https://cloud.githubusercontent.com/assets/7356025/17369542/6e55c228-59a1-11e6-8608-873f7f5e172f.png)  
+![screenshot](https://cloud.githubusercontent.com/assets/7356025/17623665/da5281c8-60a9-11e6-9582-13f9971c22e0.png)  
 
 ## ChangeLog
+### v1.0.20160812
+ - implement compatibility feature
+ - fix wrong mac algorithm warning
+ - fix Dropbear SSH version typo
+ - parse pre-banner header
+ - better errors handling
+
 ### v1.0.20160803
  - use OpenSSH 7.3 banner
  - add new key-exchange algorithms

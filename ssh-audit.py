@@ -30,7 +30,7 @@ SSH_BANNER = 'SSH-2.0-OpenSSH_7.3'
 
 def usage():
 	p = os.path.basename(sys.argv[0])
-	out.head('# {0} v1.0.20160803, moo@arthepsy.eu'.format(p))
+	out.head('# {0} v1.0.20160812, moo@arthepsy.eu'.format(p))
 	out.info('\nusage: {} [-nv] host[:port]\n'.format(p))
 	out.info('   -v  verbose')
 	out.info('   -n  disable colors' + os.linesep)
