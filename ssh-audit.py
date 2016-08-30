@@ -31,7 +31,7 @@ SSH_BANNER = 'SSH-2.0-OpenSSH_7.3'
 def usage():
 	p = os.path.basename(sys.argv[0])
 	out.head('# {0} v1.0.20160812, moo@arthepsy.eu'.format(p))
-	out.info('\nusage: {} [-nv] host[:port]\n'.format(p))
+	out.info('\nusage: {0} [-nv] host[:port]\n'.format(p))
 	out.info('   -v  verbose')
 	out.info('   -n  disable colors' + os.linesep)
 	sys.exit(1)
@@ -169,7 +169,7 @@ class SSH(object):
 				self.__sock = socket.create_connection((host, port), cto)
 				self.__sock.settimeout(rto)
 			except Exception as e:
-				out.fail('[fail] {}'.format(e))
+				out.fail('[fail] {0}'.format(e))
 				sys.exit(1)
 		
 		def __enter__(self):
@@ -526,14 +526,14 @@ def output_compatibility(kex, client=False):
 	comp_text = []
 	for sshd_name, v in ssh_timeframe.items():
 		if v[cp] is None:
-			comp_text.append('{} {}+'.format(sshd_name, v[0]))
+			comp_text.append('{0} {1}+'.format(sshd_name, v[0]))
 		elif v[0] == v[1]:
-			comp_text.append('{} {}'.format(sshd_name, v[0]))
+			comp_text.append('{0} {1}'.format(sshd_name, v[0]))
 		else:
 			if v[1] < v[0]:
-				comp_text.append('{} {}+ (some functionality from {})'.format(sshd_name, v[0], v[1]))
+				comp_text.append('{0} {1}+ (some functionality from {2})'.format(sshd_name, v[0], v[1]))
 			else:
-				comp_text.append('{} {}-{}'.format(sshd_name, v[0], v[1]))
+				comp_text.append('{0} {1}-{2}'.format(sshd_name, v[0], v[1]))
 	if len(comp_text) > 0:
 		out.good('[info] compatibility: ' + ', '.join(comp_text))
 
