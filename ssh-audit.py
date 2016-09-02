@@ -638,6 +638,7 @@ def parse_args():
 			usage()
 		elif o in ('-b', '--batch'):
 			out.batch = True
+			out.verbose = True
 		elif o in ('-n', '--no-colors'):
 			out.colors = False
 		elif o in ('-v', '--verbose'):
