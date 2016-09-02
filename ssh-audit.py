@@ -634,7 +634,7 @@ def parse_args():
 	except getopt.GetoptError as err:
 		usage(str(err))
 	for o, a in opts:
-		if o in ('-h', '--hep'):
+		if o in ('-h', '--help'):
 			usage()
 		elif o in ('-b', '--batch'):
 			out.batch = True
@@ -642,7 +642,7 @@ def parse_args():
 			out.colors = False
 		elif o in ('-v', '--verbose'):
 			out.verbose = True 
-		elif o in ('-l', '--level='):
+		elif o in ('-l', '--level'):
 			if a not in ('info', 'warn', 'fail'):
 				usage('level ' + a + ' is not valid')
 			out.minlevel = a
