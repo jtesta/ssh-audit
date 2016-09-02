@@ -26,6 +26,11 @@ usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/17623665/da5281c8-60a9-11e6-9582-13f9971c22e0.png)  
 
 ## ChangeLog
+### v1.0.20160902
+ - implement batch output option
+ - implement minimum output level option
+ - fix compatibility with Python 2.6
+
 ### v1.0.20160812
  - implement SSH version compatibility feature
  - fix wrong mac algorithm warning
