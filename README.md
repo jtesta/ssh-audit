@@ -11,12 +11,16 @@
 
 ## Usage
 ```
-usage: ssh-audit.py [-nv] host[:port]
+usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
 
-   -v  verbose
-   -n  disable colors
+   -b,  --batch            batch output
+   -n,  --no-colors        disable colors
+   -v,  --verbose          verbose output
+   -l,  --level=<level>    minimum output level (info|warn|fail)
+   
 ```
-Verbose flag will fill each row, i.e, not leave blanks, for easier usage with _batch_ scripts or with manual grepping.
+* batch flag `-b` will output sections without header and without empty lines (implies verbose flag).  
+* verbose flag `-v` will prefix each line with section type and algorithm name.  
 
 ### example
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/17623665/da5281c8-60a9-11e6-9582-13f9971c22e0.png)  
