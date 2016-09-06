@@ -24,7 +24,7 @@
    THE SOFTWARE.
 """
 from __future__ import print_function
-import os, io, sys, socket, struct, random, errno, getopt
+import os, io, sys, socket, struct, random, errno, getopt, re
 
 VERSION = 'v1.0.20160902'
 SSH_BANNER = 'SSH-2.0-OpenSSH_7.3'
@@ -209,6 +209,53 @@ class SSH(object):
 	MSG_KEXDH_INIT  = 30
 	MSG_KEXDH_REPLY = 32
 	
+	class Banner(object):
+		def __init__(self, protocol, software, comments):
+			self.__protocol = protocol
+			self.__software = software
+			self.__comments = comments
+		
+		@property
+		def protocol(self):
+			return self.__protocol
+		
+		@property
+		def software(self):
+			return self.__software
+		
+		@property
+		def comments(self):
+			return self.__comments
+		
+		def __str__(self):
+			out = 'SSH-{0}.{1}'.format(self.protocol[0], self.protocol[1])
+			if self.software is not None:
+				out += '-{0}'.format(self.software)
+			if self.comments:
+				out += ' {0}'.format(self.comments)
+			return out
+		
+		def __repr__(self):
+			p = '{0}.{1}'.format(self.protocol[0], self.protocol[1])
+			out = 'protocol={0}'.format(p)
+			if self.software:
+				out += ', software={0}'.format(self.software)
+			if self.comments:
+				out += ', comments={0}'.format(self.comments)
+			return '<{0}({1})>'.format(self.__class__.__name__, out)
+		
+		@classmethod
+		def parse(cls, banner):
+			mx = re.match(r'^SSH-(\d)\.\s*?(\d+)(|-([^\s]*)(\s+(.*))?)$', banner)
+			if mx is None:
+				return None
+			protocol = (int(mx.group(1)), int(mx.group(2)))
+			software = (mx.group(4) or '').strip() or None
+			if software is None and mx.group(3).startswith('-'):
+				software = ''
+			comments = (mx.group(6) or '').strip() or None
+			return cls(protocol, software, comments)
+	
 	class Socket(ReadBuf, WriteBuf):
 		SM_BANNER_SENT = 1
 		
@@ -239,10 +286,11 @@ class SSH(object):
 					line = self.read_line()
 					if len(line.strip()) == 0:
 						continue
-					if line.startswith('SSH-'):
-						self.__banner = line
-					else:
-						self.__header.append(line)
+					if self.__banner is None:
+						self.__banner = SSH.Banner.parse(line)
+						if self.__banner is not None:
+							continue
+					self.__header.append(line)
 			return self.__banner, self.__header
 		
 		def recv(self, size=2048):
@@ -617,8 +665,8 @@ def output(banner, header, kex):
 		if len(header) > 0:
 			out.info('(gen) header: ' + '\n'.join(header))
 		if banner is not None:
-			out.good('(gen) banner: ' + banner)
-			if banner.startswith('SSH-1.99-'):
+			out.good('(gen) banner: {0}'.format(banner))
+			if banner.protocol[0] == 1:
 				out.fail('(gen) protocol SSH1 enabled')
 		if kex is not None:
 			output_compatibility(kex)
