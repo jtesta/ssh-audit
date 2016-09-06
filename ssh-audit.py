@@ -280,6 +280,8 @@ class SSH(object):
 			while self.unread_len < self.__block_size:
 				s, e = self.recv()
 				if s < 0:
+					if e is None:
+						e = self.read(self.unread_len).strip()
 					return -1, e
 			header = self.read(self.__block_size)
 			if len(header) == 0:
@@ -297,6 +299,8 @@ class SSH(object):
 			while self.unread_len < rlen:
 				s, e = self.recv()
 				if s < 0:
+					if e is None:
+						e = (header + self.read(self.unread_len)).strip()
 					return -1, e
 			buf = self.read(rlen)
 			packet = rest[2:] + buf[0:packet_size - lrest]
