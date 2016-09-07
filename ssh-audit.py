@@ -210,6 +210,9 @@ class SSH(object):
 	MSG_KEXDH_REPLY = 32
 	
 	class Banner(object):
+		_RXP, _RXR = r'SSH-(\d)\.\s*?(\d+)', r'(|-([^\s]*)(\s+(.*))?)'
+		RX_BANNER = re.compile(r'^({0}((-{0})*)){1}$'.format(_RXP, _RXR))
+		
 		def __init__(self, protocol, software, comments):
 			self.__protocol = protocol
 			self.__software = software
@@ -246,20 +249,14 @@ class SSH(object):
 		
 		@classmethod
 		def parse(cls, banner):
-			mx = re.match(r'^SSH-(\d)\.\s*?(\d+)-SSH-(\d)\.\s*?(\d+)(|-.*)$', banner)
-			if mx is not None:
-				p1 = (int(mx.group(1)), int(mx.group(2)))
-				p2 = (int(mx.group(3)), int(mx.group(4)))
-				protocol = p1 if p1 < p2 else p2
-				banner = 'SSH-{0}.{1}{2}'.format(protocol[0], protocol[1], mx.group(5))
-			mx = re.match(r'^SSH-(\d)\.\s*?(\d+)(|-([^\s]*)(\s+(.*))?)$', banner)
+			mx = cls.RX_BANNER.match(banner)
 			if mx is None:
 				return None
-			protocol = (int(mx.group(1)), int(mx.group(2)))
-			software = (mx.group(4) or '').strip() or None
-			if software is None and mx.group(3).startswith('-'):
+			protocol = min(re.findall(cls._RXP, mx.group(1)))
+			software = (mx.group(9) or '').strip() or None
+			if software is None and mx.group(8).startswith('-'):
 				software = ''
-			comments = (mx.group(6) or '').strip() or None
+			comments = (mx.group(11) or '').strip() or None
 			return cls(protocol, software, comments)
 	
 	class Socket(ReadBuf, WriteBuf):
