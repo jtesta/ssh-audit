@@ -210,8 +210,9 @@ class SSH(object):
 	MSG_KEXDH_REPLY = 32
 	
 	class Banner(object):
-		_RXP, _RXR = r'SSH-(\d)\.\s*?(\d+)', r'(|-([^\s]*)(\s+(.*))?)'
-		RX_BANNER = re.compile(r'^({0}((-{0})*)){1}$'.format(_RXP, _RXR))
+		_RXP, _RXR = r'SSH-\d\.\s*?\d+', r'(-([^\s]*)(?:\s+(.*))?)?'
+		RX_PROTOCOL = re.compile(_RXP.replace('\d', '(\d)'))
+		RX_BANNER = re.compile(r'^({0}(?:(?:-{0})*)){1}$'.format(_RXP, _RXR))
 		
 		def __init__(self, protocol, software, comments):
 			self.__protocol = protocol
@@ -252,12 +253,12 @@ class SSH(object):
 			mx = cls.RX_BANNER.match(banner)
 			if mx is None:
 				return None
-			protocol = min(re.findall(cls._RXP, mx.group(1)))
+			protocol = min(re.findall(cls.RX_PROTOCOL, mx.group(1)))
 			protocol = (int(protocol[0]), int(protocol[1]))
-			software = (mx.group(9) or '').strip() or None
-			if software is None and mx.group(8).startswith('-'):
+			software = (mx.group(3) or '').strip() or None
+			if software is None and (mx.group(2) or '').startswith('-'):
 				software = ''
-			comments = (mx.group(11) or '').strip() or None
+			comments = (mx.group(4) or '').strip() or None
 			return cls(protocol, software, comments)
 	
 	class Socket(ReadBuf, WriteBuf):
