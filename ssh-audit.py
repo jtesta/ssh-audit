@@ -209,6 +209,114 @@ class SSH(object):
 	MSG_KEXDH_INIT  = 30
 	MSG_KEXDH_REPLY = 32
 	
+	class Software(object):
+		def __init__(self, vendor, product, version, patch, os):
+			self.__vendor = vendor
+			self.__product = product
+			self.__version = version
+			self.__patch = patch
+			self.__os = os
+		
+		@property
+		def vendor(self):
+			return self.__vendor
+		
+		@property
+		def product(self):
+			return self.__product
+		
+		@property
+		def version(self):
+			return self.__version
+		
+		@property
+		def patch(self):
+			return self.__patch
+		
+		@property
+		def os(self):
+			return self.__os
+		
+		def __str__(self):
+			out = '{0} '.format(self.vendor) if self.vendor else ''
+			out += self.product
+			if self.version:
+				out += ' {0}'.format(self.version)
+			if self.patch:
+				out += ' {0}'.format(self.patch)
+			if self.os:
+				out += ' running on {0}'.format(self.os)
+			return out
+		
+		def __repr__(self):
+			out = 'vendor={0} '.format(self.vendor) if self.vendor else ''
+			if self.product:
+				out += ', product={0}'.format(self.software)
+			if self.version:
+				out += ', version={0}'.format(self.version)
+			if self.patch:
+				out += ', patch={0}'.format(self.patch)
+			if self.os:
+				out += ', os={0}'.format(self.os)
+			return '<{0}({1})>'.format(self.__class__.__name__, out)
+		
+		@staticmethod
+		def _fix_patch(patch):
+			return re.sub(r'^[-_\.]+', '', patch)
+		
+		@staticmethod
+		def _fix_date(d):
+			if d is not None and len(d) == 8:
+				return '{0}-{1}-{2}'.format(d[:4], d[4:6], d[6:8])
+			else:
+				return None
+		
+		@classmethod
+		def _extract_os(cls, c):
+			if c is None:
+				return None
+			mx = re.match(r'^NetBSD(?:_Secure_Shell)?(?:[\s-]+(\d{8})(.*))?$', c)
+			if mx:
+				d = cls._fix_date(mx.group(1))
+				return 'NetBSD' if d is None else 'NetBSD ({0})'.format(d)
+			mx = re.match(r'^FreeBSD(?:\slocalisations)?[\s-]+(\d{8})(.*)$', c)
+			if not mx:
+				mx = re.match(r'^[^@]+@FreeBSD\.org[\s-]+(\d{8})(.*)$', c)
+			if mx:
+				d = cls._fix_date(mx.group(1))
+				return 'FreeBSD' if d is None else 'FreeBSD ({0})'.format(d)
+			generic = ['NetBSD', 'FreeBSD']
+			for g in generic:
+				if c.startswith(g) or c.endswith(g):
+					return g
+			return None
+		
+		@classmethod
+		def parse(cls, banner):
+			software = str(banner.software)
+			mx = re.match(r'^dropbear_(\d+.\d+)(.*)', software)
+			if mx:
+				patch = cls._fix_patch(mx.group(2))
+				v, p = 'Matt Johnston', 'Dropbear SSH'
+				v = None
+				return cls(v, p, mx.group(1), patch, None)
+			mx = re.match(r'^OpenSSH[_\.-]+([\d\.]+\d+)(.*)', software)
+			if mx:
+				patch = cls._fix_patch(mx.group(2))
+				v, p = 'OpenBSD', 'OpenSSH'
+				v = None
+				os = cls._extract_os(banner.comments)
+				return cls(v, p, mx.group(1), patch, os)
+			mx = re.match(r'^mpSSH_([\d\.]+\d+)', software)
+			if mx:
+				v, p = 'HP', 'iLO (Integrated Lights-Out) sshd'
+				return cls(v, p, mx.group(1), None, None)
+			mx = re.match(r'^Cisco-([\d\.]+\d+)', software)
+			if mx:
+				v, p = 'Cisco', 'IOS/PIX sshd'
+				return cls(v, p, mx.group(1), None, None)
+			return None
+	
 	class Banner(object):
 		_RXP, _RXR = r'SSH-\d\.\s*?\d+', r'(-([^\s]*)(?:\s+(.*))?)?'
 		RX_PROTOCOL = re.compile(_RXP.replace('\d', '(\d)'))
@@ -679,6 +787,9 @@ def output(banner, header, kex):
 			out.good('(gen) banner: {0}'.format(banner))
 			if banner.protocol[0] == 1:
 				out.fail('(gen) protocol SSH1 enabled')
+			software = SSH.Software.parse(banner)
+			if software is not None:
+				out.good('(gen) software: {0}'.format(software))
 		if kex is not None:
 			output_compatibility(kex)
 			compressions = [x for x in kex.server.compression if x != 'none']
