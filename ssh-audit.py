@@ -246,6 +246,12 @@ class SSH(object):
 		
 		@classmethod
 		def parse(cls, banner):
+			mx = re.match(r'^SSH-(\d)\.\s*?(\d+)-SSH-(\d)\.\s*?(\d+)(|-.*)$', banner)
+			if mx is not None:
+				p1 = (int(mx.group(1)), int(mx.group(2)))
+				p2 = (int(mx.group(3)), int(mx.group(4)))
+				protocol = p1 if p1 < p2 else p2
+				banner = 'SSH-{0}.{1}{2}'.format(protocol[0], protocol[1], mx.group(5))
 			mx = re.match(r'^SSH-(\d)\.\s*?(\d+)(|-([^\s]*)(\s+(.*))?)$', banner)
 			if mx is None:
 				return None
