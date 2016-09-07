@@ -253,6 +253,7 @@ class SSH(object):
 			if mx is None:
 				return None
 			protocol = min(re.findall(cls._RXP, mx.group(1)))
+			protocol = (int(protocol[0]), int(protocol[1]))
 			software = (mx.group(9) or '').strip() or None
 			if software is None and mx.group(8).startswith('-'):
 				software = ''
