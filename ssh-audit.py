@@ -285,6 +285,12 @@ class SSH(object):
 			if mx:
 				d = cls._fix_date(mx.group(1))
 				return 'FreeBSD' if d is None else 'FreeBSD ({0})'.format(d)
+			w = ['RemotelyAnywhere', 'DesktopAuthority', 'RemoteSupportManager']
+			for win_soft in w:
+				mx = re.match(r'^in ' + win_soft + ' ([\d\.]+\d)$', c)
+				if mx:
+					ver = mx.group(1)
+					return 'Microsoft Windows ({0} {1})'.format(win_soft, ver)
 			generic = ['NetBSD', 'FreeBSD']
 			for g in generic:
 				if c.startswith(g) or c.endswith(g):
