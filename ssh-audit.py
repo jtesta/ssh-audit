@@ -280,6 +280,12 @@ class SSH(object):
 			return self
 		
 		def get_banner(self):
+			rto = self.__sock.gettimeout()
+			self.__sock.settimeout(0.7)
+			s, e = self.recv()
+			self.__sock.settimeout(rto)
+			if s < 0:
+				return self.__banner, self.__header
 			if self.__state < self.SM_BANNER_SENT:
 				self.send_banner()
 			while self.__banner is None:
