@@ -242,8 +242,14 @@ class SSH(object):
 			out += self.product
 			if self.version:
 				out += ' {0}'.format(self.version)
-			if self.patch:
-				out += ' {0}'.format(self.patch)
+			patch = self.patch
+			if self.product == 'OpenSSH':
+				mx = re.match('^(p\d)(.*)$', self.patch)
+				if mx is not None:
+					out += mx.group(1)
+					patch = mx.group(2).strip()
+			if patch:
+				out += ' ({0})'.format(self.patch)
 			if self.os:
 				out += ' running on {0}'.format(self.os)
 			return out
