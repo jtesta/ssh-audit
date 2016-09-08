@@ -768,7 +768,7 @@ def output_algorithm(alg_type, alg_name, alg_max_len=0):
 	prefix = '(' + alg_type + ') '
 	if alg_max_len == 0:
 		alg_max_len = len(alg_name)
-	padding = ' ' * (alg_max_len - len(alg_name))
+	padding = '' if out.batch else ' ' * (alg_max_len - len(alg_name))
 	texts = []
 	if alg_name in KexDB.ALGORITHMS[alg_type]:
 		alg_desc = KexDB.ALGORITHMS[alg_type][alg_name]
@@ -830,7 +830,7 @@ def output_security_cve(software, padlen):
 		if not software.version_between(vfrom, vtill):
 			continue
 		cve, cvss, descr = line[2:5]
-		padding = ' ' * (padlen - len(cve))
+		padding = '' if out.batch else ' ' * (padlen - len(cve))
 		out.fail('(cve) {0}{1} -- ({2}) {3}'.format(cve, padding, cvss, descr))
 
 
