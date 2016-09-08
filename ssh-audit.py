@@ -415,9 +415,10 @@ class SSH(object):
 			if self.__state < self.SM_BANNER_SENT:
 				self.send_banner()
 			while self.__banner is None:
-				s, e = self.recv()
-				if s < 0:
-					break
+				if not s > 0:
+					s, e = self.recv()
+					if s < 0:
+						break
 				while self.__banner is None and self.unread_len > 0:
 					line = self.read_line()
 					if len(line.strip()) == 0:
