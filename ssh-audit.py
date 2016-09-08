@@ -407,6 +407,11 @@ class SSH(object):
 				['0.28', '0.42',    'CVE-2004-2486', 7.5, 'execute arbitrary code via DSS verification code.'],
 			]
 		}
+		TXT = {
+			'Dropbear SSH': [
+				['0.28', '0.34', 'remote root exploit', 'remote format string buffer overflow exploit (exploit-db#387).'],
+			]
+		}
 	
 	class Socket(ReadBuf, WriteBuf):
 		SM_BANNER_SENT = 1
@@ -834,10 +839,23 @@ def output_security_cve(software, padlen):
 		out.fail('(cve) {0}{1} -- ({2}) {3}'.format(cve, padding, cvss, descr))
 
 
+def output_security_txt(software, padlen):
+	if software is None or software.product not in SSH.Security.TXT:
+		return
+	for line in SSH.Security.TXT[software.product]:
+		vfrom, vtill = line[0:2]
+		if not software.version_between(vfrom, vtill):
+			continue
+		head, descr = line[2:4]
+		padding = '' if out.batch else ' ' * (padlen - len(head))
+		out.fail('(sec) {0}{1} -- {2}'.format(head, padding, descr))
+
+
 def output_security(banner, padlen):
 	with OutputBuffer() as obuf:
 		software = SSH.Software.parse(banner)
 		output_security_cve(software, padlen)
+		output_security_txt(software, padlen)
 	if len(obuf) > 0:
 		out.head('# security')
 		obuf.flush()
