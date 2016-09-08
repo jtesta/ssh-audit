@@ -862,7 +862,7 @@ def output(banner, header, kex):
 				cmptxt = 'enabled ({0})'.format(', '.join(compressions))
 			else:
 				cmptxt = 'disabled'
-			out.good('(gen) compression is ' + cmptxt)
+			out.good('(gen) compression: {0}'.format(cmptxt))
 	if len(obuf) > 0:
 		out.head('# general')
 		obuf.flush()
