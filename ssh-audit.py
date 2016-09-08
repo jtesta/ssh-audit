@@ -776,7 +776,10 @@ def output_compatibility(kex, client=False):
 	ssh_timeframe = get_ssh_timeframe(kex)
 	cp = 2 if client else 1
 	comp_text = []
-	for sshd_name, v in ssh_timeframe.items():
+	for sshd_name in ['OpenSSH', 'Dropbear SSH']:
+		if sshd_name not in ssh_timeframe:
+			continue
+		v = ssh_timeframe[sshd_name]
 		if v[cp] is None:
 			comp_text.append('{0} {1}+'.format(sshd_name, v[0]))
 		elif v[0] == v[1]:
