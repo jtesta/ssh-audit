@@ -242,6 +242,13 @@ class SSH(object):
 		def os(self):
 			return self.__os
 		
+		def version_between(self, vfrom, vtill):
+			if vfrom and vfrom > self.version:
+				return False
+			if vtill and vtill < self.version:
+				return False
+			return True
+		
 		def __str__(self):
 			out = '{0} '.format(self.vendor) if self.vendor else ''
 			out += self.product
@@ -385,6 +392,21 @@ class SSH(object):
 				software = ''
 			comments = (mx.group(4) or '').strip() or None
 			return cls(protocol, software, comments)
+	
+	class Security(object):
+		CVE = {
+			'Dropbear SSH': [
+				['0.44', '2015.71', 'CVE-2016-3116', 5.5, 'bypass command restrictions via xauth command injection.'],
+				['0.28', '2013.58', 'CVE-2013-4434', 5.0, 'discover valid usernames through different time delays.'],
+				['0.28', '2013.58', 'CVE-2013-4421', 5.0, 'cause DoS (memory consumption) via a compressed packet.'],
+				['0.52', '2011.54', 'CVE-2012-0920', 7.1, 'execute arbitrary code or bypass command restrictions.'],
+				['0.40', '0.48.1',  'CVE-2007-1099', 7.5, 'conduct a MitM attack (no warning for hostkey mismatch).'],
+				['0.28', '0.47',    'CVE-2006-1206', 7.5, 'cause DoS (slot exhaustion) via large number of connections.'],
+				['0.39', '0.47',    'CVE-2006-0225', 4.6, 'execute arbitrary commands via scp with crafted filenames.'],
+				['0.28', '0.46',    'CVE-2005-4178', 6.5, 'execute arbitrary code via buffer overflow vulnerability.'],
+				['0.28', '0.42',    'CVE-2004-2486', 7.5, 'execute arbitrary code via DSS verification code.'],
+			]
+		}
 	
 	class Socket(ReadBuf, WriteBuf):
 		SM_BANNER_SENT = 1
@@ -800,6 +822,28 @@ def output_compatibility(kex, client=False):
 		out.good('(gen) compatibility: ' + ', '.join(comp_text))
 
 
+def output_security_cve(software, padlen):
+	if software is None or software.product not in SSH.Security.CVE:
+		return
+	for line in SSH.Security.CVE[software.product]:
+		vfrom, vtill = line[0:2]
+		if not software.version_between(vfrom, vtill):
+			continue
+		cve, cvss, descr = line[2:5]
+		padding = ' ' * (padlen - len(cve))
+		out.fail('(cve) {0}{1} -- ({2}) {3}'.format(cve, padding, cvss, descr))
+
+
+def output_security(banner, padlen):
+	with OutputBuffer() as obuf:
+		software = SSH.Software.parse(banner)
+		output_security_cve(software, padlen)
+	if len(obuf) > 0:
+		out.head('# security')
+		obuf.flush()
+		out.sep()
+
+
 def output(banner, header, kex):
 	with OutputBuffer() as obuf:
 		if len(header) > 0:
@@ -823,13 +867,17 @@ def output(banner, header, kex):
 		out.head('# general')
 		obuf.flush()
 		out.sep()
+	if kex is not None:
+		ml = lambda l: max(len(i) for i in l)
+		maxlen = max(ml(kex.kex_algorithms),
+		             ml(kex.key_algorithms),
+		             ml(kex.server.encryption),
+		             ml(kex.server.mac))
+	else:
+		maxlen = 0
+	output_security(banner, maxlen)
 	if kex is None:
 		return
-	ml = lambda l: max(len(i) for i in l)
-	maxlen = max(ml(kex.kex_algorithms),
-	             ml(kex.key_algorithms),
-	             ml(kex.server.encryption),
-	             ml(kex.server.mac))
 	title, alg_type = 'key exchange algorithms', 'kex'
 	output_algorithms(title, alg_type, kex.kex_algorithms, maxlen)
 	title, alg_type = 'host-key algorithms', 'key'
