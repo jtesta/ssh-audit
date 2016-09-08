@@ -26,7 +26,7 @@
 from __future__ import print_function
 import os, io, sys, socket, struct, random, errno, getopt, re
 
-VERSION = 'v1.0.20160902'
+VERSION = 'v1.0.20160908'
 SSH_BANNER = 'SSH-2.0-OpenSSH_7.3'
 
 
