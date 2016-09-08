@@ -1,0 +1,9 @@
+inherits:
+    - strictness_veryhigh
+
+pep8:
+    disable:
+        - W191
+        - W293
+        - E501
+        - E221
