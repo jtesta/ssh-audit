@@ -269,7 +269,9 @@ class SSH(object):
 		def __repr__(self):
 			out = 'vendor={0} '.format(self.vendor) if self.vendor else ''
 			if self.product:
-				out += ', product={0}'.format(self.software)
+				if self.vendor:
+					out += ', '
+				out += 'product={0}'.format(self.product)
 			if self.version:
 				out += ', version={0}'.format(self.version)
 			if self.patch:
