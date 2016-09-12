@@ -242,10 +242,39 @@ class SSH(object):
 		def os(self):
 			return self.__os
 		
-		def version_between(self, vfrom, vtill):
-			if vfrom and vfrom > self.version:
+		def compare_version(self, other):
+			if other is None:
+				return 1
+			if isinstance(other, self.__class__):
+				other = '{0}{1}'.format(other.version, other.patch)
+			else:
+				other = str(other)
+			mx = re.match(r'^([\d\.]+\d+)(.*)$', other)
+			if mx:
+				oversion, opatch = mx.group(1), mx.group(2).strip()
+			else:
+				oversion, opatch = other, ''
+			if self.version < oversion:
+				return -1
+			elif self.version > oversion:
+				return 1
+			if self.product == SSH.Product.DropbearSSH:
+				if not re.match(r'^test\d.*$', opatch):
+					opatch = 'z{0}'.format(opatch)
+				if not re.match(r'^test\d.*$', self.patch):
+					spatch = 'z{0}'.format(self.patch)
+				else:
+					spatch = self.patch
+				if spatch < opatch:
+					return -1
+				elif spatch > opatch:
+					return 1
+			return 0
+		
+		def between_versions(self, vfrom, vtill):
+			if vfrom and self.compare_version(vfrom) < 0:
 				return False
-			if vtill and vtill < self.version:
+			if vtill and self.compare_version(vtill) > 0:
 				return False
 			return True
 		
@@ -320,7 +349,7 @@ class SSH(object):
 		@classmethod
 		def parse(cls, banner):
 			software = str(banner.software)
-			mx = re.match(r'^dropbear_(\d+.\d+)(.*)', software)
+			mx = re.match(r'^dropbear_([\d\.]+\d+)(.*)', software)
 			if mx:
 				patch = cls._fix_patch(mx.group(2))
 				v, p = 'Matt Johnston', SSH.Product.DropbearSSH
@@ -834,7 +863,7 @@ def output_security_cve(software, padlen):
 		return
 	for line in SSH.Security.CVE[software.product]:
 		vfrom, vtill = line[0:2]
-		if not software.version_between(vfrom, vtill):
+		if not software.between_versions(vfrom, vtill):
 			continue
 		cve, cvss, descr = line[2:5]
 		padding = '' if out.batch else ' ' * (padlen - len(cve))
@@ -846,7 +875,7 @@ def output_security_txt(software, padlen):
 		return
 	for line in SSH.Security.TXT[software.product]:
 		vfrom, vtill = line[0:2]
-		if not software.version_between(vfrom, vtill):
+		if not software.between_versions(vfrom, vtill):
 			continue
 		head, descr = line[2:4]
 		padding = '' if out.batch else ' ' * (padlen - len(head))
