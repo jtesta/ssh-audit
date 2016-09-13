@@ -434,20 +434,20 @@ class SSH(object):
 	class Security(object):
 		CVE = {
 			'Dropbear SSH': [
-				['0.44', '2015.71', 'CVE-2016-3116', 5.5, 'bypass command restrictions via xauth command injection.'],
-				['0.28', '2013.58', 'CVE-2013-4434', 5.0, 'discover valid usernames through different time delays.'],
-				['0.28', '2013.58', 'CVE-2013-4421', 5.0, 'cause DoS (memory consumption) via a compressed packet.'],
-				['0.52', '2011.54', 'CVE-2012-0920', 7.1, 'execute arbitrary code or bypass command restrictions.'],
-				['0.40', '0.48.1',  'CVE-2007-1099', 7.5, 'conduct a MitM attack (no warning for hostkey mismatch).'],
-				['0.28', '0.47',    'CVE-2006-1206', 7.5, 'cause DoS (slot exhaustion) via large number of connections.'],
-				['0.39', '0.47',    'CVE-2006-0225', 4.6, 'execute arbitrary commands via scp with crafted filenames.'],
-				['0.28', '0.46',    'CVE-2005-4178', 6.5, 'execute arbitrary code via buffer overflow vulnerability.'],
-				['0.28', '0.42',    'CVE-2004-2486', 7.5, 'execute arbitrary code via DSS verification code.'],
+				['0.44', '2015.71', 1, 'CVE-2016-3116', 5.5, 'bypass command restrictions via xauth command injection.'],
+				['0.28', '2013.58', 1, 'CVE-2013-4434', 5.0, 'discover valid usernames through different time delays.'],
+				['0.28', '2013.58', 1, 'CVE-2013-4421', 5.0, 'cause DoS (memory consumption) via a compressed packet.'],
+				['0.52', '2011.54', 1, 'CVE-2012-0920', 7.1, 'execute arbitrary code or bypass command restrictions.'],
+				['0.40', '0.48.1',  1, 'CVE-2007-1099', 7.5, 'conduct a MitM attack (no warning for hostkey mismatch).'],
+				['0.28', '0.47',    1, 'CVE-2006-1206', 7.5, 'cause DoS (slot exhaustion) via large number of connections.'],
+				['0.39', '0.47',    1, 'CVE-2006-0225', 4.6, 'execute arbitrary commands via scp with crafted filenames.'],
+				['0.28', '0.46',    1, 'CVE-2005-4178', 6.5, 'execute arbitrary code via buffer overflow vulnerability.'],
+				['0.28', '0.42',    1, 'CVE-2004-2486', 7.5, 'execute arbitrary code via DSS verification code.'],
 			]
 		}
 		TXT = {
 			'Dropbear SSH': [
-				['0.28', '0.34', 'remote root exploit', 'remote format string buffer overflow exploit (exploit-db#387).'],
+				['0.28', '0.34', 1, 'remote root exploit', 'remote format string buffer overflow exploit (exploit-db#387).'],
 			]
 		}
 	
@@ -865,35 +865,32 @@ def output_compatibility(kex, client=False):
 		out.good('(gen) compatibility: ' + ', '.join(comp_text))
 
 
-def output_security_cve(software, padlen):
-	if software is None or software.product not in SSH.Security.CVE:
+def output_security_sub(sub, software, padlen):
+	secdb = SSH.Security.CVE if sub == 'cve' else SSH.Security.TXT
+	if software is None or software.product not in secdb:
 		return
-	for line in SSH.Security.CVE[software.product]:
+	for line in secdb[software.product]:
 		vfrom, vtill = line[0:2]
 		if not software.between_versions(vfrom, vtill):
 			continue
-		cve, cvss, descr = line[2:5]
-		padding = '' if out.batch else ' ' * (padlen - len(cve))
-		out.fail('(cve) {0}{1} -- ({2}) {3}'.format(cve, padding, cvss, descr))
-
-
-def output_security_txt(software, padlen):
-	if software is None or software.product not in SSH.Security.TXT:
-		return
-	for line in SSH.Security.TXT[software.product]:
-		vfrom, vtill = line[0:2]
-		if not software.between_versions(vfrom, vtill):
+		target, name = line[2:4]
+		is_server, is_client = target & 1 == 1, target & 2 == 2
+		if is_client:
 			continue
-		head, descr = line[2:4]
-		padding = '' if out.batch else ' ' * (padlen - len(head))
-		out.fail('(sec) {0}{1} -- {2}'.format(head, padding, descr))
+		p = '' if out.batch else ' ' * (padlen - len(name))
+		if sub == 'cve':
+			cvss, descr = line[4:6]
+			out.fail('(cve) {0}{1} -- ({2}) {3}'.format(name, p, cvss, descr))
+		else:
+			descr = line[4]
+			out.fail('(sec) {0}{1} -- {2}'.format(name, p, descr))
 
 
 def output_security(banner, padlen):
 	with OutputBuffer() as obuf:
 		software = SSH.Software.parse(banner)
-		output_security_cve(software, padlen)
-		output_security_txt(software, padlen)
+		output_security_sub('cve', software, padlen)
+		output_security_sub('txt', software, padlen)
 	if len(obuf) > 0:
 		out.head('# security')
 		obuf.flush()
