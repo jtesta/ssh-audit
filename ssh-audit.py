@@ -258,17 +258,24 @@ class SSH(object):
 				return -1
 			elif self.version > oversion:
 				return 1
+			spatch = self.patch
 			if self.product == SSH.Product.DropbearSSH:
 				if not re.match(r'^test\d.*$', opatch):
 					opatch = 'z{0}'.format(opatch)
 				if not re.match(r'^test\d.*$', self.patch):
 					spatch = 'z{0}'.format(self.patch)
-				else:
-					spatch = self.patch
-				if spatch < opatch:
-					return -1
-				elif spatch > opatch:
-					return 1
+			elif self.product == SSH.Product.OpenSSH:
+				mx1 = re.match(r'^p\d(.*)', opatch)
+				mx2 = re.match(r'^p\d(.*)', self.patch)
+				if not (mx1 and mx2):
+					if mx1:
+						opatch = mx1.group(1)
+					if mx2:
+						spatch = mx2.group(1)
+			if spatch < opatch:
+				return -1
+			elif spatch > opatch:
+				return 1
 			return 0
 		
 		def between_versions(self, vfrom, vtill):

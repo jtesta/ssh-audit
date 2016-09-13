@@ -11,6 +11,10 @@ class TestVersionCompare(object):
 		b = self.ssh.Banner.parse('SSH-2.0-dropbear_{0}'.format(v))
 		return self.ssh.Software.parse(b)
 	
+	def get_openssh_software(self, v):
+		b = self.ssh.Banner.parse('SSH-2.0-OpenSSH_{0}'.format(v))
+		return self.ssh.Software.parse(b)
+	
 	def test_dropbear_compare_version_pre_years(self):
 		s = self.get_dropbear_software('0.44')
 		assert s.compare_version('0.43') > 0
@@ -68,6 +72,57 @@ class TestVersionCompare(object):
 		for i in range(l):
 			v = versions[i]
 			s = self.get_dropbear_software(v)
+			assert s.compare_version(v) == 0
+			if i - 1 >= 0:
+				vbefore = versions[i - 1]
+				assert s.compare_version(vbefore) > 0
+			if i + 1 < l:
+				vnext = versions[i + 1]
+				assert s.compare_version(vnext) < 0
+	
+	def test_openssh_compare_version_simple(self):
+		s = self.get_openssh_software('3.7.1')
+		assert s.compare_version('3.7') > 0
+		assert s.compare_version('3.7.1') == 0
+		assert s.compare_version('3.8') < 0
+		assert s.between_versions('3.7', '3.8') == True
+		
+		
+	def test_openssh_compare_version_patchlevel(self):
+		s1 = self.get_openssh_software('2.1.1')
+		s2 = self.get_openssh_software('2.1.1p2')
+		assert s1.compare_version('2.1.1p1') == 0
+		assert s1.compare_version('2.1.1p2') == 0
+		assert s2.compare_version('2.1.1') == 0
+		assert s2.compare_version('2.1.1p1') > 0
+		assert s2.compare_version('2.1.1p3') < 0
+	
+	def test_openbsd_compare_version_sequential(self):
+		versions = []
+		for v in ['1.2.3', '2.1.0', '2.1.1', '2.2.0', '2.3.0']:
+			versions.append(v)
+		for v in ['2.5.0', '2.5.1', '2.5.2', '2.9', '2.9.9']:
+			versions.append(v)
+		for v in ['3.0', '3.0.1', '3.0.2', '3.1', '3.2.2', '3.2.3']:
+			versions.append(v)
+		for i in range(3, 7):
+			versions.append('3.{0}'.format(i))
+		for v in ['3.6.1', '3.7.0', '3.7.1']:
+			versions.append(v)
+		for i in range(8, 10):
+			versions.append('3.{0}'.format(i))
+		for i in range(0, 10):
+			versions.append('4.{0}'.format(i))
+		for i in range(0, 10):
+			versions.append('5.{0}'.format(i))
+		for i in range(0, 10):
+			versions.append('6.{0}'.format(i))
+		for i in range(0, 4):
+			versions.append('7.{0}'.format(i))
+		l = len(versions)
+		for i in range(l):
+			v = versions[i]
+			s = self.get_openssh_software(v)
 			assert s.compare_version(v) == 0
 			if i - 1 >= 0:
 				vbefore = versions[i - 1]
