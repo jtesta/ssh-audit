@@ -493,6 +493,7 @@ class SSH(object):
 						if self.__banner is not None:
 							continue
 					self.__header.append(line)
+				s = 0
 			return self.__banner, self.__header
 		
 		def recv(self, size=2048):
@@ -888,9 +889,10 @@ def output_security_sub(sub, software, padlen):
 
 def output_security(banner, padlen):
 	with OutputBuffer() as obuf:
-		software = SSH.Software.parse(banner)
-		output_security_sub('cve', software, padlen)
-		output_security_sub('txt', software, padlen)
+		if banner:
+			software = SSH.Software.parse(banner)
+			output_security_sub('cve', software, padlen)
+			output_security_sub('txt', software, padlen)
 	if len(obuf) > 0:
 		out.head('# security')
 		obuf.flush()
