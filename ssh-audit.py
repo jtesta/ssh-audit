@@ -172,17 +172,27 @@ class ReadBuf(object):
 		n = self.read_int()
 		return self.read(n)
 	
-	def read_mpint2(self):
-		# NOTE: Section 5 @ https://www.ietf.org/rfc/rfc4251.txt 
-		r, v = 0, self.read_string()
-		if len(v) == 0:
-			return r
-		pad, sf = (b'\xff', '>i') if ord(v[0:1]) & 0x80 else (b'\x00', '>I')
+	def _parse_mpint(self, v, pad, sf):
+		r = 0
 		if len(v) % 4:
 			v = pad * (4 - (len(v) % 4)) + v
 		for i in range(0, len(v), 4):
 			r = (r << 32) | struct.unpack(sf, v[i:i + 4])[0]
 		return r
+		
+	def read_mpint1(self):
+		# NOTE: Data Type Enc @ http://www.snailbook.com/docs/protocol-1.5.txt
+		bits = struct.unpack('>H', self.read(2))[0]
+		n = (bits + 7) // 8
+		return self._parse_mpint(self.read(n), b'\x00', '>I')
+	
+	def read_mpint2(self):
+		# NOTE: Section 5 @ https://www.ietf.org/rfc/rfc4251.txt
+		v = self.read_string()
+		if len(v) == 0:
+			return 0
+		pad, sf = (b'\xff', '>i') if ord(v[0:1]) & 0x80 else (b'\x00', '>I')
+		return self._parse_mpint(v, pad, sf)
 	
 	def read_line(self):
 		return self._buf.readline().rstrip().decode('utf-8')
@@ -215,13 +225,27 @@ class WriteBuf(object):
 	def write_list(self, v):
 		self.write_string(u','.join(v))
 	
-	def write_mpint2(self, v):
-		# NOTE: Section 5 @ https://www.ietf.org/rfc/rfc4251.txt 
+	def _create_mpint(self, v):
 		length = v.bit_length() // 8 + (1 if v != 0 else 0)
-		data = [(v >> i * 8) & 0xff for i in reversed(range(length))]
-		if length > 1 and data[0] == 0xff and data[1] & 0x80:
-			data.pop(0)
-		data = bytes(bytearray(data))
+		ql = (length + 7) // 8
+		fmt, v2 = '>{0}Q'.format(ql), [b'\x00'] * ql
+		for i in range(ql):
+			v2[ql - i - 1] = (v & 0xffffffffffffffff)
+			v >>= 64
+		data = bytes(struct.pack(fmt, *v2)[-length:])
+		if data.startswith(b'\xff\x80'):
+			data = data[1:]
+		return data
+	
+	def write_mpint1(self, v):
+		# NOTE: Data Type Enc @ http://www.snailbook.com/docs/protocol-1.5.txt
+		data = self._create_mpint(v)
+		self.write(struct.pack('>H', v.bit_length()))
+		return self.write(data)
+	
+	def write_mpint2(self, v):
+		# NOTE: Section 5 @ https://www.ietf.org/rfc/rfc4251.txt
+		data = self._create_mpint(v)
 		return self.write_string(data)
 	
 	def write_flush(self):
