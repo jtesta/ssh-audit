@@ -1000,7 +1000,7 @@ def get_ssh_version(version_desc):
 		return (SSH.Product.OpenSSH, version_desc)
 
 
-def get_alg_timeframe(alg_desc, result={}):
+def get_alg_timeframe(alg_desc, for_server=True, result={}):
 	versions = alg_desc[0]
 	vlen = len(versions)
 	for i in range(3):
@@ -1015,6 +1015,12 @@ def get_alg_timeframe(alg_desc, result={}):
 			continue
 		for v in cversions.split(','):
 			ssh_prefix, ssh_version = get_ssh_version(v)
+			if not ssh_version:
+				continue
+			if ssh_version.endswith('C'):
+				if for_server:
+					continue
+				ssh_version = ssh_version[:-1]
 			if ssh_prefix not in result:
 				result[ssh_prefix] = [None, None, None]
 			prev, push = result[ssh_prefix][i], False
@@ -1029,19 +1035,17 @@ def get_alg_timeframe(alg_desc, result={}):
 	return result
 
 
-def get_ssh_timeframe(kex):
-	alg_timeframe = {}
-	algs = {'kex': kex.kex_algorithms,
-	        'key': kex.key_algorithms,
-	        'enc': kex.server.encryption,
-	        'mac': kex.server.mac}
-	for alg_type, alg_list in algs.items():
-		for alg_name in alg_list:
-			alg_desc = KexDB.ALGORITHMS[alg_type].get(alg_name)
-			if alg_desc is None:
-				continue
-			alg_timeframe = get_alg_timeframe(alg_desc, alg_timeframe)
-	return alg_timeframe
+def get_ssh_timeframe(alg_pairs, for_server=True):
+	timeframe = {}
+	for alg_pair in alg_pairs:
+		alg_db, algs = alg_pair
+		for alg_type, alg_list in algs.items():
+			for alg_name in alg_list:
+				alg_desc = alg_db[alg_type].get(alg_name)
+				if alg_desc is None:
+					continue
+				timeframe = get_alg_timeframe(alg_desc, for_server, timeframe)
+	return timeframe
 
 
 def get_alg_since_text(alg_desc):
@@ -1110,7 +1114,14 @@ def output_algorithm(alg_type, alg_name, alg_max_len=0):
 
 
 def output_compatibility(kex, for_server=True):
-	ssh_timeframe = get_ssh_timeframe(kex)
+	alg_pairs = []
+	if kex is not None:
+		alg_pairs.append((KexDB.ALGORITHMS,
+		                  {'kex': kex.kex_algorithms,
+		                   'key': kex.key_algorithms,
+		                   'enc': kex.server.encryption,
+		                   'mac': kex.server.mac}))
+	ssh_timeframe = get_ssh_timeframe(alg_pairs, for_server)
 	vp = 1 if for_server else 2
 	comp_text = []
 	for sshd_name in [SSH.Product.OpenSSH, SSH.Product.DropbearSSH]:
