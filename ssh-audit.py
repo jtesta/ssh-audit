@@ -36,8 +36,10 @@ def usage(err=None):
 	out.head('# {0} {1}, moo@arthepsy.eu'.format(p, VERSION))
 	if err is not None:
 		out.fail('\n' + err)
-	out.info('\nusage: {0} [-bnv] [-l <level>] <host[:port]>\n'.format(p))
+	out.info('\nusage: {0} [-12bnv] [-l <level>] <host[:port]>\n'.format(p))
 	out.info('   -h,  --help             print this help')
+	out.info('   -1,  --ssh1             force ssh version 1 only')
+	out.info('   -2,  --ssh2             force ssh version 2 only')
 	out.info('   -b,  --batch            batch output')
 	out.info('   -n,  --no-colors        disable colors')
 	out.info('   -v,  --verbose          verbose output')
@@ -45,6 +47,45 @@ def usage(err=None):
 	out.sep()
 	sys.exit(1)
 
+
+class AuditConf(object):
+	def __init__(self):
+		self.__host = None
+		self.__port = 22
+		self.__ssh1 = False
+		self.__ssh2 = False
+	
+	@property
+	def host(self):
+		return self.__host
+	
+	@host.setter
+	def host(self, v):
+		self.__host = v
+	
+	@property
+	def port(self):
+		return self.__port
+	
+	@port.setter
+	def port(self, v):
+		self.__port = v
+	
+	@property
+	def ssh1(self):
+		return self.__ssh1
+	
+	@ssh1.setter
+	def ssh1(self, v):
+		self.__ssh1 = v
+	
+	@property
+	def ssh2(self):
+		return self.__ssh2
+	
+	@ssh2.setter
+	def ssh2(self, v):
+		self.__ssh2 = v
 
 class Output(object):
 	LEVELS = ['info', 'warn', 'fail']
@@ -1159,16 +1200,20 @@ def parse_int(v):
 
 
 def parse_args():
-	host, port = None, 22
+	conf = AuditConf()
 	try:
-		sopts = 'hbnvl:'
-		lopts = ['help', 'batch', 'no-colors', 'verbose', 'level=']
+		sopts = 'h12bnvl:'
+		lopts = ['help', 'ssh1', 'ssh2', 'batch', 'no-colors', 'verbose', 'level=']
 		opts, args = getopt.getopt(sys.argv[1:], sopts, lopts)
 	except getopt.GetoptError as err:
 		usage(str(err))
 	for o, a in opts:
 		if o in ('-h', '--help'):
 			usage()
+		elif o in ('-1', '--ssh1'):
+			conf.ssh1 = True
+		elif o in ('-2', '--ssh2'):
+			conf.ssh2 = True
 		elif o in ('-b', '--batch'):
 			out.batch = True
 			out.verbose = True
@@ -1183,16 +1228,23 @@ def parse_args():
 	if len(args) == 0:
 		usage()
 	s = args[0].split(':')
-	host = s[0].strip()
+	host, port = s[0].strip(), 22
 	if len(s) > 1:
 		port = parse_int(s[1])
 	if not host or port <= 0:
 		usage('port {0} is not valid'.format(port))
-	return host, port
+	conf.host = host
+	conf.port = port
+	if not (conf.ssh1 or conf.ssh2):
+		conf.ssh1 = True
+		conf.ssh2 = True
+	return conf
 
 
-def audit(host, port, sshv=2):
-	s = SSH.Socket(host, port)
+def audit(conf, sshv=None):
+	s = SSH.Socket(conf.host, conf.port)
+	if sshv is None:
+		sshv = 2 if conf.ssh2 else 1
 	err = None
 	banner, header = s.get_banner(sshv)
 	if banner is None:
@@ -1201,8 +1253,8 @@ def audit(host, port, sshv=2):
 		packet_type, payload = s.read_packet(sshv)
 		if packet_type < 0:
 			if payload == b'Protocol major versions differ.':
-				if sshv == 2:
-					audit(host, port, 1)
+				if sshv == 2 and conf.ssh1:
+					audit(conf, 1)
 					return
 			err = '[exception] error reading packet ({0})'.format(payload)
 		else:
@@ -1226,11 +1278,7 @@ def audit(host, port, sshv=2):
 		output(banner, header, kex=kex)
 
 
-def main():
-	host, port = parse_args()
-	audit(host, port)
-
-
 if __name__ == '__main__':
 	out = Output()
-	main()
+	conf = parse_args()
+	audit(conf)
