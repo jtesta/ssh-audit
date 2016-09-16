@@ -1109,24 +1109,24 @@ def output_algorithm(alg_type, alg_name, alg_max_len=0):
 				f(' ' * len(prefix + alg_name) + padding + ' `- ' + text)
 
 
-def output_compatibility(kex, client=False):
+def output_compatibility(kex, for_server=True):
 	ssh_timeframe = get_ssh_timeframe(kex)
-	cp = 2 if client else 1
+	vp = 1 if for_server else 2
 	comp_text = []
 	for sshd_name in [SSH.Product.OpenSSH, SSH.Product.DropbearSSH]:
 		if sshd_name not in ssh_timeframe:
 			continue
 		v = ssh_timeframe[sshd_name]
-		if v[cp] is None:
+		if v[vp] is None:
 			comp_text.append('{0} {1}+'.format(sshd_name, v[0]))
-		elif v[0] == v[1]:
+		elif v[0] == v[vp]:
 			comp_text.append('{0} {1}'.format(sshd_name, v[0]))
 		else:
-			if v[1] < v[0]:
+			if v[vp] < v[0]:
 				tfmt = '{0} {1}+ (some functionality from {2})'
 			else:
 				tfmt = '{0} {1}-{2}'
-			comp_text.append(tfmt.format(sshd_name, v[0], v[1]))
+			comp_text.append(tfmt.format(sshd_name, v[0], v[vp]))
 	if len(comp_text) > 0:
 		out.good('(gen) compatibility: ' + ', '.join(comp_text))
 
