@@ -87,6 +87,7 @@ class AuditConf(object):
 	def ssh2(self, v):
 		self.__ssh2 = v
 
+
 class Output(object):
 	LEVELS = ['info', 'warn', 'fail']
 	COLORS = {'head': 36, 'good': 32, 'warn': 33, 'fail': 31}
@@ -1046,9 +1047,17 @@ def get_ssh_timeframe(kex):
 def get_alg_since_text(alg_desc):
 	tv = []
 	versions = alg_desc[0]
+	if len(versions) == 0 or versions[0] is None:
+		return None
 	for v in versions[0].split(','):
 		ssh_prefix, ssh_version = get_ssh_version(v)
+		if not ssh_version:
+			continue
+		if ssh_version.endswith('C'):
+			ssh_version = '{0} (client only)'.format(ssh_version[:-1])
 		tv.append('{0} {1}'.format(ssh_prefix, ssh_version))
+	if len(tv) == 0:
+		return None
 	return 'available since ' + ', '.join(tv).rstrip(', ')
 
 
@@ -1073,7 +1082,9 @@ def output_algorithm(alg_type, alg_name, alg_max_len=0):
 		ldesc = len(alg_desc)
 		for idx, level in enumerate(['fail', 'warn', 'info']):
 			if level == 'info':
-				texts.append((level, get_alg_since_text(alg_desc)))
+				since_text = get_alg_since_text(alg_desc)
+				if since_text:
+					texts.append((level, since_text))
 			idx = idx + 1
 			if ldesc > idx:
 				for t in alg_desc[idx]:
