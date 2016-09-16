@@ -589,6 +589,12 @@ class SSH(object):
 				v = None
 				os = cls._extract_os(banner.comments)
 				return cls(v, p, mx.group(1), patch, os)
+			mx = re.match(r'^RomSShell_([\d\.]+\d+)(.*)', software)
+			if mx:
+				patch = cls._fix_patch(mx.group(2))
+				v, p = 'Allegro Software', 'RomSShell'
+				return cls(v, p, mx.group(1), patch, None)
+
 			mx = re.match(r'^mpSSH_([\d\.]+\d+)', software)
 			if mx:
 				v, p = 'HP', 'iLO (Integrated Lights-Out) sshd'
