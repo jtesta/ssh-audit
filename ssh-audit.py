@@ -205,12 +205,39 @@ class SSH1(object):
 			return crc
 	
 	_crc32 = CRC32()
-	CIPHERS = [None, 'idea', 'des', '3des', 'tss', 'rc4', 'blowfish']
+	CIPHERS = ['none', 'idea', 'des', '3des', 'tss', 'rc4', 'blowfish']
 	AUTHS = [None, 'rhosts', 'rsa', 'password', 'rhosts_rsa', 'tis', 'kerberos']
 	
 	@classmethod
 	def crc32(cls, v):
 		return cls._crc32.calc(v)
+	
+	class KexDB(object):
+		FAIL_PLAINTEXT        = 'no encryption/integrity'
+		FAIL_OPENSSH37_REMOVE = 'removed since OpenSSH 3.7'
+		FAIL_NA_BROKEN        = 'not implemented in OpenSSH, broken algorithm'
+		FAIL_NA_UNSAFE        = 'not implemented in OpenSSH (server), unsafe algorithm'
+		TEXT_CIPHER_IDEA      = 'cipher used by commercial SSH'
+		
+		ALGORITHMS = {
+			'enc': {
+				'none': [['1.2.2'], [FAIL_PLAINTEXT]],
+				'idea': [[None], [], [], [TEXT_CIPHER_IDEA]],
+				'des': [['2.3.0C'], [FAIL_NA_UNSAFE]],
+				'3des': [['1.2.2']],
+				'tss': [[''], [FAIL_NA_BROKEN]],
+				'rc4': [[], [FAIL_NA_BROKEN]],
+				'blowfish': [['1.2.2']],
+			},
+			'aut': {
+				'rhosts': [['1.2.2', '3.6'], [FAIL_OPENSSH37_REMOVE]],
+				'rsa': [['1.2.2']],
+				'password': [['1.2.2']],
+				'rhosts_rsa': [['1.2.2']],
+				'tis': [['1.2.2']],
+				'kerberos': [['1.2.2', '3.6'], [FAIL_OPENSSH37_REMOVE]],
+			}
+		}
 	
 	class PublicKeyMessage(object):
 		def __init__(self, cookie, skey, hkey, pflags, cmask, amask):
@@ -274,7 +301,7 @@ class SSH1(object):
 		@property
 		def supported_authentications(self):
 			auths = []
-			for i in range(len(SSH1.AUTHS)):
+			for i in range(1, len(SSH1.AUTHS)):
 				if self.__supported_authentications_mask & (1 << i) != 0:
 					auths.append(SSH1.AUTHS[i])
 			return auths
@@ -597,7 +624,6 @@ class SSH(object):
 				patch = cls._fix_patch(mx.group(2))
 				v, p = 'Allegro Software', 'RomSShell'
 				return cls(v, p, mx.group(1), patch, None)
-
 			mx = re.match(r'^mpSSH_([\d\.]+\d+)', software)
 			if mx:
 				v, p = 'HP', 'iLO (Integrated Lights-Out) sshd'
@@ -1115,8 +1141,12 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 				f(' ' * len(prefix + alg_name) + padding + ' `- ' + text)
 
 
-def output_compatibility(kex, for_server=True):
+def output_compatibility(kex, pkm, for_server=True):
 	alg_pairs = []
+	if pkm is not None:
+		alg_pairs.append((SSH1.KexDB.ALGORITHMS,
+		                  {'enc': pkm.supported_ciphers,
+		                   'aut': pkm.supported_authentications}))
 	if kex is not None:
 		alg_pairs.append((KexDB.ALGORITHMS,
 		                  {'kex': kex.kex_algorithms,
@@ -1189,8 +1219,8 @@ def output(banner, header, kex=None, pkm=None):
 			software = SSH.Software.parse(banner)
 			if software is not None:
 				out.good('(gen) software: {0}'.format(software))
+		output_compatibility(kex, pkm)
 		if kex is not None:
-			output_compatibility(kex)
 			compressions = [x for x in kex.server.compression if x != 'none']
 			if len(compressions) > 0:
 				cmptxt = 'enabled ({0})'.format(', '.join(compressions))
@@ -1201,15 +1231,26 @@ def output(banner, header, kex=None, pkm=None):
 		out.head('# general')
 		obuf.flush()
 		out.sep()
+	ml, maxlen = lambda l: max(len(i) for i in l), 0
+	if pkm is not None:
+		maxlen = max(ml(pkm.supported_ciphers),
+		             ml(pkm.supported_authentications),
+		             maxlen)
 	if kex is not None:
-		ml = lambda l: max(len(i) for i in l)
 		maxlen = max(ml(kex.kex_algorithms),
 		             ml(kex.key_algorithms),
 		             ml(kex.server.encryption),
-		             ml(kex.server.mac))
-	else:
-		maxlen = 0
+		             ml(kex.server.mac),
+		             maxlen)
 	output_security(banner, maxlen)
+	if pkm is not None:
+		alg_db = SSH1.KexDB.ALGORITHMS
+		ciphers = pkm.supported_ciphers
+		auths = pkm.supported_authentications
+		title, alg_type = 'SSH1 encryption algorithms (ciphers)', 'enc'
+		output_algorithms(title, alg_db, alg_type, ciphers, maxlen)
+		title, alg_type = 'SSH1 authentication types', 'aut'
+		output_algorithms(title, alg_db, alg_type, auths, maxlen)
 	if kex is None:
 		return
 	alg_db = KexDB.ALGORITHMS
