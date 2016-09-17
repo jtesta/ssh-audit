@@ -1065,24 +1065,24 @@ def get_alg_since_text(alg_desc):
 	return 'available since ' + ', '.join(tv).rstrip(', ')
 
 
-def output_algorithms(title, alg_type, algorithms, maxlen=0):
+def output_algorithms(title, alg_db, alg_type, algorithms, maxlen=0):
 	with OutputBuffer() as obuf:
 		for algorithm in algorithms:
-			output_algorithm(alg_type, algorithm, maxlen)
+			output_algorithm(alg_db, alg_type, algorithm, maxlen)
 	if len(obuf) > 0:
 		out.head('# ' + title)
 		obuf.flush()
 		out.sep()
 
 
-def output_algorithm(alg_type, alg_name, alg_max_len=0):
+def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 	prefix = '(' + alg_type + ') '
 	if alg_max_len == 0:
 		alg_max_len = len(alg_name)
 	padding = '' if out.batch else ' ' * (alg_max_len - len(alg_name))
 	texts = []
-	if alg_name in KexDB.ALGORITHMS[alg_type]:
-		alg_desc = KexDB.ALGORITHMS[alg_type][alg_name]
+	if alg_name in alg_db[alg_type]:
+		alg_desc = alg_db[alg_type][alg_name]
 		ldesc = len(alg_desc)
 		for idx, level in enumerate(['fail', 'warn', 'info']):
 			if level == 'info':
@@ -1210,14 +1210,15 @@ def output(banner, header, kex=None, pkm=None):
 	output_security(banner, maxlen)
 	if kex is None:
 		return
+	alg_db = KexDB.ALGORITHMS
 	title, alg_type = 'key exchange algorithms', 'kex'
-	output_algorithms(title, alg_type, kex.kex_algorithms, maxlen)
+	output_algorithms(title, alg_db, alg_type, kex.kex_algorithms, maxlen)
 	title, alg_type = 'host-key algorithms', 'key'
-	output_algorithms(title, alg_type, kex.key_algorithms, maxlen)
+	output_algorithms(title, alg_db, alg_type, kex.key_algorithms, maxlen)
 	title, alg_type = 'encryption algorithms (ciphers)', 'enc'
-	output_algorithms(title, alg_type, kex.server.encryption, maxlen)
+	output_algorithms(title, alg_db, alg_type, kex.server.encryption, maxlen)
 	title, alg_type = 'message authentication code algorithms', 'mac'
-	output_algorithms(title, alg_type, kex.server.mac, maxlen)
+	output_algorithms(title, alg_db, alg_type, kex.server.mac, maxlen)
 
 
 def parse_int(v):
