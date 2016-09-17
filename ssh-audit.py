@@ -24,7 +24,7 @@
    THE SOFTWARE.
 """
 from __future__ import print_function
-import os, io, sys, socket, struct, random, errno, getopt, re
+import os, io, sys, socket, struct, random, errno, getopt, re, hashlib, base64
 
 VERSION = 'v1.0.20160915'
 
@@ -277,6 +277,12 @@ class SSH1(object):
 		@property
 		def host_key_public_modulus(self):
 			return self.__host_key[2]
+		
+		@property
+		def host_key_fingerprint_data(self):
+			mod = WriteBuf._create_mpint(self.host_key_public_modulus, False)
+			e = WriteBuf._create_mpint(self.host_key_public_exponent, False)
+			return mod + e
 		
 		@property
 		def protocol_flags(self):
@@ -685,6 +691,22 @@ class SSH(object):
 				software = ''
 			comments = (mx.group(4) or '').strip() or None
 			return cls(protocol, software, comments)
+	
+	class Fingerprint(object):
+		def __init__(self, fpd):
+			self.__fpd = fpd
+		
+		@property
+		def md5(self):
+			h = hashlib.md5(self.__fpd).hexdigest()
+			h = u':'.join(h[i:i + 2] for i in range(0, len(h), 2))
+			return u'MD5:{0}'.format(h)
+		
+		@property
+		def sha256(self):
+			h = base64.b64encode(hashlib.sha256(self.__fpd).digest())
+			h = h.decode().rstrip('=')
+			return u'SHA256:{0}'.format(h)
 	
 	class Security(object):
 		CVE = {
