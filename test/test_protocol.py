@@ -20,7 +20,8 @@ class TestProtocol(object):
 		mpint1r = lambda x: self.rbuf(x).read_mpint1()
 		tc = [(0x0,     '00 00'),
 		      (0x1234,  '00 0d 12 34'),
-		      (0x12345, '00 11 01 23 45')]
+		      (0x12345, '00 11 01 23 45'),
+		      (0xdeadbeef, '00 20 de ad be ef')]
 		for p in tc:
 			assert mpint1w(p[0]) == self._b(p[1])
 			assert mpint1r(self._b(p[1])) == p[0]

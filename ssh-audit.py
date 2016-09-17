@@ -390,7 +390,7 @@ class WriteBuf(object):
 			return len(bin(n)) - (2 if n > 0 else 3)
 		
 	@classmethod
-	def _create_mpint(cls, n, bits=None):
+	def _create_mpint(cls, n, signed=True, bits=None):
 		if bits is None:
 			bits = cls._bitlength(n)
 		length = bits // 8 + (1 if n != 0 else 0)
@@ -400,14 +400,16 @@ class WriteBuf(object):
 			v2[ql - i - 1] = (n & 0xffffffffffffffff)
 			n >>= 64
 		data = bytes(struct.pack(fmt, *v2)[-length:])
-		if data.startswith(b'\xff\x80'):
+		if not signed:
+			data = data.lstrip(b'\x00')
+		elif data.startswith(b'\xff\x80'):
 			data = data[1:]
 		return data
 	
 	def write_mpint1(self, n):
 		# NOTE: Data Type Enc @ http://www.snailbook.com/docs/protocol-1.5.txt
 		bits = self._bitlength(n)
-		data = self._create_mpint(n, bits)
+		data = self._create_mpint(n, False, bits)
 		self.write(struct.pack('>H', bits))
 		return self.write(data)
 	
