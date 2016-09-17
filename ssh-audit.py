@@ -220,6 +220,9 @@ class SSH1(object):
 		TEXT_CIPHER_IDEA      = 'cipher used by commercial SSH'
 		
 		ALGORITHMS = {
+			'key': {
+				'ssh-rsa1': [['1.2.2']],
+			},
 			'enc': {
 				'none': [['1.2.2'], [FAIL_PLAINTEXT]],
 				'idea': [[None], [], [], [TEXT_CIPHER_IDEA]],
@@ -1167,7 +1170,8 @@ def output_compatibility(kex, pkm, for_server=True):
 	alg_pairs = []
 	if pkm is not None:
 		alg_pairs.append((SSH1.KexDB.ALGORITHMS,
-		                  {'enc': pkm.supported_ciphers,
+		                  {'key': ['ssh-rsa1'],
+		                   'enc': pkm.supported_ciphers,
 		                   'aut': pkm.supported_authentications}))
 	if kex is not None:
 		alg_pairs.append((KexDB.ALGORITHMS,
@@ -1269,6 +1273,8 @@ def output(banner, header, kex=None, pkm=None):
 		alg_db = SSH1.KexDB.ALGORITHMS
 		ciphers = pkm.supported_ciphers
 		auths = pkm.supported_authentications
+		title, alg_type = 'SSH1 host-key algorithms', 'key'
+		output_algorithms(title, alg_db, alg_type, ['ssh-rsa1'], maxlen)
 		title, alg_type = 'SSH1 encryption algorithms (ciphers)', 'enc'
 		output_algorithms(title, alg_db, alg_type, ciphers, maxlen)
 		title, alg_type = 'SSH1 authentication types', 'aut'
