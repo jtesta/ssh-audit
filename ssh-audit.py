@@ -1270,26 +1270,25 @@ def output(banner, header, kex=None, pkm=None):
 		             maxlen)
 	output_security(banner, maxlen)
 	if pkm is not None:
-		alg_db = SSH1.KexDB.ALGORITHMS
+		adb = SSH1.KexDB.ALGORITHMS
 		ciphers = pkm.supported_ciphers
 		auths = pkm.supported_authentications
-		title, alg_type = 'SSH1 host-key algorithms', 'key'
-		output_algorithms(title, alg_db, alg_type, ['ssh-rsa1'], maxlen)
-		title, alg_type = 'SSH1 encryption algorithms (ciphers)', 'enc'
-		output_algorithms(title, alg_db, alg_type, ciphers, maxlen)
-		title, alg_type = 'SSH1 authentication types', 'aut'
-		output_algorithms(title, alg_db, alg_type, auths, maxlen)
-	if kex is None:
-		return
-	alg_db = KexDB.ALGORITHMS
-	title, alg_type = 'key exchange algorithms', 'kex'
-	output_algorithms(title, alg_db, alg_type, kex.kex_algorithms, maxlen)
-	title, alg_type = 'host-key algorithms', 'key'
-	output_algorithms(title, alg_db, alg_type, kex.key_algorithms, maxlen)
-	title, alg_type = 'encryption algorithms (ciphers)', 'enc'
-	output_algorithms(title, alg_db, alg_type, kex.server.encryption, maxlen)
-	title, alg_type = 'message authentication code algorithms', 'mac'
-	output_algorithms(title, alg_db, alg_type, kex.server.mac, maxlen)
+		title, atype = 'SSH1 host-key algorithms', 'key'
+		output_algorithms(title, adb, atype, ['ssh-rsa1'], maxlen)
+		title, atype = 'SSH1 encryption algorithms (ciphers)', 'enc'
+		output_algorithms(title, adb, atype, ciphers, maxlen)
+		title, atype = 'SSH1 authentication types', 'aut'
+		output_algorithms(title, adb, atype, auths, maxlen)
+	if kex is not None:
+		adb = KexDB.ALGORITHMS
+		title, atype = 'key exchange algorithms', 'kex'
+		output_algorithms(title, adb, atype, kex.kex_algorithms, maxlen)
+		title, atype = 'host-key algorithms', 'key'
+		output_algorithms(title, adb, atype, kex.key_algorithms, maxlen)
+		title, atype = 'encryption algorithms (ciphers)', 'enc'
+		output_algorithms(title, adb, atype, kex.server.encryption, maxlen)
+		title, atype = 'message authentication code algorithms', 'mac'
+		output_algorithms(title, adb, atype, kex.server.mac, maxlen)
 
 
 def parse_int(v):
