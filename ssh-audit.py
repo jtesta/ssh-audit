@@ -1233,6 +1233,25 @@ def output_security(banner, padlen):
 		out.sep()
 
 
+def output_fingerprint(kex, pkm, sha256=True, padlen=0):
+	with OutputBuffer() as obuf:
+		fps = []
+		if pkm is not None:
+			name = 'ssh-rsa1'
+			fp = SSH.Fingerprint(pkm.host_key_fingerprint_data)
+			bits = pkm.host_key_bits
+			fps.append((name, fp, bits))
+		for fpp in fps:
+			name, fp, bits = fpp
+			fp = fp.sha256 if sha256 else fp.md5
+			p = '' if out.batch else ' ' * (padlen - len(name))
+			out.good('(fin) {0}{1} -- {2} {3}'.format(name, p, bits, fp))
+	if len(obuf) > 0:
+		out.head('# fingerprints')
+		obuf.flush()
+		out.sep()
+
+
 def output(banner, header, kex=None, pkm=None):
 	sshv = 1 if pkm else 2
 	with OutputBuffer() as obuf:
@@ -1289,6 +1308,7 @@ def output(banner, header, kex=None, pkm=None):
 		output_algorithms(title, adb, atype, kex.server.encryption, maxlen)
 		title, atype = 'message authentication code algorithms', 'mac'
 		output_algorithms(title, adb, atype, kex.server.mac, maxlen)
+	output_fingerprint(kex, pkm, True, maxlen)
 
 
 def parse_int(v):
