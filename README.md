@@ -2,17 +2,21 @@
 **ssh-audit** is a tool for ssh server auditing.  
 
 ## Features
-- grab banner, detect ssh1 protocol and zlib compression;
+- SSH1 and SSH2 protocol server support;
+- grab banner, recognize device or software and operating system, detect compression;
 - gather key-exchange, host-key, encryption and message authentication code algorithms;
 - output algorithm information (available since, removed/disabled, unsafe/weak/legacy, etc);
+- output security information (related issues, assigned CVE list, etc);
 - analyze SSH version compatibility based on algorithm information;
 - historical information from OpenSSH and Dropbear SSH;
-- no dependencies, compatible with python2 and python3;
+- no dependencies, compatible with Python2 and Python3;
 
 ## Usage
 ```
 usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
 
+   -1,  --ssh1             force ssh version 1 only
+   -2,  --ssh2             force ssh version 1 only
    -b,  --batch            batch output
    -n,  --no-colors        disable colors
    -v,  --verbose          verbose output
@@ -26,6 +30,17 @@ usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/17623665/da5281c8-60a9-11e6-9582-13f9971c22e0.png)  
 
 ## ChangeLog
+
+### v1.5.0 (2016-09-20)
+ - create security section for related security information
+ - match and output assigned CVE list and security issues for Dropbear SSH
+ - implement full SSH1 support with fingerprint information
+ - automatically fallback to SSH1 on protocol mismatch
+ - add new options to force SSH1 or SSH2 (both allowed by default)
+ - parse banner information and convert it to specific sofware and OS version
+ - do not use padding in batch mode
+ - several fixes (Cisco sshd, rare hangs, error handling, etc)
+
 ### v1.0.20160902
  - implement batch output option
  - implement minimum output level option
