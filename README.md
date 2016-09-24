@@ -16,7 +16,7 @@
 usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
 
    -1,  --ssh1             force ssh version 1 only
-   -2,  --ssh2             force ssh version 1 only
+   -2,  --ssh2             force ssh version 2 only
    -b,  --batch            batch output
    -n,  --no-colors        disable colors
    -v,  --verbose          verbose output
