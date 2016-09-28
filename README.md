@@ -1,4 +1,5 @@
 # ssh-audit
+[![build status](https://api.travis-ci.org/arthepsy/ssh-audit.svg)](https://travis-ci.org/arthepsy/ssh-audit)  
 **ssh-audit** is a tool for ssh server auditing.  
 
 ## Features
