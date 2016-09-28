@@ -517,15 +517,15 @@ class SSH(object):
 				return -1
 			elif self.version > oversion:
 				return 1
-			spatch = self.patch
+			spatch = self.patch or ''
 			if self.product == SSH.Product.DropbearSSH:
 				if not re.match(r'^test\d.*$', opatch):
 					opatch = 'z{0}'.format(opatch)
-				if not re.match(r'^test\d.*$', self.patch):
-					spatch = 'z{0}'.format(self.patch)
+				if not re.match(r'^test\d.*$', spatch):
+					spatch = 'z{0}'.format(spatch)
 			elif self.product == SSH.Product.OpenSSH:
 				mx1 = re.match(r'^p\d(.*)', opatch)
-				mx2 = re.match(r'^p\d(.*)', self.patch)
+				mx2 = re.match(r'^p\d(.*)', spatch)
 				if not (mx1 and mx2):
 					if mx1:
 						opatch = mx1.group(1)
@@ -544,22 +544,26 @@ class SSH(object):
 				return False
 			return True
 		
-		def __str__(self):
+		def display(self, full=True):
 			out = '{0} '.format(self.vendor) if self.vendor else ''
 			out += self.product
 			if self.version:
 				out += ' {0}'.format(self.version)
-			patch = self.patch
-			if self.product == SSH.Product.OpenSSH:
-				mx = re.match('^(p\d)(.*)$', self.patch)
-				if mx is not None:
-					out += mx.group(1)
-					patch = mx.group(2).strip()
-			if patch:
-				out += ' ({0})'.format(self.patch)
-			if self.os:
-				out += ' running on {0}'.format(self.os)
+			if full:
+				patch = self.patch or ''
+				if self.product == SSH.Product.OpenSSH:
+					mx = re.match('^(p\d)(.*)$', patch)
+					if mx is not None:
+						out += mx.group(1)
+						patch = mx.group(2).strip()
+				if patch:
+					out += ' ({0})'.format(patch)
+				if self.os:
+					out += ' running on {0}'.format(self.os)
 			return out
+		
+		def __str__(self):
+			return self.display()
 		
 		def __repr__(self):
 			out = 'vendor={0} '.format(self.vendor) if self.vendor else ''
