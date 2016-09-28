@@ -1140,6 +1140,84 @@ def get_alg_pairs(kex, pkm):
 	return alg_pairs
 
 
+def get_alg_recommendations(software, kex, pkm, for_server=True):
+	alg_pairs = get_alg_pairs(kex, pkm)
+	if software is None:
+		ssh_timeframe = get_ssh_timeframe(alg_pairs, for_server)
+		for product in [SSH.Product.OpenSSH, SSH.Product.DropbearSSH]:
+			if product not in ssh_timeframe:
+				continue
+			version = ssh_timeframe[product][0]
+			if version is not None:
+				software = SSH.Software(None, product, version, None, None)
+				break
+	recommendations = {'.software': software}
+	if software is None:
+		return recommendations
+	for alg_pair in alg_pairs:
+		sshv, alg_db = alg_pair[0]
+		alg_sets = alg_pair[1:]
+		recommendations[sshv] = {}
+		for alg_set in alg_sets:
+			alg_type, alg_list = alg_set
+			if alg_type == 'aut':
+				continue
+			recommendations[sshv][alg_type] = {'add': [], 'del': []}
+			for n, alg_desc in alg_db[alg_type].items():
+				if alg_type == 'key' and '-cert-' in n:
+					continue
+				versions = alg_desc[0]
+				if len(versions) == 0 or versions[0] is None:
+					continue
+				matches = False
+				for v in versions[0].split(','):
+					ssh_prefix, ssh_version = get_ssh_version(v)
+					if not ssh_version:
+						continue
+					if ssh_prefix != software.product:
+						continue
+					if ssh_version.endswith('C'):
+						if for_server:
+							continue
+						ssh_version = ssh_version[:-1]
+					if software.compare_version(ssh_version) < 0:
+						continue
+					matches = True
+					break
+				if not matches:
+					continue
+				adl, faults = len(alg_desc), 0
+				for i in range(1, 3):
+					if adl > i and len(alg_desc[i]) > 0:
+						faults += 1
+				if n not in alg_list:
+					if faults > 0:
+						continue
+					recommendations[sshv][alg_type]['add'].append(n)
+				else:
+					if faults == 0:
+						continue
+					if n == 'diffie-hellman-group-exchange-sha256':
+						if software.compare_version('7.3') < 0:
+							continue
+					recommendations[sshv][alg_type]['del'].append(n)
+			add_count = len(recommendations[sshv][alg_type]['add'])
+			del_count = len(recommendations[sshv][alg_type]['del'])
+			new_alg_count = len(alg_list) + add_count - del_count
+			if new_alg_count < 1:
+				del recommendations[sshv][alg_type]
+			else:
+				if add_count == 0:
+					del recommendations[sshv][alg_type]['add']
+				if del_count == 0:
+					del recommendations[sshv][alg_type]['del']
+				if len(recommendations[sshv][alg_type]) == 0:
+					del recommendations[sshv][alg_type]
+		if len(recommendations[sshv]) == 0:
+			del recommendations[sshv]
+	return recommendations
+
+
 def output_algorithms(title, alg_db, alg_type, algorithms, maxlen=0):
 	with OutputBuffer() as obuf:
 		for algorithm in algorithms:
@@ -1263,6 +1341,36 @@ def output_fingerprint(kex, pkm, sha256=True, padlen=0):
 		out.sep()
 
 
+def output_recommendations(software, kex, pkm, padlen=0):
+	for_server = True
+	with OutputBuffer() as obuf:
+		alg_rec = get_alg_recommendations(software, kex, pkm, for_server)
+		software = alg_rec['.software']
+		for sshv in range(2, 0, -1):
+			if sshv not in alg_rec:
+				continue
+			for alg_type in ['kex', 'key', 'enc', 'mac']:
+				if alg_type not in alg_rec[sshv]:
+					continue
+				for action in ['del', 'add']:
+					if action not in alg_rec[sshv][alg_type]:
+						continue
+					for name in alg_rec[sshv][alg_type][action]:
+						p = '' if out.batch else ' ' * (padlen - len(name))
+						if action == 'del':
+							an, sg, fn = 'remove', '-', out.warn
+						else:
+							an, sg, fn = 'append', '+', out.good
+						b = '(SSH{0})'.format(sshv) if sshv == 1 else ''
+						fm = '(rec) {0}{1}{2}-- {3} algorithm to {4} {5}'
+						fn(fm.format(sg, name, p, alg_type, an, b))
+	if len(obuf) > 0:
+		title = '(for {0})'.format(software.display(False)) if software else ''
+		out.head('# algorithm recommendations {0}'.format(title))
+		obuf.flush()
+		out.sep()
+
+
 def output(banner, header, kex=None, pkm=None):
 	sshv = 1 if pkm else 2
 	with OutputBuffer() as obuf:
@@ -1275,6 +1383,8 @@ def output(banner, header, kex=None, pkm=None):
 			software = SSH.Software.parse(banner)
 			if software is not None:
 				out.good('(gen) software: {0}'.format(software))
+		else:
+			software = None
 		output_compatibility(kex, pkm)
 		if kex is not None:
 			compressions = [x for x in kex.server.compression if x != 'none']
@@ -1298,6 +1408,7 @@ def output(banner, header, kex=None, pkm=None):
 		             ml(kex.server.encryption),
 		             ml(kex.server.mac),
 		             maxlen)
+	maxlen += 1
 	output_security(banner, maxlen)
 	if pkm is not None:
 		adb = SSH1.KexDB.ALGORITHMS
@@ -1319,6 +1430,7 @@ def output(banner, header, kex=None, pkm=None):
 		output_algorithms(title, adb, atype, kex.server.encryption, maxlen)
 		title, atype = 'message authentication code algorithms', 'mac'
 		output_algorithms(title, adb, atype, kex.server.mac, maxlen)
+	output_recommendations(software, kex, pkm, maxlen)
 	output_fingerprint(kex, pkm, True, maxlen)
 
 
