@@ -1095,8 +1095,10 @@ def get_alg_timeframe(alg_desc, for_server=True, result={}):
 def get_ssh_timeframe(alg_pairs, for_server=True):
 	timeframe = {}
 	for alg_pair in alg_pairs:
-		alg_db, algs = alg_pair
-		for alg_type, alg_list in algs.items():
+		sshv, alg_db = alg_pair[0]
+		alg_sets = alg_pair[1:]
+		for alg_set in alg_sets:
+			alg_type, alg_list = alg_set
 			for alg_name in alg_list:
 				alg_desc = alg_db[alg_type].get(alg_name)
 				if alg_desc is None:
@@ -1120,6 +1122,22 @@ def get_alg_since_text(alg_desc):
 	if len(tv) == 0:
 		return None
 	return 'available since ' + ', '.join(tv).rstrip(', ')
+
+
+def get_alg_pairs(kex, pkm):
+	alg_pairs = []
+	if pkm is not None:
+		alg_pairs.append(((1, SSH1.KexDB.ALGORITHMS),
+		                  ('key', ['ssh-rsa1']),
+		                  ('enc', pkm.supported_ciphers),
+		                  ('aut', pkm.supported_authentications)))
+	if kex is not None:
+		alg_pairs.append(((2, KexDB.ALGORITHMS),
+		                  ('kex', kex.kex_algorithms),
+		                  ('key', kex.key_algorithms),
+		                  ('enc', kex.server.encryption),
+		                  ('mac', kex.server.mac)))
+	return alg_pairs
 
 
 def output_algorithms(title, alg_db, alg_type, algorithms, maxlen=0):
@@ -1171,18 +1189,7 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 
 
 def output_compatibility(kex, pkm, for_server=True):
-	alg_pairs = []
-	if pkm is not None:
-		alg_pairs.append((SSH1.KexDB.ALGORITHMS,
-		                  {'key': ['ssh-rsa1'],
-		                   'enc': pkm.supported_ciphers,
-		                   'aut': pkm.supported_authentications}))
-	if kex is not None:
-		alg_pairs.append((KexDB.ALGORITHMS,
-		                  {'kex': kex.kex_algorithms,
-		                   'key': kex.key_algorithms,
-		                   'enc': kex.server.encryption,
-		                   'mac': kex.server.mac}))
+	alg_pairs = get_alg_pairs(kex, pkm)
 	ssh_timeframe = get_ssh_timeframe(alg_pairs, for_server)
 	vp = 1 if for_server else 2
 	comp_text = []
