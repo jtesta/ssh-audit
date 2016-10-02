@@ -1142,6 +1142,9 @@ def get_alg_pairs(kex, pkm):
 
 def get_alg_recommendations(software, kex, pkm, for_server=True):
 	alg_pairs = get_alg_pairs(kex, pkm)
+	if software is not None:
+		if software.product not in [SSH.Product.OpenSSH, SSH.Product.DropbearSSH]:
+			software = None
 	if software is None:
 		ssh_timeframe = get_ssh_timeframe(alg_pairs, for_server)
 		for product in [SSH.Product.OpenSSH, SSH.Product.DropbearSSH]:
