@@ -1181,18 +1181,18 @@ def get_alg_recommendations(software, kex, pkm, for_server=True):
 			if version is not None:
 				software = SSH.Software(None, product, version, None, None)
 				break
-	recommendations = {'.software': software}
+	rec = {'.software': software}
 	if software is None:
-		return recommendations
+		return rec
 	for alg_pair in alg_pairs:
 		sshv, alg_db = alg_pair[0]
 		alg_sets = alg_pair[1:]
-		recommendations[sshv] = {}
+		rec[sshv] = {}
 		for alg_set in alg_sets:
 			alg_type, alg_list = alg_set
 			if alg_type == 'aut':
 				continue
-			recommendations[sshv][alg_type] = {'add': [], 'del': []}
+			rec[sshv][alg_type] = {'add': [], 'del': {}}
 			for n, alg_desc in alg_db[alg_type].items():
 				if alg_type == 'key' and '-cert-' in n:
 					continue
@@ -1218,34 +1218,45 @@ def get_alg_recommendations(software, kex, pkm, for_server=True):
 					continue
 				adl, faults = len(alg_desc), 0
 				for i in range(1, 3):
-					if adl > i and len(alg_desc[i]) > 0:
-						faults += 1
+					if not adl > i:
+						continue
+					fc = len(alg_desc[i])
+					if fc > 0:
+						faults += pow(10, 2 - i) * fc
 				if n not in alg_list:
 					if faults > 0:
 						continue
-					recommendations[sshv][alg_type]['add'].append(n)
+					rec[sshv][alg_type]['add'].append(n)
 				else:
 					if faults == 0:
 						continue
 					if n == 'diffie-hellman-group-exchange-sha256':
 						if software.compare_version('7.3') < 0:
 							continue
-					recommendations[sshv][alg_type]['del'].append(n)
-			add_count = len(recommendations[sshv][alg_type]['add'])
-			del_count = len(recommendations[sshv][alg_type]['del'])
+					rec[sshv][alg_type]['del'][n] = faults
+			add_count = len(rec[sshv][alg_type]['add'])
+			del_count = len(rec[sshv][alg_type]['del'])
 			new_alg_count = len(alg_list) + add_count - del_count
+			if new_alg_count < 1 and del_count > 0:
+				mf, new_del = min(rec[sshv][alg_type]['del'].values()), {}
+				for k, v in rec[sshv][alg_type]['del'].items():
+					if v != mf:
+						new_del[k] = v
+				if del_count != len(new_del):
+					rec[sshv][alg_type]['del'] = new_del
+					new_alg_count += del_count - len(new_del)
 			if new_alg_count < 1:
-				del recommendations[sshv][alg_type]
+				del rec[sshv][alg_type]
 			else:
 				if add_count == 0:
-					del recommendations[sshv][alg_type]['add']
+					del rec[sshv][alg_type]['add']
 				if del_count == 0:
-					del recommendations[sshv][alg_type]['del']
-				if len(recommendations[sshv][alg_type]) == 0:
-					del recommendations[sshv][alg_type]
-		if len(recommendations[sshv]) == 0:
-			del recommendations[sshv]
-	return recommendations
+					del rec[sshv][alg_type]['del']
+				if len(rec[sshv][alg_type]) == 0:
+					del rec[sshv][alg_type]
+		if len(rec[sshv]) == 0:
+			del rec[sshv]
+	return rec
 
 
 def output_algorithms(title, alg_db, alg_type, algorithms, maxlen=0):
@@ -1390,6 +1401,8 @@ def output_recommendations(software, kex, pkm, padlen=0):
 						p = '' if out.batch else ' ' * (padlen - len(name))
 						if action == 'del':
 							an, sg, fn = 'remove', '-', out.warn
+							if alg_rec[sshv][alg_type][action][name] >= 10:
+								fn = out.fail
 						else:
 							an, sg, fn = 'append', '+', out.good
 						b = '(SSH{0})'.format(sshv) if sshv == 1 else ''
