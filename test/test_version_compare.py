@@ -2,10 +2,11 @@
 # -*- coding: utf-8 -*-
 import pytest
 
+
 class TestVersionCompare(object):
 	@pytest.fixture(autouse=True)
 	def init(self, ssh_audit):
-		self.ssh = ssh_audit.SSH 
+		self.ssh = ssh_audit.SSH
 	
 	def get_dropbear_software(self, v):
 		b = self.ssh.Banner.parse('SSH-2.0-dropbear_{0}'.format(v))
@@ -15,26 +16,30 @@ class TestVersionCompare(object):
 		b = self.ssh.Banner.parse('SSH-2.0-OpenSSH_{0}'.format(v))
 		return self.ssh.Software.parse(b)
 	
+	def get_libssh_software(self, v):
+		b = self.ssh.Banner.parse('SSH-2.0-libssh-{0}'.format(v))
+		return self.ssh.Software.parse(b)
+	
 	def test_dropbear_compare_version_pre_years(self):
 		s = self.get_dropbear_software('0.44')
 		assert s.compare_version('0.43') > 0
 		assert s.compare_version('0.44') == 0
 		assert s.compare_version('0.45') < 0
-		assert s.between_versions('0.43', '0.45') == True
+		assert s.between_versions('0.43', '0.45')
 	
 	def test_dropbear_compare_version_with_years(self):
 		s = self.get_dropbear_software('2015.71')
 		assert s.compare_version('2014.67') > 0
 		assert s.compare_version('2015.71') == 0
 		assert s.compare_version('2016.74') < 0
-		assert s.between_versions('2014.67', '2016.74') == True
+		assert s.between_versions('2014.67', '2016.74')
 	
 	def test_dropbear_compare_version_mixed(self):
 		s = self.get_dropbear_software('0.53.1')
 		assert s.compare_version('0.53') > 0
 		assert s.compare_version('0.53.1') == 0
 		assert s.compare_version('2011.54') < 0
-		assert s.between_versions('0.53', '2011.54') == True
+		assert s.between_versions('0.53', '2011.54')
 	
 	def test_dropbear_compare_version_patchlevel(self):
 		s1 = self.get_dropbear_software('0.44')
@@ -85,9 +90,8 @@ class TestVersionCompare(object):
 		assert s.compare_version('3.7') > 0
 		assert s.compare_version('3.7.1') == 0
 		assert s.compare_version('3.8') < 0
-		assert s.between_versions('3.7', '3.8') == True
-		
-		
+		assert s.between_versions('3.7', '3.8')
+	
 	def test_openssh_compare_version_patchlevel(self):
 		s1 = self.get_openssh_software('2.1.1')
 		s2 = self.get_openssh_software('2.1.1p2')
@@ -123,6 +127,39 @@ class TestVersionCompare(object):
 		for i in range(l):
 			v = versions[i]
 			s = self.get_openssh_software(v)
+			assert s.compare_version(v) == 0
+			if i - 1 >= 0:
+				vbefore = versions[i - 1]
+				assert s.compare_version(vbefore) > 0
+			if i + 1 < l:
+				vnext = versions[i + 1]
+				assert s.compare_version(vnext) < 0
+	
+	def test_libssh_compare_version_simple(self):
+		s = self.get_libssh_software('0.3')
+		assert s.compare_version('0.2') > 0
+		assert s.compare_version('0.3') == 0
+		assert s.compare_version('0.3.1') < 0
+		assert s.between_versions('0.2', '0.3.1')
+	
+	def test_libssh_compare_version_sequential(self):
+		versions = []
+		for v in ['0.2', '0.3']:
+			versions.append(v)
+		for i in range(1, 5):
+			versions.append('0.3.{0}'.format(i))
+		for i in range(0, 9):
+			versions.append('0.4.{0}'.format(i))
+		for i in range(0, 6):
+			versions.append('0.5.{0}'.format(i))
+		for i in range(0, 6):
+			versions.append('0.6.{0}'.format(i))
+		for i in range(0, 4):
+			versions.append('0.7.{0}'.format(i))
+		l = len(versions)
+		for i in range(l):
+			v = versions[i]
+			s = self.get_libssh_software(v)
 			assert s.compare_version(v) == 0
 			if i - 1 >= 0:
 				vbefore = versions[i - 1]
