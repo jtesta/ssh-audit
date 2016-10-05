@@ -655,8 +655,8 @@ class SSH(object):
 			return None
 	
 	class Banner(object):
-		_RXP, _RXR = r'SSH-\d\.\s*?\d+', r'(-([^\s]*)(?:\s+(.*))?)?'
-		RX_PROTOCOL = re.compile(_RXP.replace('\d', '(\d)'))
+		_RXP, _RXR = r'SSH-\d\.\s*?\d+', r'(-\s*([^\s]*)(?:\s+(.*))?)?'
+		RX_PROTOCOL = re.compile(re.sub(r'\\d(\+?)','(\\d\g<1>)', _RXP))
 		RX_BANNER = re.compile(r'^({0}(?:(?:-{0})*)){1}$'.format(_RXP, _RXR))
 		
 		def __init__(self, protocol, software, comments):
@@ -704,6 +704,8 @@ class SSH(object):
 			if software is None and (mx.group(2) or '').startswith('-'):
 				software = ''
 			comments = (mx.group(4) or '').strip() or None
+			if comments is not None:
+				comments = re.sub('\s+', ' ', comments)
 			return cls(protocol, software, comments)
 	
 	class Fingerprint(object):
