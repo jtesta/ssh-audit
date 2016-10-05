@@ -656,7 +656,7 @@ class SSH(object):
 	
 	class Banner(object):
 		_RXP, _RXR = r'SSH-\d\.\s*?\d+', r'(-\s*([^\s]*)(?:\s+(.*))?)?'
-		RX_PROTOCOL = re.compile(re.sub(r'\\d(\+?)','(\\d\g<1>)', _RXP))
+		RX_PROTOCOL = re.compile(re.sub(r'\\d(\+?)', '(\\d\g<1>)', _RXP))
 		RX_BANNER = re.compile(r'^({0}(?:(?:-{0})*)){1}$'.format(_RXP, _RXR))
 		
 		def __init__(self, protocol, software, comments):
