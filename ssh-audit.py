@@ -147,40 +147,90 @@ class OutputBuffer(list):
 		sys.stdout = self.__stdout
 
 
-class KexParty(object):
-	encryption = []
-	mac = []
-	compression = []
-	languages = []
-
-
-class Kex(object):
-	cookie = None
-	kex_algorithms = []
-	key_algorithms = []
-	server = KexParty()
-	client = KexParty()
-	follows = False
-	unused = 0
+class SSH2(object):
+	class KexParty(object):
+		def __init__(self, enc, mac, compression, languages):
+			self.__enc = enc
+			self.__mac = mac
+			self.__compression = compression
+			self.__languages = languages
+		
+		@property
+		def encryption(self):
+			return self.__enc
+		
+		@property
+		def mac(self):
+			return self.__mac
+		
+		@property
+		def compression(self):
+			return self.__compression
+		
+		@property
+		def languages(self):
+			return self.__languages
 	
-	@classmethod
-	def parse(cls, payload):
-		kex = cls()
-		buf = ReadBuf(payload)
-		kex.cookie = buf.read(16)
-		kex.kex_algorithms = buf.read_list()
-		kex.key_algorithms = buf.read_list()
-		kex.client.encryption = buf.read_list()
-		kex.server.encryption = buf.read_list()
-		kex.client.mac = buf.read_list()
-		kex.server.mac = buf.read_list()
-		kex.client.compression = buf.read_list()
-		kex.server.compression = buf.read_list()
-		kex.client.languages = buf.read_list()
-		kex.server.languages = buf.read_list()
-		kex.follows = buf.read_bool()
-		kex.unused = buf.read_int()
-		return kex
+	class Kex(object):
+		def __init__(self, cookie, kex_algs, key_algs, cli, srv, follows, unused=0):
+			self.__cookie = cookie
+			self.__kex_algs = kex_algs
+			self.__key_algs = key_algs
+			self.__client = cli
+			self.__server = srv
+			self.__follows = follows
+			self.__unused = unused
+		
+		@property
+		def cookie(self):
+			return self.__cookie
+		
+		@property
+		def kex_algorithms(self):
+			return self.__kex_algs
+		
+		@property
+		def key_algorithms(self):
+			return self.__key_algs
+		
+		# client_to_server
+		@property
+		def client(self):
+			return self.__client
+		
+		# server_to_client
+		@property
+		def server(self):
+			return self.__server
+		
+		@property
+		def follows(self):
+			return self.__follows
+		
+		@property
+		def unused(self):
+			return self.__unused
+		
+		@classmethod
+		def parse(cls, payload):
+			buf = ReadBuf(payload)
+			cookie = buf.read(16)
+			kex_algs = buf.read_list()
+			key_algs = buf.read_list()
+			cli_enc = buf.read_list()
+			srv_enc = buf.read_list()
+			cli_mac = buf.read_list()
+			srv_mac = buf.read_list()
+			cli_compression = buf.read_list()
+			srv_compression = buf.read_list()
+			cli_languages = buf.read_list()
+			srv_languages = buf.read_list()
+			follows = buf.read_bool()
+			unused = buf.read_int()
+			cli = SSH2.KexParty(cli_enc, cli_mac, cli_compression, cli_languages)
+			srv = SSH2.KexParty(srv_enc, srv_mac, srv_compression, srv_languages)
+			kex = cls(cookie, kex_algs, key_algs, cli, srv, follows, unused)
+			return kex
 
 
 class SSH1(object):
@@ -1570,7 +1620,7 @@ def audit(conf, sshv=None):
 		pkm = SSH1.PublicKeyMessage.parse(payload)
 		output(banner, header, pkm=pkm)
 	elif sshv == 2:
-		kex = Kex.parse(payload)
+		kex = SSH2.Kex.parse(payload)
 		output(banner, header, kex=kex)
 
 
