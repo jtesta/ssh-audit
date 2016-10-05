@@ -83,7 +83,7 @@ class TestBuffer(object):
 			assert w(p[0]) == self._b(p[1])
 			assert r(self._b(p[1])) == p[0]
 	
-	def test_bitlen(self, monkeypatch):
+	def test_bitlen(self):
 		class Py26Int(int):
 			def bit_length(self):
 				raise AttributeError
