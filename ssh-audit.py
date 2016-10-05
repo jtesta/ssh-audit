@@ -506,7 +506,7 @@ class SSH(object):
 			if other is None:
 				return 1
 			if isinstance(other, self.__class__):
-				other = '{0}{1}'.format(other.version, other.patch)
+				other = '{0}{1}'.format(other.version, other.patch or '')
 			else:
 				other = str(other)
 			mx = re.match(r'^([\d\.]+\d+)(.*)$', other)
