@@ -567,7 +567,7 @@ class SSH(object):
 			return self.display()
 		
 		def __repr__(self):
-			out = 'vendor={0} '.format(self.vendor) if self.vendor else ''
+			out = 'vendor={0}'.format(self.vendor) if self.vendor else ''
 			if self.product:
 				if self.vendor:
 					out += ', '
@@ -582,7 +582,7 @@ class SSH(object):
 		
 		@staticmethod
 		def _fix_patch(patch):
-			return re.sub(r'^[-_\.]+', '', patch)
+			return re.sub(r'^[-_\.]+', '', patch) or None
 		
 		@staticmethod
 		def _fix_date(d):
