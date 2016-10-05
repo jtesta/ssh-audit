@@ -416,7 +416,7 @@ class WriteBuf(object):
 		return self.write(v)
 	
 	def write_list(self, v):
-		self.write_string(u','.join(v))
+		return self.write_string(u','.join(v))
 	
 	@classmethod
 	def _bitlength(cls, n):
@@ -453,6 +453,12 @@ class WriteBuf(object):
 		# NOTE: Section 5 @ https://www.ietf.org/rfc/rfc4251.txt
 		data = self._create_mpint(n)
 		return self.write_string(data)
+	
+	def write_line(self, v):
+		if not isinstance(v, bytes):
+			v = bytes(bytearray(v, 'utf-8'))
+		v += b'\r\n'
+		return self.write(v)
 	
 	def write_flush(self):
 		payload = self._wbuf.getvalue()
