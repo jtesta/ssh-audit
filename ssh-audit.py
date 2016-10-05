@@ -204,12 +204,14 @@ class SSH1(object):
 				crc = (crc >> 8) ^ self._table[n]
 			return crc
 	
-	_crc32 = CRC32()
+	_crc32 = None
 	CIPHERS = ['none', 'idea', 'des', '3des', 'tss', 'rc4', 'blowfish']
 	AUTHS = [None, 'rhosts', 'rsa', 'password', 'rhosts_rsa', 'tis', 'kerberos']
 	
 	@classmethod
 	def crc32(cls, v):
+		if cls._crc32 is None:
+			cls._crc32 = cls.CRC32()
 		return cls._crc32.calc(v)
 	
 	class KexDB(object):
