@@ -1337,6 +1337,8 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 		alg_max_len = len(alg_name)
 	padding = '' if out.batch else ' ' * (alg_max_len - len(alg_name))
 	texts = []
+	if len(alg_name.strip()) == 0:
+		return
 	if alg_name in alg_db[alg_type]:
 		alg_desc = alg_db[alg_type][alg_name]
 		ldesc = len(alg_desc)
