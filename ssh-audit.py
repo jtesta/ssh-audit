@@ -100,7 +100,9 @@ class Output(object):
 	
 	@property
 	def minlevel(self):
-		return self.__minlevel
+		if self.__minlevel < len(self.LEVELS):
+			return self.LEVELS[self.__minlevel]
+		return 'unknown'
 	
 	@minlevel.setter
 	def minlevel(self, name):
@@ -122,7 +124,7 @@ class Output(object):
 	def __getattr__(self, name):
 		if name == 'head' and self.batch:
 			return lambda x: None
-		if not self.getlevel(name) >= self.minlevel:
+		if not self.getlevel(name) >= self.__minlevel:
 			return lambda x: None
 		if self.colors and os.name == 'posix' and name in self.COLORS:
 			color = u'\033[0;{0}m'.format(self.COLORS[name])
