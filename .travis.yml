@@ -8,7 +8,7 @@ python:
   - pypy
   - pypy3
 install:
-  - pip install pytest
+  - pip install --upgrade pytest
 script:
   - py.test -v test
 
