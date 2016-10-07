@@ -57,8 +57,8 @@ class TestOutput(object):
 	def test_output_defaults(self):
 		out = self.Output()
 		# default: on
-		assert out.batch == False
-		assert out.colors == True
+		assert out.batch is False
+		assert out.colors is True
 		assert out.minlevel == 'info'
 	
 	def test_output_colors(self):
