@@ -30,6 +30,7 @@ VERSION = 'v1.5.1.dev'
 
 
 def usage(err=None):
+	out = Output()
 	p = os.path.basename(sys.argv[0])
 	out.head('# {0} {1}, moo@arthepsy.eu'.format(p, VERSION))
 	if err is not None:
@@ -1640,6 +1641,6 @@ def audit(conf, sshv=None):
 
 utils = Utils.wrap()
 if __name__ == '__main__':
-	out = Output()
 	conf = AuditConf.from_cmdline(sys.argv[1:], usage)
+	out = Output()
 	audit(conf)
