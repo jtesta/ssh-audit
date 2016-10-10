@@ -7,17 +7,33 @@ class TestAuditConf(object):
 	@pytest.fixture(autouse=True)
 	def init(self, ssh_audit):
 		self.AuditConf = ssh_audit.AuditConf
+		self.usage = ssh_audit.usage
+	
+	def _test_conf(self, conf, **kwargs):
+		options = {
+			'host': None,
+			'port': 22,
+			'ssh1': True,
+			'ssh2': True,
+			'batch': False,
+			'colors': True,
+			'verbose': False,
+			'minlevel': 'info'
+		}
+		for k, v in kwargs.items():
+			options[k] = v
+		assert conf.host == options['host']
+		assert conf.port == options['port']
+		assert conf.ssh1 is options['ssh1']
+		assert conf.ssh2 is options['ssh2']
+		assert conf.batch is options['batch']
+		assert conf.colors is options['colors']
+		assert conf.verbose is options['verbose']
+		assert conf.minlevel == options['minlevel']
 	
 	def test_audit_conf_defaults(self):
 		conf = self.AuditConf()
-		assert conf.host is None
-		assert conf.port == 22
-		assert conf.ssh1 is True
-		assert conf.ssh2 is True
-		assert conf.batch is False
-		assert conf.colors is True
-		assert conf.verbose is False
-		assert conf.minlevel == 'info'
+		self._test_conf(conf)
 	
 	def test_audit_conf_booleans(self):
 		conf = self.AuditConf()
@@ -48,3 +64,52 @@ class TestAuditConf(object):
 			with pytest.raises(ValueError) as excinfo:
 				conf.minlevel = level
 			excinfo.match(r'.*invalid level.*')
+	
+	def test_audit_conf_cmdline(self):
+		c = lambda x: self.AuditConf.from_cmdline(x.split(), self.usage)
+		with pytest.raises(SystemExit):
+			conf = c('')
+		with pytest.raises(SystemExit):
+			conf = c('-x')
+		with pytest.raises(SystemExit):
+			conf = c('-h')
+		with pytest.raises(SystemExit):
+			conf = c('--help')
+		with pytest.raises(SystemExit):
+			conf = c(':')
+		with pytest.raises(SystemExit):
+			conf = c(':22')
+		conf = c('localhost')
+		self._test_conf(conf, host='localhost')
+		conf = c('github.com')
+		self._test_conf(conf, host='github.com')
+		conf = c('localhost:2222')
+		self._test_conf(conf, host='localhost', port=2222)
+		with pytest.raises(SystemExit):
+			conf = c('localhost:')
+		with pytest.raises(SystemExit):
+			conf = c('localhost:abc')
+		with pytest.raises(SystemExit):
+			conf = c('localhost:-22')
+		with pytest.raises(SystemExit):
+			conf = c('localhost:99999')
+		conf = c('-1 localhost')
+		self._test_conf(conf, host='localhost', ssh1=True, ssh2=False)
+		conf = c('-2 localhost')
+		self._test_conf(conf, host='localhost', ssh1=False, ssh2=True)
+		conf = c('-12 localhost')
+		self._test_conf(conf, host='localhost', ssh1=True, ssh2=True)
+		conf = c('-b localhost')
+		self._test_conf(conf, host='localhost', batch=True, verbose=True)
+		conf = c('-n localhost')
+		self._test_conf(conf, host='localhost', colors=False)
+		conf = c('-v localhost')
+		self._test_conf(conf, host='localhost', verbose=True)
+		conf = c('-l info localhost')
+		self._test_conf(conf, host='localhost', minlevel='info')
+		conf = c('-l warn localhost')
+		self._test_conf(conf, host='localhost', minlevel='warn')
+		conf = c('-l fail localhost')
+		self._test_conf(conf, host='localhost', minlevel='fail')
+		with pytest.raises(SystemExit):
+			conf = c('-l something localhost')
