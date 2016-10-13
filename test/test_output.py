@@ -4,55 +4,37 @@ from __future__ import print_function
 import pytest, io, sys
 
 
-if sys.version_info[0] == 2:
-	import StringIO
-	StringIO = StringIO.StringIO
-else:
-	StringIO = io.StringIO
-
-
 class TestOutput(object):
 	@pytest.fixture(autouse=True)
 	def init(self, ssh_audit):
 		self.Output = ssh_audit.Output
 		self.OutputBuffer = ssh_audit.OutputBuffer
 	
-	def _begin(self):
-		self.__out = StringIO()
-		self.__old_stdout = sys.stdout
-		sys.stdout = self.__out
-		
-	def _flush(self):
-		lines = self.__out.getvalue().splitlines()
-		sys.stdout = self.__old_stdout
-		self.__out = None
-		return lines
-	
-	def test_output_buffer_no_lines(self):
-		self._begin()
+	def test_output_buffer_no_lines(self, output_spy):
+		output_spy.begin()
 		with self.OutputBuffer() as obuf:
 			pass
-		assert self._flush() == []
-		self._begin()
+		assert output_spy.flush() == []
+		output_spy.begin()
 		with self.OutputBuffer() as obuf:
 			pass
 		obuf.flush()
-		assert self._flush() == []
+		assert output_spy.flush() == []
 	
-	def test_output_buffer_no_flush(self):
-		self._begin()
+	def test_output_buffer_no_flush(self, output_spy):
+		output_spy.begin()
 		with self.OutputBuffer() as obuf:
 			print(u'abc')
-		assert self._flush() == []
+		assert output_spy.flush() == []
 	
-	def test_output_buffer_flush(self):
-		self._begin()
+	def test_output_buffer_flush(self, output_spy):
+		output_spy.begin()
 		with self.OutputBuffer() as obuf:
 			print(u'abc')
 			print()
 			print(u'def')
 		obuf.flush()
-		assert self._flush() == [u'abc', u'', u'def']
+		assert output_spy.flush() == [u'abc', u'', u'def']
 	
 	def test_output_defaults(self):
 		out = self.Output()
@@ -61,50 +43,50 @@ class TestOutput(object):
 		assert out.colors is True
 		assert out.minlevel == 'info'
 	
-	def test_output_colors(self):
+	def test_output_colors(self, output_spy):
 		out = self.Output()
 		# test without colors
 		out.colors = False
-		self._begin()
+		output_spy.begin()
 		out.info('info color')
-		assert self._flush() == [u'info color']
-		self._begin()
+		assert output_spy.flush() == [u'info color']
+		output_spy.begin()
 		out.head('head color')
-		assert self._flush() == [u'head color']
-		self._begin()
+		assert output_spy.flush() == [u'head color']
+		output_spy.begin()
 		out.good('good color')
-		assert self._flush() == [u'good color']
-		self._begin()
+		assert output_spy.flush() == [u'good color']
+		output_spy.begin()
 		out.warn('warn color')
-		assert self._flush() == [u'warn color']
-		self._begin()
+		assert output_spy.flush() == [u'warn color']
+		output_spy.begin()
 		out.fail('fail color')
-		assert self._flush() == [u'fail color']
+		assert output_spy.flush() == [u'fail color']
 		# test with colors
 		out.colors = True
-		self._begin()
+		output_spy.begin()
 		out.info('info color')
-		assert self._flush() == [u'info color']
-		self._begin()
+		assert output_spy.flush() == [u'info color']
+		output_spy.begin()
 		out.head('head color')
-		assert self._flush() == [u'\x1b[0;36mhead color\x1b[0m']
-		self._begin()
+		assert output_spy.flush() == [u'\x1b[0;36mhead color\x1b[0m']
+		output_spy.begin()
 		out.good('good color')
-		assert self._flush() == [u'\x1b[0;32mgood color\x1b[0m']
-		self._begin()
+		assert output_spy.flush() == [u'\x1b[0;32mgood color\x1b[0m']
+		output_spy.begin()
 		out.warn('warn color')
-		assert self._flush() == [u'\x1b[0;33mwarn color\x1b[0m']
-		self._begin()
+		assert output_spy.flush() == [u'\x1b[0;33mwarn color\x1b[0m']
+		output_spy.begin()
 		out.fail('fail color')
-		assert self._flush() == [u'\x1b[0;31mfail color\x1b[0m']
+		assert output_spy.flush() == [u'\x1b[0;31mfail color\x1b[0m']
 	
-	def test_output_sep(self):
+	def test_output_sep(self, output_spy):
 		out = self.Output()
-		self._begin()
+		output_spy.begin()
 		out.sep()
 		out.sep()
 		out.sep()
-		assert self._flush() == [u'', u'', u'']
+		assert output_spy.flush() == [u'', u'', u'']
 	
 	def test_output_levels(self):
 		out = self.Output()
@@ -127,49 +109,49 @@ class TestOutput(object):
 		out.minlevel = 'invalid level'
 		assert out.minlevel == 'unknown'
 	
-	def test_output_minlevel(self):
+	def test_output_minlevel(self, output_spy):
 		out = self.Output()
 		# visible: all
 		out.minlevel = 'info'
-		self._begin()
+		output_spy.begin()
 		out.info('info color')
 		out.head('head color')
 		out.good('good color')
 		out.warn('warn color')
 		out.fail('fail color')
-		assert len(self._flush()) == 5
+		assert len(output_spy.flush()) == 5
 		# visible: head, warn, fail
 		out.minlevel = 'warn'
-		self._begin()
+		output_spy.begin()
 		out.info('info color')
 		out.head('head color')
 		out.good('good color')
 		out.warn('warn color')
 		out.fail('fail color')
-		assert len(self._flush()) == 3
+		assert len(output_spy.flush()) == 3
 		# visible: head, fail
 		out.minlevel = 'fail'
-		self._begin()
+		output_spy.begin()
 		out.info('info color')
 		out.head('head color')
 		out.good('good color')
 		out.warn('warn color')
 		out.fail('fail color')
-		assert len(self._flush()) == 2
+		assert len(output_spy.flush()) == 2
 		# visible: head
 		out.minlevel = 'invalid level'
-		self._begin()
+		output_spy.begin()
 		out.info('info color')
 		out.head('head color')
 		out.good('good color')
 		out.warn('warn color')
 		out.fail('fail color')
-		assert len(self._flush()) == 1
+		assert len(output_spy.flush()) == 1
 	
-	def test_output_batch(self):
+	def test_output_batch(self, output_spy):
 		out = self.Output()
 		# visible: all
-		self._begin()
+		output_spy.begin()
 		out.minlevel = 'info'
 		out.batch = False
 		out.info('info color')
@@ -177,9 +159,9 @@ class TestOutput(object):
 		out.good('good color')
 		out.warn('warn color')
 		out.fail('fail color')
-		assert len(self._flush()) == 5
+		assert len(output_spy.flush()) == 5
 		# visible: all except head
-		self._begin()
+		output_spy.begin()
 		out.minlevel = 'info'
 		out.batch = True
 		out.info('info color')
@@ -187,4 +169,4 @@ class TestOutput(object):
 		out.good('good color')
 		out.warn('warn color')
 		out.fail('fail color')
-		assert len(self._flush()) == 4
+		assert len(output_spy.flush()) == 4
