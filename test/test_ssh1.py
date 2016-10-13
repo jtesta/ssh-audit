@@ -61,3 +61,14 @@ class TestSSH1(object):
 		assert pkm.supported_authentications == ['rsa', 'tis']
 		assert fp.md5 == 'MD5:9d:26:f8:39:fc:20:9d:9b:ca:cc:4a:0f:e1:93:f5:96'
 		assert fp.sha256 == 'SHA256:vZdx3mhzbvVJmn08t/ruv8WDhJ9jfKYsCTuSzot+QIs'
+	
+	def test_pkm_payload(self):
+		cookie = b'\x88\x99\xaa\xbb\xcc\xdd\xee\xff' 
+		skey = self._server_key()
+		hkey = self._host_key()
+		pflags = 2
+		cmask = 72
+		amask = 36
+		pkm1 = self.ssh1.PublicKeyMessage(cookie, skey, hkey, pflags, cmask, amask)
+		pkm2 = self.ssh1.PublicKeyMessage.parse(self._pkm_payload())
+		assert pkm1.payload == pkm2.payload
