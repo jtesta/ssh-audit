@@ -247,6 +247,27 @@ class SSH2(object):
 		def unused(self):
 			return self.__unused
 		
+		def write(self, wbuf):
+			wbuf.write(self.cookie)
+			wbuf.write_list(self.kex_algorithms)
+			wbuf.write_list(self.key_algorithms)
+			wbuf.write_list(self.client.encryption)
+			wbuf.write_list(self.server.encryption)
+			wbuf.write_list(self.client.mac)
+			wbuf.write_list(self.server.mac)
+			wbuf.write_list(self.client.compression)
+			wbuf.write_list(self.server.compression)
+			wbuf.write_list(self.client.languages)
+			wbuf.write_list(self.server.languages)
+			wbuf.write_bool(self.follows)
+			wbuf.write_int(self.__unused)
+		
+		@property
+		def payload(self):
+			wbuf = WriteBuf()
+			self.write(wbuf)
+			return wbuf.write_flush()
+		
 		@classmethod
 		def parse(cls, payload):
 			buf = ReadBuf(payload)
@@ -402,6 +423,24 @@ class SSH1(object):
 				if self.__supported_authentications_mask & (1 << i) != 0:
 					auths.append(SSH1.AUTHS[i])
 			return auths
+		
+		def write(self, wbuf):
+			wbuf.write(self.cookie)
+			wbuf.write_int(self.server_key_bits)
+			wbuf.write_mpint1(self.server_key_public_exponent)
+			wbuf.write_mpint1(self.server_key_public_modulus)
+			wbuf.write_int(self.host_key_bits)
+			wbuf.write_mpint1(self.host_key_public_exponent)
+			wbuf.write_mpint1(self.host_key_public_modulus)
+			wbuf.write_int(self.protocol_flags)
+			wbuf.write_int(self.supported_ciphers_mask)
+			wbuf.write_int(self.supported_authentications_mask)
+		
+		@property
+		def payload(self):
+			wbuf = WriteBuf()
+			self.write(wbuf)
+			return wbuf.write_flush()
 		
 		@classmethod
 		def parse(cls, payload):
