@@ -26,13 +26,12 @@
 from __future__ import print_function
 import os, io, sys, socket, struct, random, errno, getopt, re, hashlib, base64
 
-VERSION = 'v1.5.0'
+VERSION = 'v1.5.1.dev'
 
 
 def usage(err=None):
+	out = Output()
 	p = os.path.basename(sys.argv[0])
-	out.batch = False
-	out.minlevel = 'info'
 	out.head('# {0} {1}, moo@arthepsy.eu'.format(p, VERSION))
 	if err is not None:
 		out.fail('\n' + err)
@@ -49,43 +48,78 @@ def usage(err=None):
 
 
 class AuditConf(object):
-	def __init__(self):
-		self.__host = None
-		self.__port = 22
-		self.__ssh1 = False
-		self.__ssh2 = False
+	def __init__(self, host=None, port=22):
+		self.host = host
+		self.port = port
+		self.ssh1 = True
+		self.ssh2 = True
+		self.batch = False
+		self.colors = True
+		self.verbose = False
+		self.minlevel = 'info'
 	
-	@property
-	def host(self):
-		return self.__host
+	def __setattr__(self, name, value):
+		valid = False
+		if name in ['ssh1', 'ssh2', 'batch', 'colors', 'verbose']:
+			valid, value = True, True if value else False
+		elif name == 'port':
+			valid, port = True, utils.parse_int(value)
+			if port < 1 or port > 65535:
+				raise ValueError('invalid port: {0}'.format(value))
+			value = port
+		elif name in ['minlevel']:
+			if value not in ('info', 'warn', 'fail'):
+				raise ValueError('invalid level: {0}'.format(value))
+			valid = True
+		elif name == 'host':
+			valid = True
+		if valid:
+			object.__setattr__(self, name, value)
 	
-	@host.setter
-	def host(self, v):
-		self.__host = v
-	
-	@property
-	def port(self):
-		return self.__port
-	
-	@port.setter
-	def port(self, v):
-		self.__port = v
-	
-	@property
-	def ssh1(self):
-		return self.__ssh1
-	
-	@ssh1.setter
-	def ssh1(self, v):
-		self.__ssh1 = v
-	
-	@property
-	def ssh2(self):
-		return self.__ssh2
-	
-	@ssh2.setter
-	def ssh2(self, v):
-		self.__ssh2 = v
+	@classmethod
+	def from_cmdline(cls, args, usage_cb):
+		conf = cls()
+		try:
+			sopts = 'h12bnvl:'
+			lopts = ['help', 'ssh1', 'ssh2', 'batch',
+			         'no-colors', 'verbose', 'level=']
+			opts, args = getopt.getopt(args, sopts, lopts)
+		except getopt.GetoptError as err:
+			usage_cb(str(err))
+		conf.ssh1, conf.ssh2 = False, False
+		for o, a in opts:
+			if o in ('-h', '--help'):
+				usage_cb()
+			elif o in ('-1', '--ssh1'):
+				conf.ssh1 = True
+			elif o in ('-2', '--ssh2'):
+				conf.ssh2 = True
+			elif o in ('-b', '--batch'):
+				conf.batch = True
+				conf.verbose = True
+			elif o in ('-n', '--no-colors'):
+				conf.colors = False
+			elif o in ('-v', '--verbose'):
+				conf.verbose = True
+			elif o in ('-l', '--level'):
+				if a not in ('info', 'warn', 'fail'):
+					usage_cb('level {0} is not valid'.format(a))
+				conf.minlevel = a
+		if len(args) == 0:
+			usage_cb()
+		s = args[0].split(':')
+		host, port = s[0].strip(), 22
+		if len(s) > 1:
+			port = utils.parse_int(s[1])
+		if not host:
+			usage_cb('host is empty')
+		if port <= 0 or port > 65535:
+			usage_cb('port {0} is not valid'.format(s[1]))
+		conf.host = host
+		conf.port = port
+		if not (conf.ssh1 or conf.ssh2):
+			conf.ssh1, conf.ssh2 = True, True
+		return conf
 
 
 class Output(object):
@@ -100,7 +134,9 @@ class Output(object):
 	
 	@property
 	def minlevel(self):
-		return self.__minlevel
+		if self.__minlevel < len(self.LEVELS):
+			return self.LEVELS[self.__minlevel]
+		return 'unknown'
 	
 	@minlevel.setter
 	def minlevel(self, name):
@@ -122,7 +158,7 @@ class Output(object):
 	def __getattr__(self, name):
 		if name == 'head' and self.batch:
 			return lambda x: None
-		if not self.getlevel(name) >= self.minlevel:
+		if not self.getlevel(name) >= self.__minlevel:
 			return lambda x: None
 		if self.colors and os.name == 'posix' and name in self.COLORS:
 			color = u'\033[0;{0}m'.format(self.COLORS[name])
@@ -133,7 +169,7 @@ class Output(object):
 
 class OutputBuffer(list):
 	def __enter__(self):
-		self.__buf = io.StringIO()
+		self.__buf = utils.StringIO()
 		self.__stdout = sys.stdout
 		sys.stdout = self.__buf
 		return self
@@ -147,40 +183,111 @@ class OutputBuffer(list):
 		sys.stdout = self.__stdout
 
 
-class KexParty(object):
-	encryption = []
-	mac = []
-	compression = []
-	languages = []
-
-
-class Kex(object):
-	cookie = None
-	kex_algorithms = []
-	key_algorithms = []
-	server = KexParty()
-	client = KexParty()
-	follows = False
-	unused = 0
+class SSH2(object):
+	class KexParty(object):
+		def __init__(self, enc, mac, compression, languages):
+			self.__enc = enc
+			self.__mac = mac
+			self.__compression = compression
+			self.__languages = languages
+		
+		@property
+		def encryption(self):
+			return self.__enc
+		
+		@property
+		def mac(self):
+			return self.__mac
+		
+		@property
+		def compression(self):
+			return self.__compression
+		
+		@property
+		def languages(self):
+			return self.__languages
 	
-	@classmethod
-	def parse(cls, payload):
-		kex = cls()
-		buf = ReadBuf(payload)
-		kex.cookie = buf.read(16)
-		kex.kex_algorithms = buf.read_list()
-		kex.key_algorithms = buf.read_list()
-		kex.client.encryption = buf.read_list()
-		kex.server.encryption = buf.read_list()
-		kex.client.mac = buf.read_list()
-		kex.server.mac = buf.read_list()
-		kex.client.compression = buf.read_list()
-		kex.server.compression = buf.read_list()
-		kex.client.languages = buf.read_list()
-		kex.server.languages = buf.read_list()
-		kex.follows = buf.read_bool()
-		kex.unused = buf.read_int()
-		return kex
+	class Kex(object):
+		def __init__(self, cookie, kex_algs, key_algs, cli, srv, follows, unused=0):
+			self.__cookie = cookie
+			self.__kex_algs = kex_algs
+			self.__key_algs = key_algs
+			self.__client = cli
+			self.__server = srv
+			self.__follows = follows
+			self.__unused = unused
+		
+		@property
+		def cookie(self):
+			return self.__cookie
+		
+		@property
+		def kex_algorithms(self):
+			return self.__kex_algs
+		
+		@property
+		def key_algorithms(self):
+			return self.__key_algs
+		
+		# client_to_server
+		@property
+		def client(self):
+			return self.__client
+		
+		# server_to_client
+		@property
+		def server(self):
+			return self.__server
+		
+		@property
+		def follows(self):
+			return self.__follows
+		
+		@property
+		def unused(self):
+			return self.__unused
+		
+		def write(self, wbuf):
+			wbuf.write(self.cookie)
+			wbuf.write_list(self.kex_algorithms)
+			wbuf.write_list(self.key_algorithms)
+			wbuf.write_list(self.client.encryption)
+			wbuf.write_list(self.server.encryption)
+			wbuf.write_list(self.client.mac)
+			wbuf.write_list(self.server.mac)
+			wbuf.write_list(self.client.compression)
+			wbuf.write_list(self.server.compression)
+			wbuf.write_list(self.client.languages)
+			wbuf.write_list(self.server.languages)
+			wbuf.write_bool(self.follows)
+			wbuf.write_int(self.__unused)
+		
+		@property
+		def payload(self):
+			wbuf = WriteBuf()
+			self.write(wbuf)
+			return wbuf.write_flush()
+		
+		@classmethod
+		def parse(cls, payload):
+			buf = ReadBuf(payload)
+			cookie = buf.read(16)
+			kex_algs = buf.read_list()
+			key_algs = buf.read_list()
+			cli_enc = buf.read_list()
+			srv_enc = buf.read_list()
+			cli_mac = buf.read_list()
+			srv_mac = buf.read_list()
+			cli_compression = buf.read_list()
+			srv_compression = buf.read_list()
+			cli_languages = buf.read_list()
+			srv_languages = buf.read_list()
+			follows = buf.read_bool()
+			unused = buf.read_int()
+			cli = SSH2.KexParty(cli_enc, cli_mac, cli_compression, cli_languages)
+			srv = SSH2.KexParty(srv_enc, srv_mac, srv_compression, srv_languages)
+			kex = cls(cookie, kex_algs, key_algs, cli, srv, follows, unused)
+			return kex
 
 
 class SSH1(object):
@@ -204,12 +311,14 @@ class SSH1(object):
 				crc = (crc >> 8) ^ self._table[n]
 			return crc
 	
-	_crc32 = CRC32()
+	_crc32 = None
 	CIPHERS = ['none', 'idea', 'des', '3des', 'tss', 'rc4', 'blowfish']
 	AUTHS = [None, 'rhosts', 'rsa', 'password', 'rhosts_rsa', 'tis', 'kerberos']
 	
 	@classmethod
 	def crc32(cls, v):
+		if cls._crc32 is None:
+			cls._crc32 = cls.CRC32()
 		return cls._crc32.calc(v)
 	
 	class KexDB(object):
@@ -315,6 +424,24 @@ class SSH1(object):
 					auths.append(SSH1.AUTHS[i])
 			return auths
 		
+		def write(self, wbuf):
+			wbuf.write(self.cookie)
+			wbuf.write_int(self.server_key_bits)
+			wbuf.write_mpint1(self.server_key_public_exponent)
+			wbuf.write_mpint1(self.server_key_public_modulus)
+			wbuf.write_int(self.host_key_bits)
+			wbuf.write_mpint1(self.host_key_public_exponent)
+			wbuf.write_mpint1(self.host_key_public_modulus)
+			wbuf.write_int(self.protocol_flags)
+			wbuf.write_int(self.supported_ciphers_mask)
+			wbuf.write_int(self.supported_authentications_mask)
+		
+		@property
+		def payload(self):
+			wbuf = WriteBuf()
+			self.write(wbuf)
+			return wbuf.write_flush()
+		
 		@classmethod
 		def parse(cls, payload):
 			buf = ReadBuf(payload)
@@ -337,7 +464,7 @@ class SSH1(object):
 class ReadBuf(object):
 	def __init__(self, data=None):
 		super(ReadBuf, self).__init__()
-		self._buf = io.BytesIO(data) if data else io.BytesIO()
+		self._buf = utils.BytesIO(data) if data else utils.BytesIO()
 		self._len = len(data) if data else 0
 	
 	@property
@@ -416,7 +543,7 @@ class WriteBuf(object):
 		return self.write(v)
 	
 	def write_list(self, v):
-		self.write_string(u','.join(v))
+		return self.write_string(u','.join(v))
 	
 	@classmethod
 	def _bitlength(cls, n):
@@ -454,6 +581,12 @@ class WriteBuf(object):
 		data = self._create_mpint(n)
 		return self.write_string(data)
 	
+	def write_line(self, v):
+		if not isinstance(v, bytes):
+			v = bytes(bytearray(v, 'utf-8'))
+		v += b'\r\n'
+		return self.write(v)
+	
 	def write_flush(self):
 		payload = self._wbuf.getvalue()
 		self._wbuf.truncate(0)
@@ -472,6 +605,7 @@ class SSH(object):
 	class Product(object):
 		OpenSSH = 'OpenSSH'
 		DropbearSSH = 'Dropbear SSH'
+		LibSSH = 'libssh'
 	
 	class Software(object):
 		def __init__(self, vendor, product, version, patch, os):
@@ -505,7 +639,7 @@ class SSH(object):
 			if other is None:
 				return 1
 			if isinstance(other, self.__class__):
-				other = '{0}{1}'.format(other.version, other.patch)
+				other = '{0}{1}'.format(other.version, other.patch or '')
 			else:
 				other = str(other)
 			mx = re.match(r'^([\d\.]+\d+)(.*)$', other)
@@ -517,15 +651,15 @@ class SSH(object):
 				return -1
 			elif self.version > oversion:
 				return 1
-			spatch = self.patch
+			spatch = self.patch or ''
 			if self.product == SSH.Product.DropbearSSH:
 				if not re.match(r'^test\d.*$', opatch):
 					opatch = 'z{0}'.format(opatch)
-				if not re.match(r'^test\d.*$', self.patch):
-					spatch = 'z{0}'.format(self.patch)
+				if not re.match(r'^test\d.*$', spatch):
+					spatch = 'z{0}'.format(spatch)
 			elif self.product == SSH.Product.OpenSSH:
 				mx1 = re.match(r'^p\d(.*)', opatch)
-				mx2 = re.match(r'^p\d(.*)', self.patch)
+				mx2 = re.match(r'^p\d(.*)', spatch)
 				if not (mx1 and mx2):
 					if mx1:
 						opatch = mx1.group(1)
@@ -544,25 +678,29 @@ class SSH(object):
 				return False
 			return True
 		
-		def __str__(self):
+		def display(self, full=True):
 			out = '{0} '.format(self.vendor) if self.vendor else ''
 			out += self.product
 			if self.version:
 				out += ' {0}'.format(self.version)
-			patch = self.patch
-			if self.product == SSH.Product.OpenSSH:
-				mx = re.match('^(p\d)(.*)$', self.patch)
-				if mx is not None:
-					out += mx.group(1)
-					patch = mx.group(2).strip()
-			if patch:
-				out += ' ({0})'.format(self.patch)
-			if self.os:
-				out += ' running on {0}'.format(self.os)
+			if full:
+				patch = self.patch or ''
+				if self.product == SSH.Product.OpenSSH:
+					mx = re.match('^(p\d)(.*)$', patch)
+					if mx is not None:
+						out += mx.group(1)
+						patch = mx.group(2).strip()
+				if patch:
+					out += ' ({0})'.format(patch)
+				if self.os:
+					out += ' running on {0}'.format(self.os)
 			return out
 		
+		def __str__(self):
+			return self.display()
+		
 		def __repr__(self):
-			out = 'vendor={0} '.format(self.vendor) if self.vendor else ''
+			out = 'vendor={0}'.format(self.vendor) if self.vendor else ''
 			if self.product:
 				if self.vendor:
 					out += ', '
@@ -577,7 +715,7 @@ class SSH(object):
 		
 		@staticmethod
 		def _fix_patch(patch):
-			return re.sub(r'^[-_\.]+', '', patch)
+			return re.sub(r'^[-_\.]+', '', patch) or None
 		
 		@staticmethod
 		def _fix_date(d):
@@ -628,6 +766,12 @@ class SSH(object):
 				v = None
 				os = cls._extract_os(banner.comments)
 				return cls(v, p, mx.group(1), patch, os)
+			mx = re.match(r'^libssh-([\d\.]+\d+)(.*)', software)
+			if mx:
+				patch = cls._fix_patch(mx.group(2))
+				v, p = None, SSH.Product.LibSSH
+				os = cls._extract_os(banner.comments)
+				return cls(v, p, mx.group(1), patch, os)
 			mx = re.match(r'^RomSShell_([\d\.]+\d+)(.*)', software)
 			if mx:
 				patch = cls._fix_patch(mx.group(2))
@@ -644,8 +788,8 @@ class SSH(object):
 			return None
 	
 	class Banner(object):
-		_RXP, _RXR = r'SSH-\d\.\s*?\d+', r'(-([^\s]*)(?:\s+(.*))?)?'
-		RX_PROTOCOL = re.compile(_RXP.replace('\d', '(\d)'))
+		_RXP, _RXR = r'SSH-\d\.\s*?\d+', r'(-\s*([^\s]*)(?:\s+(.*))?)?'
+		RX_PROTOCOL = re.compile(re.sub(r'\\d(\+?)', '(\\d\g<1>)', _RXP))
 		RX_BANNER = re.compile(r'^({0}(?:(?:-{0})*)){1}$'.format(_RXP, _RXR))
 		
 		def __init__(self, protocol, software, comments):
@@ -693,6 +837,8 @@ class SSH(object):
 			if software is None and (mx.group(2) or '').startswith('-'):
 				software = ''
 			comments = (mx.group(4) or '').strip() or None
+			if comments is not None:
+				comments = re.sub('\s+', ' ', comments)
 			return cls(protocol, software, comments)
 	
 	class Fingerprint(object):
@@ -714,21 +860,34 @@ class SSH(object):
 	class Security(object):
 		CVE = {
 			'Dropbear SSH': [
-				['0.44', '2015.71', 1, 'CVE-2016-3116', 5.5, 'bypass command restrictions via xauth command injection.'],
-				['0.28', '2013.58', 1, 'CVE-2013-4434', 5.0, 'discover valid usernames through different time delays.'],
-				['0.28', '2013.58', 1, 'CVE-2013-4421', 5.0, 'cause DoS (memory consumption) via a compressed packet.'],
-				['0.52', '2011.54', 1, 'CVE-2012-0920', 7.1, 'execute arbitrary code or bypass command restrictions.'],
-				['0.40', '0.48.1',  1, 'CVE-2007-1099', 7.5, 'conduct a MitM attack (no warning for hostkey mismatch).'],
-				['0.28', '0.47',    1, 'CVE-2006-1206', 7.5, 'cause DoS (slot exhaustion) via large number of connections.'],
-				['0.39', '0.47',    1, 'CVE-2006-0225', 4.6, 'execute arbitrary commands via scp with crafted filenames.'],
-				['0.28', '0.46',    1, 'CVE-2005-4178', 6.5, 'execute arbitrary code via buffer overflow vulnerability.'],
-				['0.28', '0.42',    1, 'CVE-2004-2486', 7.5, 'execute arbitrary code via DSS verification code.'],
-			]
+				['0.44', '2015.71', 1, 'CVE-2016-3116', 5.5, 'bypass command restrictions via xauth command injection'],
+				['0.28', '2013.58', 1, 'CVE-2013-4434', 5.0, 'discover valid usernames through different time delays'],
+				['0.28', '2013.58', 1, 'CVE-2013-4421', 5.0, 'cause DoS (memory consumption) via a compressed packet'],
+				['0.52', '2011.54', 1, 'CVE-2012-0920', 7.1, 'execute arbitrary code or bypass command restrictions'],
+				['0.40', '0.48.1',  1, 'CVE-2007-1099', 7.5, 'conduct a MitM attack (no warning for hostkey mismatch)'],
+				['0.28', '0.47',    1, 'CVE-2006-1206', 7.5, 'cause DoS (slot exhaustion) via large number of connections'],
+				['0.39', '0.47',    1, 'CVE-2006-0225', 4.6, 'execute arbitrary commands via scp with crafted filenames'],
+				['0.28', '0.46',    1, 'CVE-2005-4178', 6.5, 'execute arbitrary code via buffer overflow vulnerability'],
+				['0.28', '0.42',    1, 'CVE-2004-2486', 7.5, 'execute arbitrary code via DSS verification code']],
+			'libssh': [
+				['0.1',   '0.7.2',  1, 'CVE-2016-0739', 4.3, 'conduct a MitM attack (weakness in DH key generation)'],
+				['0.5.1', '0.6.4',  1, 'CVE-2015-3146', 5.0, 'cause DoS via kex packets (null pointer dereference)'],
+				['0.5.1', '0.6.3',  1, 'CVE-2014-8132', 5.0, 'cause DoS via kex init packet (dangling pointer)'],
+				['0.4.7', '0.6.2',  1, 'CVE-2014-0017', 1.9, 'leak data via PRNG state reuse on forking servers'],
+				['0.4.7', '0.5.3',  1, 'CVE-2013-0176', 4.3, 'cause DoS via kex packet (null pointer dereference)'],
+				['0.4.7', '0.5.2',  1, 'CVE-2012-6063', 7.5, 'cause DoS or execute arbitrary code via sftp (double free)'],
+				['0.4.7', '0.5.2',  1, 'CVE-2012-4562', 7.5, 'cause DoS or execute arbitrary code (overflow check)'],
+				['0.4.7', '0.5.2',  1, 'CVE-2012-4561', 5.0, 'cause DoS via unspecified vectors (invalid pointer)'],
+				['0.4.7', '0.5.2',  1, 'CVE-2012-4560', 7.5, 'cause DoS or execute arbitrary code (buffer overflow)'],
+				['0.4.7', '0.5.2',  1, 'CVE-2012-4559', 6.8, 'cause DoS or execute arbitrary code (double free)']]
 		}
 		TXT = {
 			'Dropbear SSH': [
-				['0.28', '0.34', 1, 'remote root exploit', 'remote format string buffer overflow exploit (exploit-db#387).'],
-			]
+				['0.28', '0.34', 1, 'remote root exploit', 'remote format string buffer overflow exploit (exploit-db#387)']],
+			'libssh': [
+				['0.3.3', '0.3.3', 1, 'null pointer check', 'missing null pointer check in "crypt_set_algorithms_server"'],
+				['0.3.3', '0.3.3', 1, 'integer overflow',   'integer overflow in "buffer_get_data"'],
+				['0.3.3', '0.3.3', 3, 'heap overflow',      'heap overflow in "packet_decrypt"']]
 		}
 	
 	class Socket(ReadBuf, WriteBuf):
@@ -960,29 +1119,29 @@ class KexDB(object):
 
 	ALGORITHMS = {
 		'kex': {
-			'diffie-hellman-group1-sha1': [['2.3.0,d0.28', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
-			'diffie-hellman-group14-sha1': [['3.9,d0.53'], [], [WARN_HASH_WEAK]],
+			'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
+			'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
 			'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
 			'diffie-hellman-group16-sha512': [['7.3,d2016.73']],
 			'diffie-hellman-group18-sha512': [['7.3']],
 			'diffie-hellman-group-exchange-sha1': [['2.3.0', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_HASH_WEAK]],
 			'diffie-hellman-group-exchange-sha256': [['4.4'], [], [WARN_MODULUS_CUSTOM]],
-			'ecdh-sha2-nistp256': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
+			'ecdh-sha2-nistp256': [['5.7,d2013.62,l10.6.0'], [WARN_CURVES_WEAK]],
 			'ecdh-sha2-nistp384': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 			'ecdh-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
-			'curve25519-sha256@libssh.org': [['6.5,d2013.62']],
+			'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
 			'kexguess2@matt.ucc.asn.au': [['d2013.57']],
 		},
 		'key': {
 			'rsa-sha2-256': [['7.2']],
 			'rsa-sha2-512': [['7.2']],
-			'ssh-ed25519': [['6.5']],
+			'ssh-ed25519': [['6.5,l10.7.0']],
 			'ssh-ed25519-cert-v01@openssh.com': [['6.5']],
-			'ssh-rsa': [['2.5.0,d0.28']],
-			'ssh-dss': [['2.1.0,d0.28', '6.9'], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
-			'ecdsa-sha2-nistp256': [['5.7,d2013.62'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
-			'ecdsa-sha2-nistp384': [['5.7,d2013.62'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
-			'ecdsa-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
+			'ssh-rsa': [['2.5.0,d0.28,l10.2']],
+			'ssh-dss': [['2.1.0,d0.28,l10.2', '6.9'], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
+			'ecdsa-sha2-nistp256': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
+			'ecdsa-sha2-nistp384': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
+			'ecdsa-sha2-nistp521': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 			'ssh-rsa-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY], []],
 			'ssh-dss-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
 			'ssh-rsa-cert-v01@openssh.com': [['5.6']],
@@ -992,10 +1151,10 @@ class KexDB(object):
 			'ecdsa-sha2-nistp521-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 		},
 		'enc': {
-			'none': [['1.2.2,d2013.56'], [FAIL_PLAINTEXT]],
-			'3des-cbc': [['1.2.2,d0.28', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_CIPHER_WEAK, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
+			'none': [['1.2.2,d2013.56,l10.2'], [FAIL_PLAINTEXT]],
+			'3des-cbc': [['1.2.2,d0.28,l10.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_CIPHER_WEAK, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 			'3des-ctr': [['d0.52']],
-			'blowfish-cbc': [['1.2.2,d0.28', '6.6,d0.52', '7.1,d0.52'], [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
+			'blowfish-cbc': [['1.2.2,d0.28,l10.2', '6.6,d0.52', '7.1,d0.52'], [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 			'twofish-cbc': [['d0.28', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [WARN_CIPHER_MODE]],
 			'twofish128-cbc': [['d0.47', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [WARN_CIPHER_MODE]],
 			'twofish256-cbc': [['d0.47', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [WARN_CIPHER_MODE]],
@@ -1005,27 +1164,27 @@ class KexDB(object):
 			'arcfour': [['2.1.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_WEAK]],
 			'arcfour128': [['4.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_WEAK]],
 			'arcfour256': [['4.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_WEAK]],
-			'aes128-cbc': [['2.3.0,d0.28', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_CIPHER_MODE]],
-			'aes192-cbc': [['2.3.0', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_CIPHER_MODE]],
-			'aes256-cbc': [['2.3.0,d0.47', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_CIPHER_MODE]],
+			'aes128-cbc': [['2.3.0,d0.28,l10.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_CIPHER_MODE]],
+			'aes192-cbc': [['2.3.0,l10.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_CIPHER_MODE]],
+			'aes256-cbc': [['2.3.0,d0.47,l10.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_CIPHER_MODE]],
 			'rijndael128-cbc': [['2.3.0', '3.0.2'], [FAIL_OPENSSH31_REMOVE], [WARN_CIPHER_MODE]],
 			'rijndael192-cbc': [['2.3.0', '3.0.2'], [FAIL_OPENSSH31_REMOVE], [WARN_CIPHER_MODE]],
 			'rijndael256-cbc': [['2.3.0', '3.0.2'], [FAIL_OPENSSH31_REMOVE], [WARN_CIPHER_MODE]],
 			'rijndael-cbc@lysator.liu.se': [['2.3.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE]],
-			'aes128-ctr': [['3.7,d0.52']],
-			'aes192-ctr': [['3.7']],
-			'aes256-ctr': [['3.7,d0.52']],
+			'aes128-ctr': [['3.7,d0.52,l10.4.1']],
+			'aes192-ctr': [['3.7,l10.4.1']],
+			'aes256-ctr': [['3.7,d0.52,l10.4.1']],
 			'aes128-gcm@openssh.com': [['6.2']],
 			'aes256-gcm@openssh.com': [['6.2']],
 			'chacha20-poly1305@openssh.com': [['6.5'], [], [], [INFO_OPENSSH69_CHACHA]],
 		},
 		'mac': {
 			'none': [['d2013.56'], [FAIL_PLAINTEXT]],
-			'hmac-sha1': [['2.1.0,d0.28'], [], [WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
+			'hmac-sha1': [['2.1.0,d0.28,l10.2'], [], [WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
 			'hmac-sha1-96': [['2.5.0,d0.47', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
-			'hmac-sha2-256': [['5.9,d2013.56'], [], [WARN_ENCRYPT_AND_MAC]],
+			'hmac-sha2-256': [['5.9,d2013.56,l10.7.0'], [], [WARN_ENCRYPT_AND_MAC]],
 			'hmac-sha2-256-96': [['5.9', '6.0'], [FAIL_OPENSSH61_REMOVE], [WARN_ENCRYPT_AND_MAC]],
-			'hmac-sha2-512': [['5.9,d2013.56'], [], [WARN_ENCRYPT_AND_MAC]],
+			'hmac-sha2-512': [['5.9,d2013.56,l10.7.0'], [], [WARN_ENCRYPT_AND_MAC]],
 			'hmac-sha2-512-96': [['5.9', '6.0'], [FAIL_OPENSSH61_REMOVE], [WARN_ENCRYPT_AND_MAC]],
 			'hmac-md5': [['2.1.0,d0.28', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
 			'hmac-md5-96': [['2.5.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
@@ -1049,6 +1208,8 @@ class KexDB(object):
 def get_ssh_version(version_desc):
 	if version_desc.startswith('d'):
 		return (SSH.Product.DropbearSSH, version_desc[1:])
+	elif version_desc.startswith('l1'):
+		return (SSH.Product.LibSSH, version_desc[2:])
 	else:
 		return (SSH.Product.OpenSSH, version_desc)
 
@@ -1091,8 +1252,10 @@ def get_alg_timeframe(alg_desc, for_server=True, result={}):
 def get_ssh_timeframe(alg_pairs, for_server=True):
 	timeframe = {}
 	for alg_pair in alg_pairs:
-		alg_db, algs = alg_pair
-		for alg_type, alg_list in algs.items():
+		sshv, alg_db = alg_pair[0]
+		alg_sets = alg_pair[1:]
+		for alg_set in alg_sets:
+			alg_type, alg_list = alg_set
 			for alg_name in alg_list:
 				alg_desc = alg_db[alg_type].get(alg_name)
 				if alg_desc is None:
@@ -1110,12 +1273,125 @@ def get_alg_since_text(alg_desc):
 		ssh_prefix, ssh_version = get_ssh_version(v)
 		if not ssh_version:
 			continue
+		if ssh_prefix in [SSH.Product.LibSSH]:
+			continue
 		if ssh_version.endswith('C'):
 			ssh_version = '{0} (client only)'.format(ssh_version[:-1])
 		tv.append('{0} {1}'.format(ssh_prefix, ssh_version))
 	if len(tv) == 0:
 		return None
 	return 'available since ' + ', '.join(tv).rstrip(', ')
+
+
+def get_alg_pairs(kex, pkm):
+	alg_pairs = []
+	if pkm is not None:
+		alg_pairs.append(((1, SSH1.KexDB.ALGORITHMS),
+		                  ('key', ['ssh-rsa1']),
+		                  ('enc', pkm.supported_ciphers),
+		                  ('aut', pkm.supported_authentications)))
+	if kex is not None:
+		alg_pairs.append(((2, KexDB.ALGORITHMS),
+		                  ('kex', kex.kex_algorithms),
+		                  ('key', kex.key_algorithms),
+		                  ('enc', kex.server.encryption),
+		                  ('mac', kex.server.mac)))
+	return alg_pairs
+
+
+def get_alg_recommendations(software, kex, pkm, for_server=True):
+	alg_pairs = get_alg_pairs(kex, pkm)
+	vproducts = [SSH.Product.OpenSSH,
+	             SSH.Product.DropbearSSH,
+	             SSH.Product.LibSSH]
+	if software is not None:
+		if software.product not in vproducts:
+			software = None
+	if software is None:
+		ssh_timeframe = get_ssh_timeframe(alg_pairs, for_server)
+		for product in vproducts:
+			if product not in ssh_timeframe:
+				continue
+			version = ssh_timeframe[product][0]
+			if version is not None:
+				software = SSH.Software(None, product, version, None, None)
+				break
+	rec = {'.software': software}
+	if software is None:
+		return rec
+	for alg_pair in alg_pairs:
+		sshv, alg_db = alg_pair[0]
+		alg_sets = alg_pair[1:]
+		rec[sshv] = {}
+		for alg_set in alg_sets:
+			alg_type, alg_list = alg_set
+			if alg_type == 'aut':
+				continue
+			rec[sshv][alg_type] = {'add': [], 'del': {}}
+			for n, alg_desc in alg_db[alg_type].items():
+				if alg_type == 'key' and '-cert-' in n:
+					continue
+				versions = alg_desc[0]
+				if len(versions) == 0 or versions[0] is None:
+					continue
+				matches = False
+				for v in versions[0].split(','):
+					ssh_prefix, ssh_version = get_ssh_version(v)
+					if not ssh_version:
+						continue
+					if ssh_prefix != software.product:
+						continue
+					if ssh_version.endswith('C'):
+						if for_server:
+							continue
+						ssh_version = ssh_version[:-1]
+					if software.compare_version(ssh_version) < 0:
+						continue
+					matches = True
+					break
+				if not matches:
+					continue
+				adl, faults = len(alg_desc), 0
+				for i in range(1, 3):
+					if not adl > i:
+						continue
+					fc = len(alg_desc[i])
+					if fc > 0:
+						faults += pow(10, 2 - i) * fc
+				if n not in alg_list:
+					if faults > 0:
+						continue
+					rec[sshv][alg_type]['add'].append(n)
+				else:
+					if faults == 0:
+						continue
+					if n == 'diffie-hellman-group-exchange-sha256':
+						if software.compare_version('7.3') < 0:
+							continue
+					rec[sshv][alg_type]['del'][n] = faults
+			add_count = len(rec[sshv][alg_type]['add'])
+			del_count = len(rec[sshv][alg_type]['del'])
+			new_alg_count = len(alg_list) + add_count - del_count
+			if new_alg_count < 1 and del_count > 0:
+				mf, new_del = min(rec[sshv][alg_type]['del'].values()), {}
+				for k, v in rec[sshv][alg_type]['del'].items():
+					if v != mf:
+						new_del[k] = v
+				if del_count != len(new_del):
+					rec[sshv][alg_type]['del'] = new_del
+					new_alg_count += del_count - len(new_del)
+			if new_alg_count < 1:
+				del rec[sshv][alg_type]
+			else:
+				if add_count == 0:
+					del rec[sshv][alg_type]['add']
+				if del_count == 0:
+					del rec[sshv][alg_type]['del']
+				if len(rec[sshv][alg_type]) == 0:
+					del rec[sshv][alg_type]
+		if len(rec[sshv]) == 0:
+			del rec[sshv]
+	return rec
 
 
 def output_algorithms(title, alg_db, alg_type, algorithms, maxlen=0):
@@ -1134,6 +1410,8 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 		alg_max_len = len(alg_name)
 	padding = '' if out.batch else ' ' * (alg_max_len - len(alg_name))
 	texts = []
+	if len(alg_name.strip()) == 0:
+		return
 	if alg_name in alg_db[alg_type]:
 		alg_desc = alg_db[alg_type][alg_name]
 		ldesc = len(alg_desc)
@@ -1167,18 +1445,7 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 
 
 def output_compatibility(kex, pkm, for_server=True):
-	alg_pairs = []
-	if pkm is not None:
-		alg_pairs.append((SSH1.KexDB.ALGORITHMS,
-		                  {'key': ['ssh-rsa1'],
-		                   'enc': pkm.supported_ciphers,
-		                   'aut': pkm.supported_authentications}))
-	if kex is not None:
-		alg_pairs.append((KexDB.ALGORITHMS,
-		                  {'kex': kex.kex_algorithms,
-		                   'key': kex.key_algorithms,
-		                   'enc': kex.server.encryption,
-		                   'mac': kex.server.mac}))
+	alg_pairs = get_alg_pairs(kex, pkm)
 	ssh_timeframe = get_ssh_timeframe(alg_pairs, for_server)
 	vp = 1 if for_server else 2
 	comp_text = []
@@ -1210,7 +1477,8 @@ def output_security_sub(sub, software, padlen):
 			continue
 		target, name = line[2:4]
 		is_server, is_client = target & 1 == 1, target & 2 == 2
-		if is_client:
+		is_local = target & 4 == 4
+		if not is_server:
 			continue
 		p = '' if out.batch else ' ' * (padlen - len(name))
 		if sub == 'cve':
@@ -1252,6 +1520,38 @@ def output_fingerprint(kex, pkm, sha256=True, padlen=0):
 		out.sep()
 
 
+def output_recommendations(software, kex, pkm, padlen=0):
+	for_server = True
+	with OutputBuffer() as obuf:
+		alg_rec = get_alg_recommendations(software, kex, pkm, for_server)
+		software = alg_rec['.software']
+		for sshv in range(2, 0, -1):
+			if sshv not in alg_rec:
+				continue
+			for alg_type in ['kex', 'key', 'enc', 'mac']:
+				if alg_type not in alg_rec[sshv]:
+					continue
+				for action in ['del', 'add']:
+					if action not in alg_rec[sshv][alg_type]:
+						continue
+					for name in alg_rec[sshv][alg_type][action]:
+						p = '' if out.batch else ' ' * (padlen - len(name))
+						if action == 'del':
+							an, sg, fn = 'remove', '-', out.warn
+							if alg_rec[sshv][alg_type][action][name] >= 10:
+								fn = out.fail
+						else:
+							an, sg, fn = 'append', '+', out.good
+						b = '(SSH{0})'.format(sshv) if sshv == 1 else ''
+						fm = '(rec) {0}{1}{2}-- {3} algorithm to {4} {5}'
+						fn(fm.format(sg, name, p, alg_type, an, b))
+	if len(obuf) > 0:
+		title = '(for {0})'.format(software.display(False)) if software else ''
+		out.head('# algorithm recommendations {0}'.format(title))
+		obuf.flush()
+		out.sep()
+
+
 def output(banner, header, kex=None, pkm=None):
 	sshv = 1 if pkm else 2
 	with OutputBuffer() as obuf:
@@ -1264,6 +1564,8 @@ def output(banner, header, kex=None, pkm=None):
 			software = SSH.Software.parse(banner)
 			if software is not None:
 				out.good('(gen) software: {0}'.format(software))
+		else:
+			software = None
 		output_compatibility(kex, pkm)
 		if kex is not None:
 			compressions = [x for x in kex.server.compression if x != 'none']
@@ -1287,6 +1589,7 @@ def output(banner, header, kex=None, pkm=None):
 		             ml(kex.server.encryption),
 		             ml(kex.server.mac),
 		             maxlen)
+	maxlen += 1
 	output_security(banner, maxlen)
 	if pkm is not None:
 		adb = SSH1.KexDB.ALGORITHMS
@@ -1308,59 +1611,36 @@ def output(banner, header, kex=None, pkm=None):
 		output_algorithms(title, adb, atype, kex.server.encryption, maxlen)
 		title, atype = 'message authentication code algorithms', 'mac'
 		output_algorithms(title, adb, atype, kex.server.mac, maxlen)
+	output_recommendations(software, kex, pkm, maxlen)
 	output_fingerprint(kex, pkm, True, maxlen)
 
 
-def parse_int(v):
-	try:
-		return int(v)
-	except:
-		return 0
-
-
-def parse_args():
-	conf = AuditConf()
-	try:
-		sopts = 'h12bnvl:'
-		lopts = ['help', 'ssh1', 'ssh2', 'batch', 'no-colors', 'verbose', 'level=']
-		opts, args = getopt.getopt(sys.argv[1:], sopts, lopts)
-	except getopt.GetoptError as err:
-		usage(str(err))
-	for o, a in opts:
-		if o in ('-h', '--help'):
-			usage()
-		elif o in ('-1', '--ssh1'):
-			conf.ssh1 = True
-		elif o in ('-2', '--ssh2'):
-			conf.ssh2 = True
-		elif o in ('-b', '--batch'):
-			out.batch = True
-			out.verbose = True
-		elif o in ('-n', '--no-colors'):
-			out.colors = False
-		elif o in ('-v', '--verbose'):
-			out.verbose = True
-		elif o in ('-l', '--level'):
-			if a not in ('info', 'warn', 'fail'):
-				usage('level ' + a + ' is not valid')
-			out.minlevel = a
-	if len(args) == 0:
-		usage()
-	s = args[0].split(':')
-	host, port = s[0].strip(), 22
-	if len(s) > 1:
-		port = parse_int(s[1])
-	if not host or port <= 0:
-		usage('port {0} is not valid'.format(port))
-	conf.host = host
-	conf.port = port
-	if not (conf.ssh1 or conf.ssh2):
-		conf.ssh1 = True
-		conf.ssh2 = True
-	return conf
+class Utils(object):
+	PY2 = sys.version_info[0] == 2
+	
+	@classmethod
+	def wrap(cls):
+		o = cls()
+		if cls.PY2:
+			import StringIO
+			o.StringIO = o.BytesIO = StringIO.StringIO
+		else:
+			o.StringIO, o.BytesIO = io.StringIO, io.BytesIO
+		return o
+	
+	@staticmethod
+	def parse_int(v):
+		try:
+			return int(v)
+		except:
+			return 0
 
 
 def audit(conf, sshv=None):
+	out.batch = conf.batch
+	out.colors = conf.colors
+	out.verbose = conf.verbose
+	out.minlevel = conf.minlevel
 	s = SSH.Socket(conf.host, conf.port)
 	if sshv is None:
 		sshv = 2 if conf.ssh2 else 1
@@ -1371,7 +1651,8 @@ def audit(conf, sshv=None):
 	if err is None:
 		packet_type, payload = s.read_packet(sshv)
 		if packet_type < 0:
-			if payload == b'Protocol major versions differ.':
+			payload = str(payload).decode('utf-8')
+			if payload == u'Protocol major versions differ.':
 				if sshv == 2 and conf.ssh1:
 					audit(conf, 1)
 					return
@@ -1393,11 +1674,12 @@ def audit(conf, sshv=None):
 		pkm = SSH1.PublicKeyMessage.parse(payload)
 		output(banner, header, pkm=pkm)
 	elif sshv == 2:
-		kex = Kex.parse(payload)
+		kex = SSH2.Kex.parse(payload)
 		output(banner, header, kex=kex)
 
 
+utils = Utils.wrap()
+out = Output()
 if __name__ == '__main__':
-	out = Output()
-	conf = parse_args()
+	conf = AuditConf.from_cmdline(sys.argv[1:], usage)
 	audit(conf)

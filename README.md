@@ -7,10 +7,11 @@
 - grab banner, recognize device or software and operating system, detect compression;
 - gather key-exchange, host-key, encryption and message authentication code algorithms;
 - output algorithm information (available since, removed/disabled, unsafe/weak/legacy, etc);
+- output algorithm recommendations (append or remove based on recognized software version);
 - output security information (related issues, assigned CVE list, etc);
 - analyze SSH version compatibility based on algorithm information;
-- historical information from OpenSSH and Dropbear SSH;
-- no dependencies, compatible with Python2 and Python3;
+- historical information from OpenSSH, Dropbear SSH and libssh;
+- no dependencies, compatible with Python 2.6+, Python 3.x and PyPy;
 
 ## Usage
 ```
@@ -28,9 +29,17 @@ usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
 * verbose flag `-v` will prefix each line with section type and algorithm name.  
 
 ### example
-![screenshot](https://cloud.githubusercontent.com/assets/7356025/17623665/da5281c8-60a9-11e6-9582-13f9971c22e0.png)  
+![screenshot](https://cloud.githubusercontent.com/assets/7356025/19233757/3e09b168-8ef0-11e6-91b4-e880bacd0b8a.png)
 
 ## ChangeLog
+### v1.6.0 (2016-10-14)
+ - implement algorithm recommendations section (based on recognized software)
+ - implement full libssh support (version history, algorithms, security, etc)
+ - fix SSH-1.99 banner recognition and version comparison functionality
+ - do not output empty algorithms (happens for misconfigured servers)
+ - make consistent output for Python 3.x versions
+ - add a lot more tests (conf, banner, software, SSH1/SSH2, output, etc)
+ - use Travis CI to test for multiple Python versions (2.6-3.5, pypy, pypy3)
 
 ### v1.5.0 (2016-09-20)
  - create security section for related security information

@@ -8,7 +8,11 @@ python:
   - pypy
   - pypy3
 install:
-  - pip install pytest
+  - pip install --upgrade pytest
+  - pip install --upgrade pytest-cov
+  - pip install --upgrade coveralls
 script:
-  - py.test -v test
+  - py.test --cov-report= --cov=ssh-audit -v test
+after_success:
+  - coveralls
 
