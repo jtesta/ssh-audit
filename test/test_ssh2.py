@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pytest
+import pytest, os
 
 
 class TestSSH2(object):
@@ -46,3 +46,62 @@ class TestSSH2(object):
 		assert kex.server.languages == [u'']
 		assert kex.follows is False
 		assert kex.unused == 0
+	
+	def _get_empty_kex(self, cookie=None):
+		kex_algs, key_algs = [], []
+		enc, mac, compression, languages = [], [], ['none'], []
+		cli = self.ssh2.KexParty(enc, mac, compression, languages)
+		enc, mac, compression, languages = [], [], ['none'], []
+		srv = self.ssh2.KexParty(enc, mac, compression, languages)
+		if cookie is None:
+			cookie = os.urandom(16)
+		kex = self.ssh2.Kex(cookie, kex_algs, key_algs, cli, srv, 0)
+		return kex
+	
+	def _get_kex_variat1(self):
+		cookie = b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
+		kex = self._get_empty_kex(cookie)
+		kex.kex_algorithms.append('curve25519-sha256@libssh.org')
+		kex.kex_algorithms.append('ecdh-sha2-nistp256')
+		kex.kex_algorithms.append('ecdh-sha2-nistp384')
+		kex.kex_algorithms.append('ecdh-sha2-nistp521')
+		kex.kex_algorithms.append('diffie-hellman-group-exchange-sha256')
+		kex.kex_algorithms.append('diffie-hellman-group14-sha1')
+		kex.key_algorithms.append('ssh-rsa')
+		kex.key_algorithms.append('rsa-sha2-512')
+		kex.key_algorithms.append('rsa-sha2-256')
+		kex.key_algorithms.append('ssh-ed25519')
+		kex.server.encryption.append('chacha20-poly1305@openssh.com')
+		kex.server.encryption.append('aes128-ctr')
+		kex.server.encryption.append('aes192-ctr')
+		kex.server.encryption.append('aes256-ctr')
+		kex.server.encryption.append('aes128-gcm@openssh.com')
+		kex.server.encryption.append('aes256-gcm@openssh.com')
+		kex.server.encryption.append('aes128-cbc')
+		kex.server.encryption.append('aes192-cbc')
+		kex.server.encryption.append('aes256-cbc')
+		kex.server.mac.append('umac-64-etm@openssh.com')
+		kex.server.mac.append('umac-128-etm@openssh.com')
+		kex.server.mac.append('hmac-sha2-256-etm@openssh.com')
+		kex.server.mac.append('hmac-sha2-512-etm@openssh.com')
+		kex.server.mac.append('hmac-sha1-etm@openssh.com')
+		kex.server.mac.append('umac-64@openssh.com')
+		kex.server.mac.append('umac-128@openssh.com')
+		kex.server.mac.append('hmac-sha2-256')
+		kex.server.mac.append('hmac-sha2-512')
+		kex.server.mac.append('hmac-sha1')
+		kex.server.compression.append('zlib@openssh.com')
+		for a in kex.server.encryption:
+			kex.client.encryption.append(a)
+		for a in kex.server.mac:
+			kex.client.mac.append(a)
+		for a in kex.server.compression:
+			if a == 'none':
+				continue
+			kex.client.compression.append(a)
+		return kex
+	
+	def test_key_payload(self):
+		kex1 = self._get_kex_variat1()
+		kex2 = self.ssh2.Kex.parse(self._kex_payload())
+		assert kex1.payload == kex2.payload
