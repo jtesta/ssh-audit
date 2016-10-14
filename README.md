@@ -32,7 +32,7 @@ usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/19233757/3e09b168-8ef0-11e6-91b4-e880bacd0b8a.png)
 
 ## ChangeLog
-### v1.6.0 (2016-10-xx)
+### v1.6.0 (2016-10-14)
  - implement algorithm recommendations section (based on recognized software)
  - implement full libssh support (version history, algorithms, security, etc)
  - fix SSH-1.99 banner recognition and version comparison functionality
@@ -40,7 +40,6 @@ usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
  - make consistent output for Python 3.x versions
  - add a lot more tests (conf, banner, software, SSH1/SSH2, output, etc)
  - use Travis CI to test for multiple Python versions (2.6-3.5, pypy, pypy3)
- - use Coveralls for coverage reporting
 
 ### v1.5.0 (2016-09-20)
  - create security section for related security information
