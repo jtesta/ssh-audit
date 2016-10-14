@@ -26,7 +26,7 @@
 from __future__ import print_function
 import os, io, sys, socket, struct, random, errno, getopt, re, hashlib, base64
 
-VERSION = 'v1.5.1.dev'
+VERSION = 'v1.6.0'
 
 
 def usage(err=None):
