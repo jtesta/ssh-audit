@@ -25,6 +25,10 @@
 """
 from __future__ import print_function
 import os, io, sys, socket, struct, random, errno, getopt, re, hashlib, base64
+try:
+	from typing import List, Tuple, Text
+except:
+	pass
 
 VERSION = 'v1.6.1.dev'
 
@@ -940,14 +944,15 @@ class SSH(object):
 			return self.__banner, self.__header
 		
 		def recv(self, size=2048):
+			# type: (int) -> Tuple[int, str]
 			try:
 				data = self.__sock.recv(size)
-			except socket.timeout as e:
-				r = 0 if e.strerror == 'timed out' else -1
-				return (r, e)
+			except socket.timeout:
+				return (-1, 'timeout')
 			except socket.error as e:
-				r = 0 if e.errno in (errno.EAGAIN, errno.EWOULDBLOCK) else -1
-				return (r, e)
+				if e.args[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
+					return (0, 'retry')
+				return (-1, str(e.args[-1]))
 			if len(data) == 0:
 				return (-1, None)
 			pos = self._buf.tell()
@@ -977,6 +982,7 @@ class SSH(object):
 					raise SSH.Socket.InsufficientReadException(e)
 		
 		def read_packet(self, sshv=2):
+			# type: (int) -> Tuple[int, bytes]
 			try:
 				header = WriteBuf()
 				self.ensure_read(4)
@@ -1024,7 +1030,7 @@ class SSH(object):
 					header.write(self.read(self.unread_len))
 					e = header.write_flush().strip()
 				else:
-					e = ex.args[0]
+					e = ex.args[0].encode('utf-8')
 				return (-1, e)
 		
 		def send_packet(self):
@@ -1651,7 +1657,7 @@ def audit(conf, sshv=None):
 	if err is None:
 		packet_type, payload = s.read_packet(sshv)
 		if packet_type < 0:
-			payload = str(payload).decode('utf-8')
+			payload = payload.decode('utf-8') if payload else u'empty'
 			if payload == u'Protocol major versions differ.':
 				if sshv == 2 and conf.ssh1:
 					audit(conf, 1)
