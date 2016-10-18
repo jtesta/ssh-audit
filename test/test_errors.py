@@ -81,6 +81,18 @@ class TestErrors(object):
 		assert 'error reading packet' in lines[-1]
 		assert 'xxx' in lines[-1]
 	
+	def test_nonutf8_data_after_banner(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		vsocket.rdata.append(b'SSH-2.0-ssh-audit-test\r\n')
+		vsocket.rdata.append(b'\x81\xff\n')
+		output_spy.begin()
+		with pytest.raises(SystemExit):
+			self.audit(self._conf())
+		lines = output_spy.flush()
+		assert len(lines) == 2
+		assert 'error reading packet' in lines[-1]
+		assert '\\x81\\xff' in lines[-1]
+	
 	def test_protocol_mismatch_by_conf(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'SSH-1.3-ssh-audit-test\r\n')

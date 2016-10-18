@@ -1657,7 +1657,10 @@ def audit(conf, sshv=None):
 	if err is None:
 		packet_type, payload = s.read_packet(sshv)
 		if packet_type < 0:
-			payload = payload.decode('utf-8') if payload else u'empty'
+			try:
+				payload = payload.decode('utf-8') if payload else u'empty'
+			except UnicodeDecodeError:
+				payload = u'"{0}"'.format(repr(payload).lstrip('b')[1:-1])
 			if payload == u'Protocol major versions differ.':
 				if sshv == 2 and conf.ssh1:
 					audit(conf, 1)
