@@ -11,6 +11,7 @@ class TestErrors(object):
 	
 	def _conf(self):
 		conf = self.AuditConf('localhost', 22)
+		conf.colors = False
 		conf.batch = True
 		return conf
 	
@@ -80,6 +81,18 @@ class TestErrors(object):
 		assert len(lines) == 2
 		assert 'error reading packet' in lines[-1]
 		assert 'xxx' in lines[-1]
+	
+	def test_non_ascii_banner(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		vsocket.rdata.append(b'SSH-2.0-ssh-audit-test\xc3\xbc\r\n')
+		output_spy.begin()
+		with pytest.raises(SystemExit):
+			self.audit(self._conf())
+		lines = output_spy.flush()
+		assert len(lines) == 3
+		assert 'error reading packet' in lines[-1]
+		assert 'ASCII' in lines[-2]
+		assert lines[-3].endswith('SSH-2.0-ssh-audit-test?')
 	
 	def test_nonutf8_data_after_banner(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
