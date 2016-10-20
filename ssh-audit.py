@@ -1812,7 +1812,7 @@ class Utils(object):
 	
 	@classmethod
 	def is_ascii(cls, v):
-		# type: (Union[text_type, str], str) -> bool
+		# type: (Union[text_type, str]) -> bool
 		try:
 			if isinstance(v, (text_type, str)):
 				v.encode('ascii')
