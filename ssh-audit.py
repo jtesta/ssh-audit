@@ -35,9 +35,10 @@ if sys.version_info >= (3,):
 else:
 	import StringIO as _StringIO
 	StringIO = BytesIO = _StringIO.StringIO
-	text_type = unicode
+	text_type = unicode  # pylint: disable=undefined-variable
 	binary_type = str
 try:
+	# pylint: disable=unused-import
 	from typing import List, Tuple, Optional, Callable, Union, Any
 except:
 	pass
@@ -175,7 +176,8 @@ class Output(object):
 		if not self.batch:
 			print()
 	
-	def _colorized(self, color):
+	@staticmethod
+	def _colorized(color):
 		# type: (str) -> Callable[[text_type], None]
 		return lambda x: print(u'{0}{1}\033[0m'.format(color, x))
 	
