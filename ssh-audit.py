@@ -784,7 +784,7 @@ class SSH(object):
 			if full:
 				patch = self.patch or ''
 				if self.product == SSH.Product.OpenSSH:
-					mx = re.match('^(p\d)(.*)$', patch)
+					mx = re.match(r'^(p\d)(.*)$', patch)
 					if mx is not None:
 						out += mx.group(1)
 						patch = mx.group(2).strip()
@@ -843,7 +843,7 @@ class SSH(object):
 				return 'FreeBSD' if d is None else 'FreeBSD ({0})'.format(d)
 			w = ['RemotelyAnywhere', 'DesktopAuthority', 'RemoteSupportManager']
 			for win_soft in w:
-				mx = re.match(r'^in ' + win_soft + ' ([\d\.]+\d)$', c)
+				mx = re.match(r'^in ' + win_soft + r' ([\d\.]+\d)$', c)
 				if mx:
 					ver = mx.group(1)
 					return 'Microsoft Windows ({0} {1})'.format(win_soft, ver)
@@ -893,7 +893,7 @@ class SSH(object):
 	
 	class Banner(object):
 		_RXP, _RXR = r'SSH-\d\.\s*?\d+', r'(-\s*([^\s]*)(?:\s+(.*))?)?'
-		RX_PROTOCOL = re.compile(re.sub(r'\\d(\+?)', '(\\d\g<1>)', _RXP))
+		RX_PROTOCOL = re.compile(re.sub(r'\\d(\+?)', r'(\\d\g<1>)', _RXP))
 		RX_BANNER = re.compile(r'^({0}(?:(?:-{0})*)){1}$'.format(_RXP, _RXR))
 		
 		def __init__(self, protocol, software, comments, valid_ascii):
@@ -957,7 +957,7 @@ class SSH(object):
 				software = ''
 			comments = (mx.group(4) or '').strip() or None
 			if comments is not None:
-				comments = re.sub('\s+', ' ', comments)
+				comments = re.sub(r'\s+', ' ', comments)
 			return cls(protocol, software, comments, valid_ascii)
 	
 	class Fingerprint(object):
