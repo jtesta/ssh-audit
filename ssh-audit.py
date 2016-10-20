@@ -1353,8 +1353,9 @@ def get_ssh_version(version_desc):
 		return (SSH.Product.OpenSSH, version_desc)
 
 
-def get_alg_timeframe(versions, for_server=True, result={}):
-	# type: (List[str], bool, Dict[str, List[Optional[str]]]) -> Dict[str, List[Optional[str]]]
+def get_alg_timeframe(versions, for_server=True, result=None):
+	# type: (List[str], bool, Optional[Dict[str, List[Optional[str]]]]) -> Dict[str, List[Optional[str]]]
+	result = result or {}
 	vlen = len(versions)
 	for i in range(3):
 		if i > vlen - 1:
