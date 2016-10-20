@@ -193,6 +193,7 @@ class Output(object):
 
 
 class OutputBuffer(list):
+	# pylint: disable=attribute-defined-outside-init
 	def __enter__(self):
 		# type: () -> OutputBuffer
 		self.__buf = StringIO()
@@ -1193,6 +1194,7 @@ class KexDH(object):
 		self.__p = p
 		self.__q = (self.__p - 1) // 2
 		self.__x = None  # type: Optional[int]
+		self.__e = None  # type: Optional[int]
 	
 	def send_init(self, s):
 		# type: (SSH.Socket) -> None
