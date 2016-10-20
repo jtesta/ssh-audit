@@ -1807,7 +1807,7 @@ class Utils(object):
 		raise cls._type_err(v, 'native text')
 	
 	@classmethod
-	def is_ascii(cls, v, enc='utf-8'):
+	def is_ascii(cls, v):
 		# type: (Union[text_type, str], str) -> bool
 		try:
 			if isinstance(v, (text_type, str)):
