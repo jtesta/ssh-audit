@@ -1,3 +1,5 @@
 *~
 *.pyc
-./html/
+html/
+venv/
+.cache/
