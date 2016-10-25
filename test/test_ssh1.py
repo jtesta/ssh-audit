@@ -24,11 +24,11 @@ class TestSSH1(object):
 		conf.ssh2 = False
 		return conf
 	
-	def _create_ssh1_packet(self, payload):
+	def _create_ssh1_packet(self, payload, valid_crc=True):
 		padding = -(len(payload) + 4) % 8
 		plen = len(payload) + 4
 		pad_bytes = b'\x00' * padding
-		cksum = self.ssh1.crc32(pad_bytes + payload)
+		cksum = self.ssh1.crc32(pad_bytes + payload) if valid_crc else 0
 		data = struct.pack('>I', plen) + pad_bytes + payload + struct.pack('>I', cksum)
 		return data
 	
@@ -123,3 +123,17 @@ class TestSSH1(object):
 		lines = output_spy.flush()
 		assert len(lines) == 4
 		assert 'unknown message' in lines[-1]
+
+	def test_ssh1_server_invalid_checksum(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		w = self.wbuf()
+		w.write_byte(self.ssh.Protocol.SMSG_PUBLIC_KEY + 1)
+		w.write(self._pkm_payload())
+		vsocket.rdata.append(b'SSH-1.5-OpenSSH_7.2 ssh-audit-test\r\n')
+		vsocket.rdata.append(self._create_ssh1_packet(w.write_flush(), False))
+		output_spy.begin()
+		with pytest.raises(SystemExit):
+			self.audit(self._conf())
+		lines = output_spy.flush()
+		assert len(lines) == 1
+		assert 'checksum' in lines[-1]
