@@ -62,6 +62,8 @@ class TestOutput(object):
 		output_spy.begin()
 		out.fail('fail color')
 		assert output_spy.flush() == [u'fail color']
+		if not out.colors_supported:
+			return
 		# test with colors
 		out.colors = True
 		output_spy.begin()
