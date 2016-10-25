@@ -42,6 +42,11 @@ try:
 	from typing import List, Tuple, Optional, Callable, Union, Any
 except ImportError:
 	pass
+try:
+	from colorama import init as colorama_init
+	colorama_init()
+except ImportError:
+	pass
 
 
 def usage(err=None):
@@ -177,6 +182,11 @@ class Output(object):
 		if not self.batch:
 			print()
 	
+	@property
+	def colors_supported(self):
+		# type: () -> bool
+		return 'colorama' in sys.modules or os.name == 'posix'
+	
 	@staticmethod
 	def _colorized(color):
 		# type: (str) -> Callable[[text_type], None]
@@ -188,7 +198,7 @@ class Output(object):
 			return lambda x: None
 		if not self.getlevel(name) >= self.__minlevel:
 			return lambda x: None
-		if self.colors and os.name == 'posix' and name in self.COLORS:
+		if self.colors and self.colors_supported and name in self.COLORS:
 			color = '\033[0;{0}m'.format(self.COLORS[name])
 			return self._colorized(color)
 		else:
