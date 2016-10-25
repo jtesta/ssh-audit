@@ -44,7 +44,7 @@ except ImportError:  # pragma: nocover
 	pass
 try:
 	from colorama import init as colorama_init
-	colorama_init()
+	colorama_init()  # pragma: nocover
 except ImportError:  # pragma: nocover
 	pass
 
