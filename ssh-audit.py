@@ -1905,6 +1905,6 @@ def audit(aconf, sshv=None):
 
 utils = Utils()
 out = Output()
-if __name__ == '__main__':
+if __name__ == '__main__':  # pragma: nocover
 	conf = AuditConf.from_cmdline(sys.argv[1:], usage)
 	audit(conf)

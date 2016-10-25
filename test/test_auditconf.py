@@ -3,13 +3,15 @@
 import pytest
 
 
+# pylint: disable=attribute-defined-outside-init
 class TestAuditConf(object):
 	@pytest.fixture(autouse=True)
 	def init(self, ssh_audit):
 		self.AuditConf = ssh_audit.AuditConf
 		self.usage = ssh_audit.usage
 	
-	def _test_conf(self, conf, **kwargs):
+	@classmethod
+	def _test_conf(cls, conf, **kwargs):
 		options = {
 			'host': None,
 			'port': 22,
@@ -66,7 +68,7 @@ class TestAuditConf(object):
 			excinfo.match(r'.*invalid level.*')
 	
 	def test_audit_conf_cmdline(self):
-		c = lambda x: self.AuditConf.from_cmdline(x.split(), self.usage)
+		c = lambda x: self.AuditConf.from_cmdline(x.split(), self.usage)  # noqa
 		with pytest.raises(SystemExit):
 			conf = c('')
 		with pytest.raises(SystemExit):

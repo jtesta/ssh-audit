@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 from __future__ import print_function
-import pytest, io, sys
+import pytest
 
 
+# pylint: disable=attribute-defined-outside-init
 class TestOutput(object):
 	@pytest.fixture(autouse=True)
 	def init(self, ssh_audit):
@@ -23,7 +24,7 @@ class TestOutput(object):
 	
 	def test_output_buffer_no_flush(self, output_spy):
 		output_spy.begin()
-		with self.OutputBuffer() as obuf:
+		with self.OutputBuffer():
 			print(u'abc')
 		assert output_spy.flush() == []
 	
