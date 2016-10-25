@@ -1648,7 +1648,7 @@ def output_security_sub(sub, software, padlen):
 		vfrom, vtill = line[0:2]  # type: str, str
 		if not software.between_versions(vfrom, vtill):
 			continue
-		target, name = line[2:3]  # type: int, str
+		target, name = line[2:4]  # type: int, str
 		is_server, is_client = target & 1 == 1, target & 2 == 2
 		is_local = target & 4 == 4
 		if not is_server:
