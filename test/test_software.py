@@ -225,7 +225,7 @@ class TestSoftware(object):
 		assert s.display(False) == str(s)
 		assert repr(s) == '<Software(vendor=Cisco, product=IOS/PIX sshd, version=1.25)>'
 	
-	def test_sofware_os(self):
+	def test_software_os(self):
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
 		# unknown
 		s = ps('SSH-2.0-OpenSSH_3.7.1 MegaOperatingSystem 123')
