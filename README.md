@@ -47,7 +47,7 @@ usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
  - implement full SSH1 support with fingerprint information
  - automatically fallback to SSH1 on protocol mismatch
  - add new options to force SSH1 or SSH2 (both allowed by default)
- - parse banner information and convert it to specific sofware and OS version
+ - parse banner information and convert it to specific software and OS version
  - do not use padding in batch mode
  - several fixes (Cisco sshd, rare hangs, error handling, etc)
 
