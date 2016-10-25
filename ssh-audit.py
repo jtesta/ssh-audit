@@ -40,12 +40,12 @@ else:
 try:
 	# pylint: disable=unused-import
 	from typing import List, Tuple, Optional, Callable, Union, Any
-except ImportError:
+except ImportError:  # pragma: nocover
 	pass
 try:
 	from colorama import init as colorama_init
 	colorama_init()
-except ImportError:
+except ImportError:  # pragma: nocover
 	pass
 
 
@@ -572,7 +572,7 @@ class ReadBuf(object):
 	def read_list(self):
 		# type: () -> List[text_type]
 		list_size = self.read_int()
-		return self.read(list_size).decode().split(',')
+		return self.read(list_size).decode('utf-8', 'replace').split(',')
 	
 	def read_string(self):
 		# type: () -> binary_type
@@ -607,7 +607,7 @@ class ReadBuf(object):
 	
 	def read_line(self):
 		# type: () -> text_type
-		return self._buf.readline().rstrip().decode('utf-8')
+		return self._buf.readline().rstrip().decode('utf-8', 'replace')
 
 
 class WriteBuf(object):

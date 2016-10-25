@@ -9,6 +9,7 @@ class TestBuffer(object):
 	def init(self, ssh_audit):
 		self.rbuf = ssh_audit.ReadBuf
 		self.wbuf = ssh_audit.WriteBuf
+		self.utf8rchar = b'\xef\xbf\xbd'
 	
 	def _b(self, v):
 		v = re.sub(r'\s', '', v)
@@ -75,6 +76,12 @@ class TestBuffer(object):
 			assert w(p[0]) == self._b(p[1])
 			assert r(self._b(p[1])) == p[0]
 	
+	def test_list_nonutf8(self):
+		r = lambda x: self.rbuf(x).read_list()
+		src = self._b('00 00 00 04 de ad be ef')
+		dst = [(b'\xde\xad' + self.utf8rchar + self.utf8rchar).decode('utf-8')]
+		assert r(src) == dst
+	
 	def test_line(self):
 		w = lambda x: self.wbuf().write_line(x).write_flush()
 		r = lambda x: self.rbuf(x).read_line()
@@ -82,6 +89,12 @@ class TestBuffer(object):
 		for p in tc:
 			assert w(p[0]) == self._b(p[1])
 			assert r(self._b(p[1])) == p[0]
+	
+	def test_line_nonutf8(self):
+		r = lambda x: self.rbuf(x).read_line()
+		src = self._b('de ad be af')
+		dst = (b'\xde\xad' + self.utf8rchar + self.utf8rchar).decode('utf-8')
+		assert r(src) == dst
 	
 	def test_bitlen(self):
 		class Py26Int(int):
