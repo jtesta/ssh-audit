@@ -3,6 +3,7 @@
 import pytest
 
 
+# pylint: disable=attribute-defined-outside-init
 class TestVersionCompare(object):
 	@pytest.fixture(autouse=True)
 	def init(self, ssh_audit):

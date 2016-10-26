@@ -5,4 +5,9 @@ if [ $? -ne 0 ]; then
 	echo "err: prospector (Python Static Analysis) not found."
 	exit 1
 fi
-prospector --profile-path "${_cdir}" -P prospector "${_cdir}/../ssh-audit.py"
+if [ X"$1" == X"" ]; then
+	_file="${_cdir}/../ssh-audit.py"
+else
+	_file="$1"
+fi
+prospector -E --profile-path "${_cdir}" -P prospector "${_file}"

@@ -1,5 +1,6 @@
 # ssh-audit
-[![build status](https://api.travis-ci.org/arthepsy/ssh-audit.svg)](https://travis-ci.org/arthepsy/ssh-audit)  
+[![build status](https://api.travis-ci.org/arthepsy/ssh-audit.svg)](https://travis-ci.org/arthepsy/ssh-audit)
+[![coverage status](https://coveralls.io/repos/github/arthepsy/ssh-audit/badge.svg)](https://coveralls.io/github/arthepsy/ssh-audit)  
 **ssh-audit** is a tool for ssh server auditing.  
 
 ## Features
@@ -15,16 +16,20 @@
 
 ## Usage
 ```
-usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
+usage: ssh-audit.py [-1246pbnvl] <host>
 
    -1,  --ssh1             force ssh version 1 only
    -2,  --ssh2             force ssh version 2 only
+   -4,  --ipv4             enable IPv4 (order of precedence)
+   -6,  --ipv6             enable IPv6 (order of precedence)
+   -p,  --port=<port>      port to connect
    -b,  --batch            batch output
    -n,  --no-colors        disable colors
    -v,  --verbose          verbose output
    -l,  --level=<level>    minimum output level (info|warn|fail)
    
 ```
+* if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.  
 * batch flag `-b` will output sections without header and without empty lines (implies verbose flag).  
 * verbose flag `-v` will prefix each line with section type and algorithm name.  
 
@@ -32,6 +37,13 @@ usage: ssh-audit.py [-bnv] [-l <level>] <host[:port]>
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/19233757/3e09b168-8ef0-11e6-91b4-e880bacd0b8a.png)
 
 ## ChangeLog
+### v1.x.x (2016-xx-xx)
+ - implement options to allow specify IPv4/IPv6 usage and order of precedence
+ - implement option to specify remote port (old behavior kept for compatibility)
+ - add colors support for Microsoft Windows via optional colorama dependency
+ - fix encoding and decoding issues, add tests, do not crash on encoding errors
+ - use mypy-lang for static type checking and verify all code
+
 ### v1.6.0 (2016-10-14)
  - implement algorithm recommendations section (based on recognized software)
  - implement full libssh support (version history, algorithms, security, etc)
