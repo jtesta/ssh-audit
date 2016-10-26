@@ -26,7 +26,7 @@
 from __future__ import print_function
 import os, io, sys, socket, struct, random, errno, getopt, re, hashlib, base64
 
-VERSION = 'v1.7.0'
+VERSION = 'v1.7.1.dev'
 
 if sys.version_info >= (3,):  # pragma: nocover
 	StringIO, BytesIO = io.StringIO, io.BytesIO
