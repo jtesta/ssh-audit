@@ -37,7 +37,7 @@ usage: ssh-audit.py [-1246pbnvl] <host>
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/19233757/3e09b168-8ef0-11e6-91b4-e880bacd0b8a.png)
 
 ## ChangeLog
-### v1.x.x (2016-xx-xx)
+### v1.7.0 (2016-10-26)
  - implement options to allow specify IPv4/IPv6 usage and order of precedence
  - implement option to specify remote port (old behavior kept for compatibility)
  - add colors support for Microsoft Windows via optional colorama dependency
