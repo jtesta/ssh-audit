@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pytest, os, sys, io, socket
+import os
+import io
+import sys
+import socket
+import pytest
 
 
 if sys.version_info[0] == 2:
-	import StringIO
+	import StringIO  # pylint: disable=import-error
 	StringIO = StringIO.StringIO
 else:
 	StringIO = io.StringIO
@@ -17,6 +21,7 @@ def ssh_audit():
 	return __import__('ssh-audit')
 
 
+# pylint: disable=attribute-defined-outside-init
 class _OutputSpy(list):
 	def begin(self):
 		self.__out = StringIO()
@@ -50,11 +55,14 @@ class _VirtualSocket(object):
 		if method_error:
 			raise method_error
 	
-	def _connect(self, address):
+	def connect(self, address):
+		return self._connect(address, False)
+	
+	def _connect(self, address, ret=True):
 		self.peer_address = address
 		self._connected = True
 		self._check_err('connect')
-		return self
+		return self if ret else None
 	
 	def settimeout(self, timeout):
 		self.timeout = timeout
@@ -77,6 +85,7 @@ class _VirtualSocket(object):
 		pass
 	
 	def accept(self):
+		# pylint: disable=protected-access
 		conn = _VirtualSocket()
 		conn.sock_address = self.sock_address
 		conn.peer_address = ('127.0.0.1', 0)
@@ -84,6 +93,7 @@ class _VirtualSocket(object):
 		return conn, conn.peer_address
 	
 	def recv(self, bufsize, flags=0):
+		# pylint: disable=unused-argument
 		if not self._connected:
 			raise socket.error(54, 'Connection reset by peer')
 		if not len(self.rdata) > 0:
@@ -103,10 +113,18 @@ class _VirtualSocket(object):
 @pytest.fixture()
 def virtual_socket(monkeypatch):
 	vsocket = _VirtualSocket()
-	def _c(address):
-		return vsocket._connect(address)
+	
+	# pylint: disable=unused-argument
+	def _socket(family=socket.AF_INET,
+	            socktype=socket.SOCK_STREAM,
+	            proto=0,
+	            fileno=None):
+		return vsocket
+	
 	def _cc(address, timeout=0, source_address=None):
-		return vsocket._connect(address)
+		# pylint: disable=protected-access
+		return vsocket._connect(address, True)
+	
 	monkeypatch.setattr(socket, 'create_connection', _cc)
-	monkeypatch.setattr(socket.socket, 'connect', _c)
+	monkeypatch.setattr(socket, 'socket', _socket)
 	return vsocket
