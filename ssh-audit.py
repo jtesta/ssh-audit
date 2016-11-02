@@ -1914,28 +1914,58 @@ class Utils(object):
 		if isinstance(v, str):
 			return v
 		elif isinstance(v, text_type):
-			return v.encode(enc)
+			return v.encode(enc)  # PY2 only
 		elif isinstance(v, binary_type):
-			return v.decode(enc)
+			return v.decode(enc)  # PY3 only
 		raise cls._type_err(v, 'native text')
+	
+	@classmethod
+	def _is_ascii(cls, v, char_filter=lambda x: x <= 127):
+		# type: (Union[text_type, str], Callable[[int], bool]) -> bool
+		r = False
+		if isinstance(v, (text_type, str)):
+			for c in v:
+				i = cls.ctoi(c)
+				if not char_filter(i):
+					return r
+			r = True
+		return r
+	
+	@classmethod
+	def _to_ascii(cls, v, char_filter=lambda x: x <= 127, errors='replace'):
+		# type: (Union[text_type, str], Callable[[int], bool], str) -> str
+		if isinstance(v, (text_type, str)):
+			r = bytearray()
+			for c in v:
+				i = cls.ctoi(c)
+				if char_filter(i):
+					r.append(i)
+				else:
+					if errors == 'ignore':
+						continue
+					r.append(63)
+			return cls.to_ntext(r.decode('ascii'))
+		raise cls._type_err(v, 'ascii')
 	
 	@classmethod
 	def is_ascii(cls, v):
 		# type: (Union[text_type, str]) -> bool
-		try:
-			if isinstance(v, (text_type, str)):
-				v.encode('ascii')
-				return True
-		except UnicodeEncodeError:
-			pass
-		return False
+		return cls._is_ascii(v)
 	
 	@classmethod
 	def to_ascii(cls, v, errors='replace'):
 		# type: (Union[text_type, str], str) -> str
-		if isinstance(v, (text_type, str)):
-			return cls.to_ntext(v.encode('ascii', errors))
-		raise cls._type_err(v, 'ascii')
+		return cls._to_ascii(v, errors=errors)
+	
+	@classmethod
+	def is_print_ascii(cls, v):
+		# type: (Union[text_type, str]) -> bool
+		return cls._is_ascii(v, lambda x: x >= 32 and x <= 126)
+	
+	@classmethod
+	def to_print_ascii(cls, v, errors='replace'):
+		# type: (Union[text_type, str], str) -> str
+		return cls._to_ascii(v, lambda x: x >= 32 and x <= 126, errors)
 	
 	@classmethod
 	def unique_seq(cls, seq):
@@ -1951,7 +1981,15 @@ class Utils(object):
 			return tuple(x for x in seq if x not in seen and not _seen_add(x))
 		else:
 			return [x for x in seq if x not in seen and not _seen_add(x)]
-		
+	
+	@classmethod
+	def ctoi(cls, c):
+		# type: (Union[text_type, str, int]) -> int
+		if isinstance(c, (text_type, str)):
+			return ord(c[0])
+		else:
+			return c
+	
 	@staticmethod
 	def parse_int(v):
 		# type: (Any) -> int
