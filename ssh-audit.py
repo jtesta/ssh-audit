@@ -1005,8 +1005,8 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		@classmethod
 		def parse(cls, banner):
 			# type: (text_type) -> SSH.Banner
-			valid_ascii = utils.is_ascii(banner)
-			ascii_banner = utils.to_ascii(banner)
+			valid_ascii = utils.is_print_ascii(banner)
+			ascii_banner = utils.to_print_ascii(banner)
 			mx = cls.RX_BANNER.match(ascii_banner)
 			if mx is None:
 				return None
