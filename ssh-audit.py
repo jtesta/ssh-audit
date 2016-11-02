@@ -1141,16 +1141,17 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			sys.exit(1)
 		
 		def get_banner(self, sshv=2):
-			# type: (int) -> Tuple[Optional[SSH.Banner], List[text_type]]
+			# type: (int) -> Tuple[Optional[SSH.Banner], List[text_type], Optional[str]]
 			banner = 'SSH-{0}-OpenSSH_7.3'.format('1.5' if sshv == 1 else '2.0')
 			rto = self.__sock.gettimeout()
 			self.__sock.settimeout(0.7)
 			s, e = self.recv()
 			self.__sock.settimeout(rto)
 			if s < 0:
-				return self.__banner, self.__header
+				return self.__banner, self.__header, e
 			if self.__state < self.SM_BANNER_SENT:
 				self.send_banner(banner)
+			e = None
 			while self.__banner is None:
 				if not s > 0:
 					s, e = self.recv()
@@ -1166,14 +1167,14 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 							continue
 					self.__header.append(line)
 				s = 0
-			return self.__banner, self.__header
+			return self.__banner, self.__header, e
 		
 		def recv(self, size=2048):
 			# type: (int) -> Tuple[int, Optional[str]]
 			try:
 				data = self.__sock.recv(size)
 			except socket.timeout:
-				return (-1, 'timeout')
+				return (-1, 'timed out')
 			except socket.error as e:
 				if e.args[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
 					return (0, 'retry')
@@ -1971,9 +1972,12 @@ def audit(aconf, sshv=None):
 	if sshv is None:
 		sshv = 2 if aconf.ssh2 else 1
 	err = None
-	banner, header = s.get_banner(sshv)
+	banner, header, err = s.get_banner(sshv)
 	if banner is None:
-		err = '[exception] did not receive banner.'
+		if err is None:
+			err = '[exception] did not receive banner.'
+		else:
+			err = '[exception] did not receive banner: {0}'.format(err)
 	if err is None:
 		packet_type, payload = s.read_packet(sshv)
 		if packet_type < 0:
