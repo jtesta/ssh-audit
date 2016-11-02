@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import socket
+import errno
 import pytest
 
 
@@ -31,7 +32,7 @@ class TestErrors(object):
 	
 	def test_connection_refused(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
-		vsocket.errors['connect'] = socket.error(61, 'Connection refused')
+		vsocket.errors['connect'] = socket.error(errno.ECONNREFUSED, 'Connection refused')
 		lines = self._audit(output_spy)
 		assert len(lines) == 1
 		assert 'Connection refused' in lines[-1]
@@ -59,9 +60,9 @@ class TestErrors(object):
 	
 	def test_recv_retry_till_timeout(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
-		vsocket.rdata.append(socket.error(35, 'Resource temporarily unavailable'))
-		vsocket.rdata.append(socket.error(35, 'Resource temporarily unavailable'))
-		vsocket.rdata.append(socket.error(35, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.EAGAIN, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.EWOULDBLOCK, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.EAGAIN, 'Resource temporarily unavailable'))
 		vsocket.rdata.append(socket.timeout('timed out'))
 		lines = self._audit(output_spy)
 		assert len(lines) == 1
@@ -70,10 +71,10 @@ class TestErrors(object):
 	
 	def test_recv_retry_till_reset(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
-		vsocket.rdata.append(socket.error(35, 'Resource temporarily unavailable'))
-		vsocket.rdata.append(socket.error(35, 'Resource temporarily unavailable'))
-		vsocket.rdata.append(socket.error(35, 'Resource temporarily unavailable'))
-		vsocket.rdata.append(socket.error(54, 'Connection reset by peer'))
+		vsocket.rdata.append(socket.error(errno.EAGAIN, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.EWOULDBLOCK, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.EAGAIN, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.ECONNRESET, 'Connection reset by peer'))
 		lines = self._audit(output_spy)
 		assert len(lines) == 1
 		assert 'did not receive banner' in lines[-1]
@@ -81,7 +82,7 @@ class TestErrors(object):
 	
 	def test_connection_closed_before_banner(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
-		vsocket.rdata.append(socket.error(54, 'Connection reset by peer'))
+		vsocket.rdata.append(socket.error(errno.ECONNRESET, 'Connection reset by peer'))
 		lines = self._audit(output_spy)
 		assert len(lines) == 1
 		assert 'did not receive banner' in lines[-1]
@@ -91,7 +92,7 @@ class TestErrors(object):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'header line 1\n')
 		vsocket.rdata.append(b'header line 2\n')
-		vsocket.rdata.append(socket.error(54, 'Connection reset by peer'))
+		vsocket.rdata.append(socket.error(errno.ECONNRESET, 'Connection reset by peer'))
 		lines = self._audit(output_spy)
 		assert len(lines) == 3
 		assert 'did not receive banner' in lines[-1]
