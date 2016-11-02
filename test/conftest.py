@@ -40,6 +40,41 @@ def output_spy():
 	return _OutputSpy()
 
 
+class _VirtualGlobalSocket(object):
+	def __init__(self, vsocket):
+		self.vsocket = vsocket
+		self.addrinfodata = {}
+	
+	# pylint: disable=unused-argument
+	def create_connection(self, address, timeout=0, source_address=None):
+		# pylint: disable=protected-access
+		return self.vsocket._connect(address, True)
+	
+	# pylint: disable=unused-argument
+	def socket(self,
+	           family=socket.AF_INET,
+	           socktype=socket.SOCK_STREAM,
+	           proto=0,
+	           fileno=None):
+		return self.vsocket
+	
+	def getaddrinfo(self, host, port, family=0, socktype=0, proto=0, flags=0):
+		key = '{0}#{1}'.format(host, port)
+		if key in self.addrinfodata:
+			data = self.addrinfodata[key]
+			if isinstance(data, Exception):
+				raise data
+			return data
+		if host == 'localhost':
+			r = []
+			if family in (0, socket.AF_INET):
+				r.append((socket.AF_INET, 1, 6, '', ('127.0.0.1', port)))
+			if family in (0, socket.AF_INET6):
+				r.append((socket.AF_INET6, 1, 6, '', ('::1', port)))
+			return r
+		return []
+
+
 class _VirtualSocket(object):
 	def __init__(self):
 		self.sock_address = ('127.0.0.1', 0)
@@ -49,6 +84,7 @@ class _VirtualSocket(object):
 		self.rdata = []
 		self.sdata = []
 		self.errors = {}
+		self.gsock = _VirtualGlobalSocket(self)
 	
 	def _check_err(self, method):
 		method_error = self.errors.get(method)
@@ -113,18 +149,8 @@ class _VirtualSocket(object):
 @pytest.fixture()
 def virtual_socket(monkeypatch):
 	vsocket = _VirtualSocket()
-	
-	# pylint: disable=unused-argument
-	def _socket(family=socket.AF_INET,
-	            socktype=socket.SOCK_STREAM,
-	            proto=0,
-	            fileno=None):
-		return vsocket
-	
-	def _cc(address, timeout=0, source_address=None):
-		# pylint: disable=protected-access
-		return vsocket._connect(address, True)
-	
-	monkeypatch.setattr(socket, 'create_connection', _cc)
-	monkeypatch.setattr(socket, 'socket', _socket)
+	gsock = vsocket.gsock
+	monkeypatch.setattr(socket, 'create_connection', gsock.create_connection)
+	monkeypatch.setattr(socket, 'socket', gsock.socket)
+	monkeypatch.setattr(socket, 'getaddrinfo', gsock.getaddrinfo)
 	return vsocket

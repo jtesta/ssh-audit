@@ -30,6 +30,13 @@ class TestErrors(object):
 		lines = spy.flush()
 		return lines
 	
+	def test_connection_unresolved(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		vsocket.gsock.addrinfodata['localhost#22'] = []
+		lines = self._audit(output_spy)
+		assert len(lines) == 1
+		assert 'has no DNS records' in lines[-1]
+	
 	def test_connection_refused(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
 		vsocket.errors['connect'] = socket.error(errno.ECONNREFUSED, 'Connection refused')
@@ -91,6 +98,7 @@ class TestErrors(object):
 	def test_connection_closed_after_header(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'header line 1\n')
+		vsocket.rdata.append(b'\n')
 		vsocket.rdata.append(b'header line 2\n')
 		vsocket.rdata.append(socket.error(errno.ECONNRESET, 'Connection reset by peer'))
 		lines = self._audit(output_spy)
