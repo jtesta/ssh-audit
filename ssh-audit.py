@@ -1267,16 +1267,17 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		def maxlen(self):
 			# type: () -> int
 			ml, maxlen = lambda l: max(len(i) for i in l), 0
+			# type: Callable[[Sequence[text_type]], int], int
 			if self.ssh1kex is not None:
 				maxlen = max(ml(self.ssh1kex.supported_ciphers),
-							 ml(self.ssh1kex.supported_authentications),
-							 maxlen)
+				             ml(self.ssh1kex.supported_authentications),
+				             maxlen)
 			if self.ssh2kex is not None:
 				maxlen = max(ml(self.ssh2kex.kex_algorithms),
-							 ml(self.ssh2kex.key_algorithms),
-							 ml(self.ssh2kex.server.encryption),
-							 ml(self.ssh2kex.server.mac),
-							 maxlen)
+				             ml(self.ssh2kex.key_algorithms),
+				             ml(self.ssh2kex.server.encryption),
+				             ml(self.ssh2kex.server.mac),
+				             maxlen)
 			return maxlen
 		
 		def get_ssh_timeframe(self, for_server=True):
@@ -1298,8 +1299,8 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			# type: (Optional[SSH.Software], bool) -> Tuple[Optional[SSH.Software], Dict[int, Dict[str, Dict[str, Dict[str, int]]]]]
 			# pylint: disable=too-many-locals,too-many-statements
 			vproducts = [SSH.Product.OpenSSH,
-						 SSH.Product.DropbearSSH,
-						 SSH.Product.LibSSH]
+			             SSH.Product.DropbearSSH,
+			             SSH.Product.LibSSH]
 			if software is not None:
 				if software.product not in vproducts:
 					software = None
