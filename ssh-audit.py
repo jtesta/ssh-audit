@@ -269,6 +269,7 @@ class OutputBuffer(list):
 class SSH2(object):  # pylint: disable=too-few-public-methods
 	class KexDB(object):  # pylint: disable=too-few-public-methods
 		# pylint: disable=bad-whitespace
+		WARN_OPENSSH74_UNSAFE = 'disabled (in client) since OpenSSH 7.4, unsafe algorithm'
 		WARN_OPENSSH72_LEGACY = 'disabled (in client) since OpenSSH 7.2, legacy algorithm'
 		FAIL_OPENSSH70_LEGACY = 'removed since OpenSSH 7.0, legacy algorithm'
 		FAIL_OPENSSH70_WEAK   = 'removed (in server) and disabled (in client) since OpenSSH 7.0, weak algorithm'
@@ -304,6 +305,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdh-sha2-nistp384': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
+				'curve25519-sha256': [['7.4']],
 				'kexguess2@matt.ucc.asn.au': [['d2013.57']],
 			},
 			'key': {
@@ -326,7 +328,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 			},
 			'enc': {
 				'none': [['1.2.2,d2013.56,l10.2'], [FAIL_PLAINTEXT]],
-				'3des-cbc': [['1.2.2,d0.28,l10.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_CIPHER_WEAK, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
+				'3des-cbc': [['1.2.2,d0.28,l10.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH74_UNSAFE, WARN_CIPHER_WEAK, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'3des-ctr': [['d0.52']],
 				'blowfish-cbc': [['1.2.2,d0.28,l10.2', '6.6,d0.52', '7.1,d0.52'], [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'twofish-cbc': [['d0.28', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [WARN_CIPHER_MODE]],
@@ -1578,7 +1580,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			# type: (int) -> Tuple[Optional[SSH.Banner], List[text_type], Optional[str]]
 			if self.__sock is None:
 				return self.__banner, self.__header, 'not connected'
-			banner = 'SSH-{0}-OpenSSH_7.3'.format('1.5' if sshv == 1 else '2.0')
+			banner = 'SSH-{0}-OpenSSH_7.4'.format('1.5' if sshv == 1 else '2.0')
 			rto = self.__sock.gettimeout()
 			self.__sock.settimeout(0.7)
 			s, e = self.recv()
