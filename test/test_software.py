@@ -168,17 +168,17 @@ class TestSoftware(object):
 		assert s.display(True) == str(s)
 		assert s.display(False) == str(s)
 		assert repr(s) == '<Software(product=libssh, version=0.2)>'
-		s = ps('SSH-2.0-libssh-0.7.3')
+		s = ps('SSH-2.0-libssh-0.7.4')
 		assert s.vendor is None
 		assert s.product == 'libssh'
-		assert s.version == '0.7.3'
+		assert s.version == '0.7.4'
 		assert s.patch is None
 		assert s.os is None
-		assert str(s) == 'libssh 0.7.3'
+		assert str(s) == 'libssh 0.7.4'
 		assert str(s) == s.display()
 		assert s.display(True) == str(s)
 		assert s.display(False) == str(s)
-		assert repr(s) == '<Software(product=libssh, version=0.7.3)>'
+		assert repr(s) == '<Software(product=libssh, version=0.7.4)>'
 	
 	def test_romsshell_software(self):
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
