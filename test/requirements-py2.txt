@@ -1,0 +1,5 @@
+pytest==3.0.7
+pytest-cov==2.4.0
+lxml==3.7.3
+colorama==0.3.7
+prospector==0.12.4

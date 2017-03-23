@@ -39,7 +39,7 @@ else:  # pragma: nocover
 	binary_type = str
 try:  # pragma: nocover
 	# pylint: disable=unused-import
-	from typing import List, Set, Sequence, Tuple, Iterable
+	from typing import Dict, List, Set, Sequence, Tuple, Iterable
 	from typing import Callable, Optional, Union, Any
 except ImportError:  # pragma: nocover
 	pass
@@ -713,7 +713,8 @@ class ReadBuf(object):
 	
 	def read_byte(self):
 		# type: () -> int
-		return struct.unpack('B', self.read(1))[0]
+		v = struct.unpack('B', self.read(1))[0]  # type: int
+		return v
 	
 	def read_bool(self):
 		# type: () -> bool
@@ -721,7 +722,8 @@ class ReadBuf(object):
 	
 	def read_int(self):
 		# type: () -> int
-		return struct.unpack('>I', self.read(4))[0]
+		v = struct.unpack('>I', self.read(4))[0]  # type: int
+		return v
 	
 	def read_list(self):
 		# type: () -> List[text_type]
@@ -1268,8 +1270,10 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		@property
 		def maxlen(self):
 			# type: () -> int
-			ml, maxlen = lambda l: max(len(i) for i in l), 0
-			# type: Callable[[Sequence[text_type]], int], int
+			maxlen = 0
+			def ml(items):
+				# type: (Sequence[text_type]) -> int
+				return max(len(i) for i in items)
 			if self.ssh1kex is not None:
 				maxlen = max(ml(self.ssh1kex.supported_ciphers),
 				             ml(self.ssh1kex.supported_authentications),
@@ -1536,8 +1540,8 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			ipvo_len = len(ipvo)
 			prefer_ipvo = ipvo_len > 0
 			prefer_ipv4 = prefer_ipvo and ipvo[0] == 4
-			if len(ipvo) == 1:
-				family = {4: socket.AF_INET, 6: socket.AF_INET6}.get(ipvo[0])
+			if ipvo_len == 1:
+				family = socket.AF_INET if ipvo[0] == 4 else socket.AF_INET6
 			else:
 				family = socket.AF_UNSPEC
 			try:
