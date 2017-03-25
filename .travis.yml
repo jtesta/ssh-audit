@@ -1,18 +1,54 @@
 language: python
-python:
-  - 2.6
-  - 2.7
-  - 3.3
-  - 3.4
-  - 3.5
-  - pypy
-  - pypy3.3-5.2-alpha1
+matrix:
+  include:
+    - python: 2.6
+      env: TOXENV=py26
+    - python: 2.7
+      env: TOXENV=py27
+    - python: 3.3
+      env: TOXENV=py33
+    - python: 3.4
+      env: TOXENV=py34
+    - python: 3.5
+      env: TOXENV=py35
+    - python: 3.6
+      env: TOXENV=py36
+    - python: 3.7-dev
+      env: TOXENV=py37
+    - python: nightly
+      env: TOXENV=py37
+    - python: pypy
+      env: TOXENV=pypy
+    - python: pypy3
+      env: TOXENV=pypy3
+    - python: pypy3.3-5.2-alpha1
+      env: TOXENV=pypy3
+    - python: pypy3.3-5.5-alpha
+      env: TOXENV=pypy3
+  allow_failures:
+    - python: pypy3
+    - python: 3.7-dev
+    - python: nightly
 install:
-  - pip install --upgrade pytest
-  - pip install --upgrade pytest-cov
-  - pip install --upgrade coveralls
+  - pip install --upgrade tox coveralls codecov
 script:
-  - py.test --cov-report= --cov=ssh-audit -v test
+  - if [ -z "${TOXENV##*py3*}" ]; then
+      export MYPYBASE=python;
+      if [ -z "${TOXENV##*pypy3*}" ]; then
+        _pydir=$(dirname $(which python));
+        ln -s -- "${_pydir}/python" "${_pydir}/pypy3";
+        export TOXENV=${TOXENV},cov,lint;
+      else
+        export TOXENV=${TOXENV},cov,type,lint;
+      fi
+    else
+      export MYPYBASE=python-unknown;
+      export TOXENV=${TOXENV},cov,lint;
+    fi
+  - tox -e $TOXENV
 after_success:
   - coveralls
-
+  - codecov
+after_failure:
+  - cat .tox/log/*
+  - cat .tox/*/log/*

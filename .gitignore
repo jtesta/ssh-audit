@@ -3,3 +3,5 @@
 html/
 venv/
 .cache/
+.tox
+.coverage
