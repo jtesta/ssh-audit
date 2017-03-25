@@ -5,3 +5,4 @@ venv/
 .cache/
 .tox
 .coverage
+coverage.xml
