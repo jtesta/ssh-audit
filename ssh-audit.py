@@ -99,7 +99,7 @@ class AuditConf(object):
 			ipv = 4 if name == 'ipv4' else 6
 			if value:
 				value = tuple(list(self.ipvo) + [ipv])
-			else:
+			else:  # pylint: disable=else-if-used
 				if len(self.ipvo) == 0:
 					value = (6,) if ipv == 4 else (4,)
 				else:
@@ -1834,7 +1834,7 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 				f = out.good
 			f(prefix + alg_name + padding + ' -- ' + text)
 			first = False
-		else:
+		else:  # pylint: disable=else-if-used
 			if out.verbose:
 				f(prefix + alg_name + padding + ' -- ' + text)
 			else:
