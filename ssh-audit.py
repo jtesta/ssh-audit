@@ -103,12 +103,12 @@ class AuditConf(object):
 				if len(self.ipvo) == 0:
 					value = (6,) if ipv == 4 else (4,)
 				else:
-					value = tuple(filter(lambda x: x != ipv, self.ipvo))
+					value = tuple([x for x in self.ipvo if x != ipv])
 			self.__setattr__('ipvo', value)
 		elif name == 'ipvo':
 			if isinstance(value, (tuple, list)):
 				uniq_value = utils.unique_seq(value)
-				value = tuple(filter(lambda x: x in (4, 6), uniq_value))
+				value = tuple([x for x in uniq_value if x in (4, 6)])
 				valid = True
 				ipv_both = len(value) == 0
 				object.__setattr__(self, 'ipv4', ipv_both or 4 in value)
@@ -1536,7 +1536,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		
 		def _resolve(self, ipvo):
 			# type: (Sequence[int]) -> Iterable[Tuple[int, Tuple[Any, ...]]]
-			ipvo = tuple(filter(lambda x: x in (4, 6), utils.unique_seq(ipvo)))
+			ipvo = tuple([x for x in utils.unique_seq(ipvo) if x in (4, 6)])
 			ipvo_len = len(ipvo)
 			prefer_ipvo = ipvo_len > 0
 			prefer_ipv4 = prefer_ipvo and ipvo[0] == 4
