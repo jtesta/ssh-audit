@@ -33,16 +33,17 @@ matrix:
 install:
   - pip install --upgrade tox coveralls codecov
 script:
-  - if [ -z "${TOXENV##*py3*}" ]; then
+  - |
+    if [ -z "${TOXENV##*py3*}" ]; then
       if [ -z "${TOXENV##*pypy3*}" ]; then
-        _pydir=$(dirname $(which python));
-        ln -s -- "${_pydir}/python" "${_pydir}/pypy3";
-        export TOXENV=${TOXENV}-test,${TOXENV}-lint;
+        _pydir=$(dirname $(which python))
+        ln -s -- "${_pydir}/python" "${_pydir}/pypy3"
+        export TOXENV=${TOXENV}-test,${TOXENV}-lint
       else
-        export TOXENV=${TOXENV}-test,${TOXENV}-type,${TOXENV}-lint;
+        export TOXENV=${TOXENV}-test,${TOXENV}-type,${TOXENV}-lint
       fi
     else
-      export TOXENV=${TOXENV}-test,${TOXENV}-lint;
+      export TOXENV=${TOXENV}-test,${TOXENV}-lint
     fi
   - tox -e $TOXENV,cov
 after_success:
