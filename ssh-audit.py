@@ -1550,7 +1550,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				if prefer_ipvo:
 					r = sorted(r, key=lambda x: x[0], reverse=not prefer_ipv4)
 				check = any(stype == rline[2] for rline in r)
-				for (af, socktype, proto, canonname, addr) in r:
+				for (af, socktype, _proto, _canonname, addr) in r:
 					if not check or socktype == socket.SOCK_STREAM:
 						yield (af, addr)
 			except socket.error as e:
@@ -1877,8 +1877,9 @@ def output_security_sub(sub, software, padlen):
 		if not software.between_versions(vfrom, vtill):
 			continue
 		target, name = line[2:4]  # type: int, str
-		is_server, is_client = target & 1 == 1, target & 2 == 2
-		is_local = target & 4 == 4
+		is_server = target & 1 == 1
+		# is_client = target & 2 == 2
+		# is_local = target & 4 == 4
 		if not is_server:
 			continue
 		p = '' if out.batch else ' ' * (padlen - len(name))
