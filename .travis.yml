@@ -1,54 +1,283 @@
 language: python
-sudo: false
 matrix:
   include:
-    - python: 2.6
+    # Ubuntu 12.04
+    - os: linux
+      dist: precise
+      python: 2.6
       env: TOXENV=py26
-    - python: 2.7
+    - os: linux
+      dist: precise
+      python: 2.7
       env: TOXENV=py27
-    - python: 3.3
+    - os: linux
+      dist: precise
+      python: 3.3
       env: TOXENV=py33
-    - python: 3.4
+    - os: linux
+      dist: precise
+      python: 3.4
       env: TOXENV=py34
-    - python: 3.5
+    - os: linux
+      dist: precise
+      python: 3.5
       env: TOXENV=py35
-    - python: 3.6
+    - os: linux
+      dist: precise
+      python: 3.6
       env: TOXENV=py36
-    - python: 3.7-dev
+    - os: linux
+      dist: precise
+      python: 3.7-dev
       env: TOXENV=py37
-    - python: nightly
+    - os: linux
+      dist: precise
+      python: nightly
       env: TOXENV=py37
-    - python: pypy
+    - os: linux
+      dist: precise
+      python: pypy
+      env: TOXENV=pypy PYORIGIN=pyenv
+    - os: linux
+      dist: precise
+      python: pypy3
+      env: TOXENV=pypy3 PYORIGIN=pyenv
+    # Ubuntu 14.04
+    - os: linux
+      dist: trusty
+      python: 2.6
+      env: TOXENV=py26
+    - os: linux
+      dist: trusty
+      python: 2.7
+      env: TOXENV=py27
+    - os: linux
+      dist: trusty
+      python: 3.3
+      env: TOXENV=py33
+    - os: linux
+      dist: trusty
+      python: 3.4
+      env: TOXENV=py34
+    - os: linux
+      dist: trusty
+      python: 3.5
+      env: TOXENV=py35
+    - os: linux
+      dist: trusty
+      python: 3.6
+      env: TOXENV=py36
+    - os: linux
+      dist: trusty
+      python: 3.7-dev
+      env: TOXENV=py37
+    - os: linux
+      dist: trusty
+      python: nightly
+      env: TOXENV=py37
+    - os: linux
+      dist: trusty
+      python: 2.7  # NOTE: workaround for trusty
+      env: TOXENV=pypy PYORIGIN=pyenv
+    - os: linux
+      dist: trusty
+      python: 3.5  # NOTE: workaround for trusty
+      env: TOXENV=pypy3 PYORIGIN=pyenv
+    # Mac OS X 10.10 Yosemite
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
+      env: TOXENV=py26
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
+      env: TOXENV=py27
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
+      env: TOXENV=py33
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
+      env: TOXENV=py34
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
+      env: TOXENV=py35
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
+      env: TOXENV=py36
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
+      env: TOXENV=py37
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
       env: TOXENV=pypy
-    - python: pypy3
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
       env: TOXENV=pypy3
-    - python: pypy3.3-5.2-alpha1
+    # Mac OS X 10.11 El Capitan
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
+      env: TOXENV=py26
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
+      env: TOXENV=py27
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
+      env: TOXENV=py33
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
+      env: TOXENV=py34
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
+      env: TOXENV=py35
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
+      env: TOXENV=py36
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
+      env: TOXENV=py37
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
+      env: TOXENV=pypy
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
       env: TOXENV=pypy3
-    - python: pypy3.3-5.5-alpha
+    # macOS 10.12 Sierra
+    - os: osx
+      osx_image: xcode8.2
+      language: generic
+      env: TOXENV=py26
+    - os: osx
+      osx_image: xcode8.2
+      language: generic
+      env: TOXENV=py27
+    - os: osx
+      osx_image: xcode8.2
+      language: generic
+      env: TOXENV=py33
+    - os: osx
+      osx_image: xcode8.2
+      language: generic
+      env: TOXENV=py34
+    - os: osx
+      osx_image: xcode8.2
+      language: generic
+      env: TOXENV=py35
+    - os: osx
+      osx_image: xcode8.2
+      language: generic
+      env: TOXENV=py36
+    - os: osx
+      osx_image: xcode8.2
+      language: generic
+      env: TOXENV=py37
+    - os: osx
+      osx_image: xcode8.2
+      language: generic
+      env: TOXENV=pypy
+    - os: osx
+      osx_image: xcode8.2
+      language: generic
       env: TOXENV=pypy3
   allow_failures:
-    - python: pypy3
-    - python: 3.7-dev
-    - python: nightly
+    - env: TOXENV=3.7-dev
+    - env: TOXENV=nightly
+sudo: false
+
+before_install:
+  - |
+    if [ X"$(uname -s)" == X"Darwin" ]; then
+      sw_vers
+      brew update || brew update
+      brew install autoconf pkg-config openssl readline xz
+      brew upgrade autoconf pkg-config openssl readline xz
+      PYORIGIN=pyenv
+    fi
+  - |
+    case "${PYORIGIN}" in
+      pyenv)
+        rm -rf ~/.pyenv
+        git clone --depth 1 https://github.com/yyuu/pyenv.git ~/.pyenv
+        PATH="$HOME/.pyenv/bin:$PATH"
+        eval "$(pyenv init -)"
+        pyenv -v
+        if [ X"$(uname -s)" == X"Darwin" ]; then
+          [ -z "${PYPY2VERSION}" ] && PYPY2VERSION=pypy2-5.7.0
+          # NOTE: latest binary for osx is pypy3.3-5.5-alpha
+          [ -z "${PYPY3VERSION}" ] && PYPY3VERSION=pypy3.3-5.5-alpha
+        else
+          [ -z "${PYPY2VERSION}" ] && PYPY2VERSION=pypy-portable-5.7.0
+          [ -z "${PYPY3VERSION}" ] && PYPY3VERSION=pypy3-portable-5.7.0
+        fi
+        case "${TOXENV}" in
+          py26) pyenv install 2.6.9 || exit 1; pyenv global 2.6.9 ;;
+          py33) pyenv install 3.3.6 || exit 1; pyenv global 3.3.6 ;;
+          py34) pyenv install 3.4.6 || exit 1; pyenv global 3.4.6 ;;
+          py35) pyenv install 3.5.3 || exit 1; pyenv global 3.5.3 ;;
+          py36) pyenv install 3.6.1 || exit 1; pyenv global 3.6.1 ;;
+          py37) pyenv install 3.7-dev || exit 1; pyenv global 3.7-dev ;;
+          pypy) pyenv install ${PYPY2VERSION} || exit 1; pyenv global ${PYPY2VERSION} ;;
+          pypy3) pyenv install ${PYPY3VERSION} || exit 1; pyenv global ${PYPY3VERSION} ;;
+        esac
+        pyenv rehash
+        ;;
+    esac
+  - |
+    PIPOPT=$(python -c 'import sys; print("" if hasattr(sys, "real_prefix") else "--user")')
+    if [ -z "${TOXENV##py2*}" ]; then
+        curl -O https://bootstrap.pypa.io/get-pip.py
+        python get-pip.py ${PIPOPT}
+    fi
+    if [ X"${TOXENV}" == X"py26" ]; then
+      python -c 'import pip; pip.main();' install ${PIPOPT} -U pip virtualenv
+      python -c 'import virtualenv; virtualenv.main();' ~/.venv
+    else
+      python -m pip install ${PIPOPT} -U pip virtualenv
+      python -m virtualenv ~/.venv
+    fi
+    source ~/.venv/bin/activate
+
 install:
   - pip install --upgrade tox coveralls codecov
+
 script:
   - |
     if [ -z "${TOXENV##*py3*}" ]; then
       if [ -z "${TOXENV##*pypy3*}" ]; then
+        # NOTE: workaround for travis environment
         _pydir=$(dirname $(which python))
         ln -s -- "${_pydir}/python" "${_pydir}/pypy3"
-        export TOXENV=${TOXENV}-test,${TOXENV}-lint
+        # NOTE: do not lint, as it hangs when flake8 is run
+        # NOTE: do not type, as it can't install dependencies
+        TOXENV=${TOXENV}-test
       else
-        export TOXENV=${TOXENV}-test,${TOXENV}-type,${TOXENV}-lint
+        TOXENV=${TOXENV}-test,${TOXENV}-type,${TOXENV}-lint
       fi
     else
-      export TOXENV=${TOXENV}-test,${TOXENV}-lint
+      # NOTE: do not type, as it isn't supported on py2x
+      TOXENV=${TOXENV}-test,${TOXENV}-lint
     fi
   - tox -e $TOXENV,cov
+
 after_success:
   - coveralls
   - codecov
+
 after_failure:
   - cat .tox/log/*
   - cat .tox/*/log/*
