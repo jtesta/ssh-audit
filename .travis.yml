@@ -1,283 +1,71 @@
 language: python
+sudo: false
 matrix:
   include:
+    # (default)
+    - os: linux
+      python: 2.6
+    - os: linux
+      python: 2.7
+    - os: linux
+      python: 3.3
+    - os: linux
+      python: 3.4
+    - os: linux
+      python: 3.5
+    - os: linux
+      python: 3.6
+    - os: linux
+      python: 3.7-dev
     # Ubuntu 12.04
     - os: linux
       dist: precise
-      python: 2.6
-      env: TOXENV=py26
-    - os: linux
-      dist: precise
-      python: 2.7
-      env: TOXENV=py27
-    - os: linux
-      dist: precise
-      python: 3.3
-      env: TOXENV=py33
-    - os: linux
-      dist: precise
-      python: 3.4
-      env: TOXENV=py34
-    - os: linux
-      dist: precise
-      python: 3.5
-      env: TOXENV=py35
-    - os: linux
-      dist: precise
-      python: 3.6
-      env: TOXENV=py36
-    - os: linux
-      dist: precise
-      python: 3.7-dev
-      env: TOXENV=py37
-    - os: linux
-      dist: precise
-      python: nightly
-      env: TOXENV=py37
-    - os: linux
-      dist: precise
-      python: pypy
-      env: TOXENV=pypy PYORIGIN=pyenv
-    - os: linux
-      dist: precise
-      python: pypy3
-      env: TOXENV=pypy3 PYORIGIN=pyenv
+      language: generic
+      env: PY_VER=py26,py27,py33,py34,py35,py36 PY_ORIGIN=pyenv
     # Ubuntu 14.04
     - os: linux
       dist: trusty
-      python: 2.6
-      env: TOXENV=py26
-    - os: linux
-      dist: trusty
-      python: 2.7
-      env: TOXENV=py27
-    - os: linux
-      dist: trusty
-      python: 3.3
-      env: TOXENV=py33
-    - os: linux
-      dist: trusty
-      python: 3.4
-      env: TOXENV=py34
-    - os: linux
-      dist: trusty
-      python: 3.5
-      env: TOXENV=py35
-    - os: linux
-      dist: trusty
-      python: 3.6
-      env: TOXENV=py36
-    - os: linux
-      dist: trusty
-      python: 3.7-dev
-      env: TOXENV=py37
-    - os: linux
-      dist: trusty
-      python: nightly
-      env: TOXENV=py37
-    - os: linux
-      dist: trusty
-      python: 2.7  # NOTE: workaround for trusty
-      env: TOXENV=pypy PYORIGIN=pyenv
-    - os: linux
-      dist: trusty
-      python: 3.5  # NOTE: workaround for trusty
-      env: TOXENV=pypy3 PYORIGIN=pyenv
-    # Mac OS X 10.10 Yosemite
-    - os: osx
-      osx_image: xcode6.4
       language: generic
-      env: TOXENV=py26
-    - os: osx
-      osx_image: xcode6.4
-      language: generic
-      env: TOXENV=py27
-    - os: osx
-      osx_image: xcode6.4
-      language: generic
-      env: TOXENV=py33
-    - os: osx
-      osx_image: xcode6.4
-      language: generic
-      env: TOXENV=py34
-    - os: osx
-      osx_image: xcode6.4
-      language: generic
-      env: TOXENV=py35
-    - os: osx
-      osx_image: xcode6.4
-      language: generic
-      env: TOXENV=py36
-    - os: osx
-      osx_image: xcode6.4
-      language: generic
-      env: TOXENV=py37
-    - os: osx
-      osx_image: xcode6.4
-      language: generic
-      env: TOXENV=pypy
-    - os: osx
-      osx_image: xcode6.4
-      language: generic
-      env: TOXENV=pypy3
-    # Mac OS X 10.11 El Capitan
-    - os: osx
-      osx_image: xcode7.3
-      language: generic
-      env: TOXENV=py26
-    - os: osx
-      osx_image: xcode7.3
-      language: generic
-      env: TOXENV=py27
-    - os: osx
-      osx_image: xcode7.3
-      language: generic
-      env: TOXENV=py33
-    - os: osx
-      osx_image: xcode7.3
-      language: generic
-      env: TOXENV=py34
-    - os: osx
-      osx_image: xcode7.3
-      language: generic
-      env: TOXENV=py35
-    - os: osx
-      osx_image: xcode7.3
-      language: generic
-      env: TOXENV=py36
-    - os: osx
-      osx_image: xcode7.3
-      language: generic
-      env: TOXENV=py37
-    - os: osx
-      osx_image: xcode7.3
-      language: generic
-      env: TOXENV=pypy
-    - os: osx
-      osx_image: xcode7.3
-      language: generic
-      env: TOXENV=pypy3
+      env: PY_VER=py26,py27,py33,py34,py35,py36 PY_ORIGIN=pyenv
     # macOS 10.12 Sierra
     - os: osx
       osx_image: xcode8.2
       language: generic
-      env: TOXENV=py26
+      env: PY_VER=py26,py27,py33,py34,py35,py36
+    # Mac OS X 10.11 El Capitan
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode7.3
       language: generic
-      env: TOXENV=py27
+      env: PY_VER=py26,py27,py33,py34,py35,py36
+    # Mac OS X 10.10 Yosemite
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode6.4
       language: generic
-      env: TOXENV=py33
-    - os: osx
-      osx_image: xcode8.2
-      language: generic
-      env: TOXENV=py34
-    - os: osx
-      osx_image: xcode8.2
-      language: generic
-      env: TOXENV=py35
-    - os: osx
-      osx_image: xcode8.2
-      language: generic
-      env: TOXENV=py36
-    - os: osx
-      osx_image: xcode8.2
-      language: generic
-      env: TOXENV=py37
-    - os: osx
-      osx_image: xcode8.2
-      language: generic
-      env: TOXENV=pypy
-    - os: osx
-      osx_image: xcode8.2
-      language: generic
-      env: TOXENV=pypy3
+      env: PY_VER=py26,py27,py33,py34,py35,py36
   allow_failures:
-    - env: TOXENV=3.7-dev
-    - env: TOXENV=nightly
-sudo: false
+    - python: 3.7-dev
+    - env: PY_VER=py37
+    - env: PY_VER=py37/pyenv
+    - env: PY_VER=py37 PY_ORIGIN=pyenv
+  fast_finish: true
+
+cache:
+  - pip
+  - directories:
+    - $HOME/.pyenv.cache
 
 before_install:
-  - |
-    if [ X"$(uname -s)" == X"Darwin" ]; then
-      sw_vers
-      brew update || brew update
-      brew install autoconf pkg-config openssl readline xz
-      brew upgrade autoconf pkg-config openssl readline xz
-      PYORIGIN=pyenv
-    fi
-  - |
-    case "${PYORIGIN}" in
-      pyenv)
-        rm -rf ~/.pyenv
-        git clone --depth 1 https://github.com/yyuu/pyenv.git ~/.pyenv
-        PATH="$HOME/.pyenv/bin:$PATH"
-        eval "$(pyenv init -)"
-        pyenv -v
-        if [ X"$(uname -s)" == X"Darwin" ]; then
-          [ -z "${PYPY2VERSION}" ] && PYPY2VERSION=pypy2-5.7.0
-          # NOTE: latest binary for osx is pypy3.3-5.5-alpha
-          [ -z "${PYPY3VERSION}" ] && PYPY3VERSION=pypy3.3-5.5-alpha
-        else
-          [ -z "${PYPY2VERSION}" ] && PYPY2VERSION=pypy-portable-5.7.0
-          [ -z "${PYPY3VERSION}" ] && PYPY3VERSION=pypy3-portable-5.7.0
-        fi
-        case "${TOXENV}" in
-          py26) pyenv install 2.6.9 || exit 1; pyenv global 2.6.9 ;;
-          py33) pyenv install 3.3.6 || exit 1; pyenv global 3.3.6 ;;
-          py34) pyenv install 3.4.6 || exit 1; pyenv global 3.4.6 ;;
-          py35) pyenv install 3.5.3 || exit 1; pyenv global 3.5.3 ;;
-          py36) pyenv install 3.6.1 || exit 1; pyenv global 3.6.1 ;;
-          py37) pyenv install 3.7-dev || exit 1; pyenv global 3.7-dev ;;
-          pypy) pyenv install ${PYPY2VERSION} || exit 1; pyenv global ${PYPY2VERSION} ;;
-          pypy3) pyenv install ${PYPY3VERSION} || exit 1; pyenv global ${PYPY3VERSION} ;;
-        esac
-        pyenv rehash
-        ;;
-    esac
-  - |
-    PIPOPT=$(python -c 'import sys; print("" if hasattr(sys, "real_prefix") else "--user")')
-    if [ -z "${TOXENV##py2*}" ]; then
-        curl -O https://bootstrap.pypa.io/get-pip.py
-        python get-pip.py ${PIPOPT}
-    fi
-    if [ X"${TOXENV}" == X"py26" ]; then
-      python -c 'import pip; pip.main();' install ${PIPOPT} -U pip virtualenv
-      python -c 'import virtualenv; virtualenv.main();' ~/.venv
-    else
-      python -m pip install ${PIPOPT} -U pip virtualenv
-      python -m virtualenv ~/.venv
-    fi
-    source ~/.venv/bin/activate
+  - source test/tools/ci-linux.sh
+  - ci_step_before_install
 
 install:
-  - pip install --upgrade tox coveralls codecov
+  - ci_step_install
 
 script:
-  - |
-    if [ -z "${TOXENV##*py3*}" ]; then
-      if [ -z "${TOXENV##*pypy3*}" ]; then
-        # NOTE: workaround for travis environment
-        _pydir=$(dirname $(which python))
-        ln -s -- "${_pydir}/python" "${_pydir}/pypy3"
-        # NOTE: do not lint, as it hangs when flake8 is run
-        # NOTE: do not type, as it can't install dependencies
-        TOXENV=${TOXENV}-test
-      else
-        TOXENV=${TOXENV}-test,${TOXENV}-type,${TOXENV}-lint
-      fi
-    else
-      # NOTE: do not type, as it isn't supported on py2x
-      TOXENV=${TOXENV}-test,${TOXENV}-lint
-    fi
-  - tox -e $TOXENV,cov
+  - ci_step_script
 
 after_success:
-  - coveralls
-  - codecov
+  - ci_step_success
 
 after_failure:
-  - cat .tox/log/*
-  - cat .tox/*/log/*
+  - ci_step_failure
