@@ -1,0 +1,37 @@
+version: '1.7.1.dev.{build}'
+
+build: off
+branches:
+  only:
+    - master
+    - develop
+
+environment:
+  matrix:
+    - PYTHON: "C:\\Python26"
+    - PYTHON: "C:\\Python26-x64"
+    - PYTHON: "C:\\Python27"
+    - PYTHON: "C:\\Python27-x64"
+    - PYTHON: "C:\\Python33"
+    - PYTHON: "C:\\Python33-x64"
+    - PYTHON: "C:\\Python34"
+    - PYTHON: "C:\\Python34-x64"
+    - PYTHON: "C:\\Python35"
+    - PYTHON: "C:\\Python35-x64"
+    - PYTHON: "C:\\Python36"
+    - PYTHON: "C:\\Python36-x64"
+matrix:
+  fast_finish: true 
+
+cache:
+  - '%LOCALAPPDATA%\pip\Cache'
+  - .downloads -> .appveyor.yml
+
+install:
+  - "cmd /c .\\test\\tools\\ci-win.cmd install"
+
+test_script:
+  - "cmd /c .\\test\\tools\\ci-win.cmd test"
+
+on_failure:
+  - ps: get-content .tox\*\log\*

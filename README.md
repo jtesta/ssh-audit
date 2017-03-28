@@ -1,5 +1,6 @@
 # ssh-audit
-[![build status](https://api.travis-ci.org/arthepsy/ssh-audit.svg)](https://travis-ci.org/arthepsy/ssh-audit)
+[![travis build status](https://api.travis-ci.org/arthepsy/ssh-audit.svg?branch=develop)](https://travis-ci.org/arthepsy/ssh-audit)
+[![appveyor build status](https://ci.appveyor.com/api/projects/status/4m5r73m0r023edil/branch/develop?svg=true)](https://ci.appveyor.com/project/arthepsy/ssh-audit)
 [![codecov](https://codecov.io/gh/arthepsy/ssh-audit/branch/develop/graph/badge.svg)](https://codecov.io/gh/arthepsy/ssh-audit)
 [![coverage status](https://coveralls.io/repos/github/arthepsy/ssh-audit/badge.svg)](https://coveralls.io/github/arthepsy/ssh-audit)  
 **ssh-audit** is a tool for ssh server auditing.  
