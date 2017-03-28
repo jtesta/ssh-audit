@@ -94,7 +94,7 @@ ci_pyenv_use() {
 	local _py_ver=$(ci_get_py_ver "$1")
 	pyenv shell "${_py_ver}"
 	ci_err $? "pyenv could not use ${_py_ver}"
-	[ ${CI_VERBOSE} -gt 0 ] && echo "[ci] using python version: $(python -V 2>&1)"
+	[ ${CI_VERBOSE} -gt 0 ] && echo "[ci] using python: $(python -V 2>&1)"
 }
 
 ci_pip_setup() {
@@ -131,7 +131,7 @@ ci_venv_use() {
 	local _py_env=$(ci_get_py_env "${_py_ver}")
 	local VENV_DIR=~/.venv/${_py_ver}
 	. "${VENV_DIR}/bin/activate"
-	[ ${CI_VERBOSE} -gt 0 ] && echo "[ci] virtualenv python path: $(which python)"
+	[ ${CI_VERBOSE} -gt 0 ] && echo "[ci] using python: $(python -V 2>&1)"
 }
 
 ci_run_wrapped() {
