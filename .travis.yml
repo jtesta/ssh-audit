@@ -29,7 +29,7 @@ matrix:
       env: PY_VER=py26,py27,py33,py34,py35,py36 PY_ORIGIN=pyenv
     # macOS 10.12 Sierra
     - os: osx
-      osx_image: xcode8.2
+      osx_image: xcode8.3
       language: generic
       env: PY_VER=py26,py27,py33,py34,py35,py36
     # Mac OS X 10.11 El Capitan
