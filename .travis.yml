@@ -16,33 +16,40 @@ matrix:
     - os: linux
       python: 3.6
     - os: linux
+      python: pypy
+    - os: linux
+      python: pypy3
+    - os: linux
       python: 3.7-dev
     # Ubuntu 12.04
     - os: linux
       dist: precise
       language: generic
-      env: PY_VER=py26,py27,py33,py34,py35,py36 PY_ORIGIN=pyenv
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3 PY_ORIGIN=pyenv
     # Ubuntu 14.04
     - os: linux
       dist: trusty
       language: generic
-      env: PY_VER=py26,py27,py33,py34,py35,py36 PY_ORIGIN=pyenv
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3 PY_ORIGIN=pyenv
     # macOS 10.12 Sierra
     - os: osx
       osx_image: xcode8.3
       language: generic
-      env: PY_VER=py26,py27,py33,py34,py35,py36
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3
     # Mac OS X 10.11 El Capitan
     - os: osx
       osx_image: xcode7.3
       language: generic
-      env: PY_VER=py26,py27,py33,py34,py35,py36
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3
     # Mac OS X 10.10 Yosemite
     - os: osx
       osx_image: xcode6.4
       language: generic
-      env: PY_VER=py26,py27,py33,py34,py35,py36
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3
   allow_failures:
+    # PyPy3 on Travis CI is out of date
+    - python: pypy3
+    # Python nightly could fail
     - python: 3.7-dev
     - env: PY_VER=py37
     - env: PY_VER=py37/pyenv
