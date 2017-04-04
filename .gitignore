@@ -1,8 +1,8 @@
 *~
 *.pyc
-html/
-venv/
+venv*/
 .cache/
 .tox
-.coverage
-coverage.xml
+.coverage*
+reports/
+.scannerwork/

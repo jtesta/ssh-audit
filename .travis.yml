@@ -7,6 +7,7 @@ matrix:
       python: 2.6
     - os: linux
       python: 2.7
+      env: SQ=1
     - os: linux
       python: 3.3
     - os: linux
@@ -60,6 +61,7 @@ cache:
   - pip
   - directories:
     - $HOME/.pyenv.cache
+    - $HOME/.bin
 
 before_install:
   - source test/tools/ci-linux.sh
