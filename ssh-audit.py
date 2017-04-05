@@ -570,8 +570,10 @@ class SSH1(object):
 	class PublicKeyMessage(object):
 		def __init__(self, cookie, skey, hkey, pflags, cmask, amask):
 			# type: (binary_type, Tuple[int, int, int], Tuple[int, int, int], int, int, int) -> None
-			assert len(skey) == 3
-			assert len(hkey) == 3
+			if len(skey) != 3:
+				raise ValueError('invalid server key pair: {0}'.format(skey))
+			if len(hkey) != 3:
+				raise ValueError('invalid host key pair: {0}'.format(hkey))
 			self.__cookie = cookie
 			self.__server_key = skey
 			self.__host_key = hkey
@@ -1192,9 +1194,9 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 					if ssh_prefix not in result:
 						result[ssh_prefix] = [None, None, None]
 					prev, push = result[ssh_prefix][i], False
-					if ((prev is None) or
-					    (prev < ssh_version and i == 0) or
-					    (prev > ssh_version and i > 0)):
+					if (prev is None or
+					   (prev < ssh_version and i == 0) or
+					   (prev > ssh_version and i > 0)):
 						push = True
 					if push:
 						result[ssh_prefix][i] = ssh_version
