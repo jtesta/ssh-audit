@@ -702,8 +702,8 @@ class ReadBuf(object):
 	def __init__(self, data=None):
 		# type: (Optional[binary_type]) -> None
 		super(ReadBuf, self).__init__()
-		self._buf = BytesIO(data) if data else BytesIO()
-		self._len = len(data) if data else 0
+		self._buf = BytesIO(data) if data is not None else BytesIO()
+		self._len = len(data) if data is not None else 0
 	
 	@property
 	def unread_len(self):
@@ -739,13 +739,13 @@ class ReadBuf(object):
 		return self.read(n)
 	
 	@classmethod
-	def _parse_mpint(cls, v, pad, sf):
+	def _parse_mpint(cls, v, pad, f):
 		# type: (binary_type, binary_type, str) -> int
 		r = 0
-		if len(v) % 4:
+		if len(v) % 4 != 0:
 			v = pad * (4 - (len(v) % 4)) + v
 		for i in range(0, len(v), 4):
-			r = (r << 32) | struct.unpack(sf, v[i:i + 4])[0]
+			r = (r << 32) | struct.unpack(f, v[i:i + 4])[0]
 		return r
 		
 	def read_mpint1(self):
@@ -761,8 +761,8 @@ class ReadBuf(object):
 		v = self.read_string()
 		if len(v) == 0:
 			return 0
-		pad, sf = (b'\xff', '>i') if ord(v[0:1]) & 0x80 else (b'\x00', '>I')
-		return self._parse_mpint(v, pad, sf)
+		pad, f = (b'\xff', '>i') if ord(v[0:1]) & 0x80 != 0 else (b'\x00', '>I')
+		return self._parse_mpint(v, pad, f)
 	
 	def read_line(self):
 		# type: () -> text_type
@@ -773,7 +773,7 @@ class WriteBuf(object):
 	def __init__(self, data=None):
 		# type: (Optional[binary_type]) -> None
 		super(WriteBuf, self).__init__()
-		self._wbuf = BytesIO(data) if data else BytesIO()
+		self._wbuf = BytesIO(data) if data is not None else BytesIO()
 	
 	def write(self, data):
 		# type: (binary_type) -> WriteBuf
@@ -916,7 +916,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			else:
 				other = str(other)
 			mx = re.match(r'^([\d\.]+\d+)(.*)$', other)
-			if mx:
+			if mx is not None:
 				oversion, opatch = mx.group(1), mx.group(2).strip()
 			else:
 				oversion, opatch = other, ''
@@ -934,9 +934,9 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				mx1 = re.match(r'^p\d(.*)', opatch)
 				mx2 = re.match(r'^p\d(.*)', spatch)
 				if not (mx1 and mx2):
-					if mx1:
+					if mx1 is not None:
 						opatch = mx1.group(1)
-					if mx2:
+					if mx2 is not None:
 						spatch = mx2.group(1)
 			if spatch < opatch:
 				return -1
@@ -1009,19 +1009,19 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if c is None:
 				return None
 			mx = re.match(r'^NetBSD(?:_Secure_Shell)?(?:[\s-]+(\d{8})(.*))?$', c)
-			if mx:
+			if mx is not None:
 				d = cls._fix_date(mx.group(1))
 				return 'NetBSD' if d is None else 'NetBSD ({0})'.format(d)
 			mx = re.match(r'^FreeBSD(?:\slocalisations)?[\s-]+(\d{8})(.*)$', c)
-			if not mx:
+			if mx is None:
 				mx = re.match(r'^[^@]+@FreeBSD\.org[\s-]+(\d{8})(.*)$', c)
-			if mx:
+			if mx is not None:
 				d = cls._fix_date(mx.group(1))
 				return 'FreeBSD' if d is None else 'FreeBSD ({0})'.format(d)
 			w = ['RemotelyAnywhere', 'DesktopAuthority', 'RemoteSupportManager']
 			for win_soft in w:
 				mx = re.match(r'^in ' + win_soft + r' ([\d\.]+\d)$', c)
-				if mx:
+				if mx is not None:
 					ver = mx.group(1)
 					return 'Microsoft Windows ({0} {1})'.format(win_soft, ver)
 			generic = ['NetBSD', 'FreeBSD']
@@ -1037,35 +1037,35 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			software = str(banner.software)
 			mx = re.match(r'^dropbear_([\d\.]+\d+)(.*)', software)
 			v = None  # type: Optional[str]
-			if mx:
+			if mx is not None:
 				patch = cls._fix_patch(mx.group(2))
 				v, p = 'Matt Johnston', SSH.Product.DropbearSSH
 				v = None
 				return cls(v, p, mx.group(1), patch, None)
 			mx = re.match(r'^OpenSSH[_\.-]+([\d\.]+\d+)(.*)', software)
-			if mx:
+			if mx is not None:
 				patch = cls._fix_patch(mx.group(2))
 				v, p = 'OpenBSD', SSH.Product.OpenSSH
 				v = None
 				os_version = cls._extract_os_version(banner.comments)
 				return cls(v, p, mx.group(1), patch, os_version)
 			mx = re.match(r'^libssh-([\d\.]+\d+)(.*)', software)
-			if mx:
+			if mx is not None:
 				patch = cls._fix_patch(mx.group(2))
 				v, p = None, SSH.Product.LibSSH
 				os_version = cls._extract_os_version(banner.comments)
 				return cls(v, p, mx.group(1), patch, os_version)
 			mx = re.match(r'^RomSShell_([\d\.]+\d+)(.*)', software)
-			if mx:
+			if mx is not None:
 				patch = cls._fix_patch(mx.group(2))
 				v, p = 'Allegro Software', 'RomSShell'
 				return cls(v, p, mx.group(1), patch, None)
 			mx = re.match(r'^mpSSH_([\d\.]+\d+)', software)
-			if mx:
+			if mx is not None:
 				v, p = 'HP', 'iLO (Integrated Lights-Out) sshd'
 				return cls(v, p, mx.group(1), None, None)
 			mx = re.match(r'^Cisco-([\d\.]+\d+)', software)
-			if mx:
+			if mx is not None:
 				v, p = 'Cisco', 'IOS/PIX sshd'
 				return cls(v, p, mx.group(1), None, None)
 			return None
@@ -1959,7 +1959,7 @@ def output_recommendations(algs, software, padlen=0):
 
 def output(banner, header, kex=None, pkm=None):
 	# type: (Optional[SSH.Banner], List[text_type], Optional[SSH2.Kex], Optional[SSH1.PublicKeyMessage]) -> None
-	sshv = 1 if pkm else 2
+	sshv = 1 if pkm is not None else 2
 	algs = SSH.Algorithms(pkm, kex)
 	with OutputBuffer() as obuf:
 		if len(header) > 0:
@@ -2168,7 +2168,7 @@ def audit(aconf, sshv=None):
 				fmt = '[exception] did not receive {0} ({1}), ' + \
 				      'instead received unknown message ({2})'
 				err = fmt.format(err_pair[0], err_pair[1], packet_type)
-	if err:
+	if err is not None:
 		output(banner, header)
 		out.fail(err)
 		sys.exit(1)
