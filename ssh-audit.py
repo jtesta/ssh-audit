@@ -1192,11 +1192,9 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 					if ssh_prefix not in result:
 						result[ssh_prefix] = [None, None, None]
 					prev, push = result[ssh_prefix][i], False
-					if prev is None:
-						push = True
-					elif i == 0 and prev < ssh_version:
-						push = True
-					elif i > 0 and prev > ssh_version:
+					if ((prev is None) or
+					    (prev < ssh_version and i == 0) or
+					    (prev > ssh_version and i > 0)):
 						push = True
 					if push:
 						result[ssh_prefix][i] = ssh_version
