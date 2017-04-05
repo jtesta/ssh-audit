@@ -819,7 +819,7 @@ class WriteBuf(object):
 		ql = (length + 7) // 8
 		fmt, v2 = '>{0}Q'.format(ql), [0] * ql
 		for i in range(ql):
-			v2[ql - i - 1] = (n & 0xffffffffffffffff)
+			v2[ql - i - 1] = n & 0xffffffffffffffff
 			n >>= 64
 		data = bytes(struct.pack(fmt, *v2)[-length:])
 		if not signed:
@@ -1162,11 +1162,11 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		def get_ssh_version(version_desc):
 			# type: (str) -> Tuple[str, str]
 			if version_desc.startswith('d'):
-				return (SSH.Product.DropbearSSH, version_desc[1:])
+				return SSH.Product.DropbearSSH, version_desc[1:]
 			elif version_desc.startswith('l1'):
-				return (SSH.Product.LibSSH, version_desc[2:])
+				return SSH.Product.LibSSH, version_desc[2:]
 			else:
-				return (SSH.Product.OpenSSH, version_desc)
+				return SSH.Product.OpenSSH, version_desc
 		
 		@classmethod
 		def get_timeframe(cls, versions, for_server=True, result=None):
@@ -1550,9 +1550,9 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				if prefer_ipvo:
 					r = sorted(r, key=lambda x: x[0], reverse=not prefer_ipv4)
 				check = any(stype == rline[2] for rline in r)
-				for (af, socktype, _proto, _canonname, addr) in r:
+				for af, socktype, _proto, _canonname, addr in r:
 					if not check or socktype == socket.SOCK_STREAM:
-						yield (af, addr)
+						yield af, addr
 			except socket.error as e:
 				out.fail('[exception] {0}'.format(e))
 				sys.exit(1)
@@ -1560,7 +1560,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		def connect(self, ipvo=(), cto=3.0, rto=5.0):
 			# type: (Sequence[int], float, float) -> None
 			err = None
-			for (af, addr) in self._resolve(ipvo):
+			for af, addr in self._resolve(ipvo):
 				s = None
 				try:
 					s = socket.socket(af, socket.SOCK_STREAM)
@@ -1614,33 +1614,33 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		def recv(self, size=2048):
 			# type: (int) -> Tuple[int, Optional[str]]
 			if self.__sock is None:
-				return (-1, 'not connected')
+				return -1, 'not connected'
 			try:
 				data = self.__sock.recv(size)
 			except socket.timeout:
-				return (-1, 'timed out')
+				return -1, 'timed out'
 			except socket.error as e:
 				if e.args[0] in (errno.EAGAIN, errno.EWOULDBLOCK):
-					return (0, 'retry')
-				return (-1, str(e.args[-1]))
+					return 0, 'retry'
+				return -1, str(e.args[-1])
 			if len(data) == 0:
-				return (-1, None)
+				return -1, None
 			pos = self._buf.tell()
 			self._buf.seek(0, 2)
 			self._buf.write(data)
 			self._len += len(data)
 			self._buf.seek(pos, 0)
-			return (len(data), None)
+			return len(data), None
 		
 		def send(self, data):
 			# type: (binary_type) -> Tuple[int, Optional[str]]
 			if self.__sock is None:
-				return (-1, 'not connected')
+				return -1, 'not connected'
 			try:
 				self.__sock.send(data)
-				return (0, None)
+				return 0, None
 			except socket.error as e:
-				return (-1, str(e.args[-1]))
+				return -1, str(e.args[-1])
 			self.__sock.send(data)
 		
 		def send_banner(self, banner):
@@ -1665,7 +1665,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				header.write_int(packet_length)
 				# XXX: validate length
 				if sshv == 1:
-					padding_length = (8 - packet_length % 8)
+					padding_length = 8 - packet_length % 8
 					self.ensure_read(padding_length)
 					padding = self.read(padding_length)
 					header.write(padding)
@@ -1706,7 +1706,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 					e = header.write_flush().strip()
 				else:
 					e = ex.args[0].encode('utf-8')
-				return (-1, e)
+				return -1, e
 		
 		def send_packet(self):
 			# type: () -> Tuple[int, Optional[str]]
@@ -1826,7 +1826,7 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 	else:
 		texts.append(('warn', 'unknown algorithm'))
 	first = True
-	for (level, text) in texts:
+	for level, text in texts:
 		f = getattr(out, level)
 		text = '[' + level + '] ' + text
 		if first:
