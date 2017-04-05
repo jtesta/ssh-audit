@@ -198,6 +198,7 @@ class Output(object):
 		self.colors = True
 		self.verbose = False
 		self.__minlevel = 0
+		self.__colsupport = 'colorama' in sys.modules or os.name == 'posix'
 	
 	@property
 	def minlevel(self):
@@ -226,7 +227,7 @@ class Output(object):
 	@property
 	def colors_supported(self):
 		# type: () -> bool
-		return 'colorama' in sys.modules or os.name == 'posix'
+		return self.__colsupport
 	
 	@staticmethod
 	def _colorized(color):
@@ -1270,19 +1271,19 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		@property
 		def maxlen(self):
 			# type: () -> int
-			def ml(items):
+			def _ml(items):
 				# type: (Sequence[text_type]) -> int
 				return max(len(i) for i in items)
 			maxlen = 0
 			if self.ssh1kex is not None:
-				maxlen = max(ml(self.ssh1kex.supported_ciphers),
-				             ml(self.ssh1kex.supported_authentications),
+				maxlen = max(_ml(self.ssh1kex.supported_ciphers),
+				             _ml(self.ssh1kex.supported_authentications),
 				             maxlen)
 			if self.ssh2kex is not None:
-				maxlen = max(ml(self.ssh2kex.kex_algorithms),
-				             ml(self.ssh2kex.key_algorithms),
-				             ml(self.ssh2kex.server.encryption),
-				             ml(self.ssh2kex.server.mac),
+				maxlen = max(_ml(self.ssh2kex.kex_algorithms),
+				             _ml(self.ssh2kex.key_algorithms),
+				             _ml(self.ssh2kex.server.encryption),
+				             _ml(self.ssh2kex.server.mac),
 				             maxlen)
 			return maxlen
 		
