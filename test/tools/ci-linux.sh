@@ -292,8 +292,8 @@ ci_sq_run() {
 		return 1
 	fi
 	if [ -z "${_project_ver##*dev}" ]; then
-		local _git_rc=$(git rev-list --count `git rev-parse HEAD`)
-		_project_ver="${_project_ver}.${_git_rc}"
+		local _git_commit=$(git rev-parse --short=8 HEAD)
+		_project_ver="${_project_ver}.${_git_commit}"
 	fi
 	[ ${CI_VERBOSE} -gt 0 ] && echo "[ci] run sonar-scanner for ${_project_ver}"
 	"${SONAR_SCANNER_PATH}" -X \
