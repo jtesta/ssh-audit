@@ -78,7 +78,7 @@ class TestUtils(object):
 		assert self.utils.to_ntext('fran\xc3\xa7ais') == 'fran\xc3\xa7ais'
 		assert self.utils.to_ntext(u'fran\xe7ais') == 'fran\xe7ais'
 		# binary_type (bytes)
-		assert self.utils.to_utext(b'fran\xc3\xa7ais') == 'fran\xe7ais'
+		assert self.utils.to_ntext(b'fran\xc3\xa7ais') == 'fran\xe7ais'
 		# other
 		with pytest.raises(TypeError):
 			self.utils.to_ntext(123)
