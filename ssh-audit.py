@@ -55,7 +55,7 @@ def usage(err=None):
 	uout = Output()
 	p = os.path.basename(sys.argv[0])
 	uout.head('# {0} {1}, moo@arthepsy.eu\n'.format(p, VERSION))
-	if err is not None:
+	if err is not None and len(err) > 0:
 		uout.fail('\n' + err)
 	uout.info('usage: {0} [-1246pbnvl] <host>\n'.format(p))
 	uout.info('   -h,  --help             print this help')
@@ -92,10 +92,10 @@ class AuditConf(object):
 		# type: (str, Union[str, int, bool, Sequence[int]]) -> None
 		valid = False
 		if name in ['ssh1', 'ssh2', 'batch', 'colors', 'verbose']:
-			valid, value = True, True if value else False
+			valid, value = True, True if bool(value) else False
 		elif name in ['ipv4', 'ipv6']:
 			valid = False
-			value = True if value else False
+			value = True if bool(value) else False
 			ipv = 4 if name == 'ipv4' else 6
 			if value:
 				value = tuple(list(self.ipvo) + [ipv])
@@ -916,7 +916,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			else:
 				other = str(other)
 			mx = re.match(r'^([\d\.]+\d+)(.*)$', other)
-			if mx is not None:
+			if bool(mx):
 				oversion, opatch = mx.group(1), mx.group(2).strip()
 			else:
 				oversion, opatch = other, ''
@@ -933,10 +933,10 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			elif self.product == SSH.Product.OpenSSH:
 				mx1 = re.match(r'^p\d(.*)', opatch)
 				mx2 = re.match(r'^p\d(.*)', spatch)
-				if not (mx1 and mx2):
-					if mx1 is not None:
+				if not (bool(mx1) and bool(mx2)):
+					if bool(mx1):
 						opatch = mx1.group(1)
-					if mx2 is not None:
+					if bool(mx2):
 						spatch = mx2.group(1)
 			if spatch < opatch:
 				return -1
@@ -946,28 +946,28 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		
 		def between_versions(self, vfrom, vtill):
 			# type: (str, str) -> bool
-			if vfrom and self.compare_version(vfrom) < 0:
+			if bool(vfrom) and self.compare_version(vfrom) < 0:
 				return False
-			if vtill and self.compare_version(vtill) > 0:
+			if bool(vtill) and self.compare_version(vtill) > 0:
 				return False
 			return True
 		
 		def display(self, full=True):
 			# type: (bool) -> str
-			r = '{0} '.format(self.vendor) if self.vendor else ''
+			r = '{0} '.format(self.vendor) if bool(self.vendor) else ''
 			r += self.product
-			if self.version:
+			if bool(self.version):
 				r += ' {0}'.format(self.version)
 			if full:
 				patch = self.patch or ''
 				if self.product == SSH.Product.OpenSSH:
 					mx = re.match(r'^(p\d)(.*)$', patch)
-					if mx is not None:
+					if bool(mx):
 						r += mx.group(1)
 						patch = mx.group(2).strip()
-				if patch:
+				if bool(patch):
 					r += ' ({0})'.format(patch)
-				if self.os:
+				if bool(self.os):
 					r += ' running on {0}'.format(self.os)
 			return r
 		
@@ -977,16 +977,13 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		
 		def __repr__(self):
 			# type: () -> str
-			r = 'vendor={0}'.format(self.vendor) if self.vendor else ''
-			if self.product:
-				if self.vendor:
-					r += ', '
-				r += 'product={0}'.format(self.product)
-			if self.version:
+			r = 'vendor={0}, '.format(self.vendor) if bool(self.vendor) else ''
+			r += 'product={0}'.format(self.product)
+			if bool(self.version):
 				r += ', version={0}'.format(self.version)
-			if self.patch:
+			if bool(self.patch):
 				r += ', patch={0}'.format(self.patch)
-			if self.os:
+			if bool(self.os):
 				r += ', os={0}'.format(self.os)
 			return '<{0}({1})>'.format(self.__class__.__name__, r)
 		
@@ -1009,19 +1006,19 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if c is None:
 				return None
 			mx = re.match(r'^NetBSD(?:_Secure_Shell)?(?:[\s-]+(\d{8})(.*))?$', c)
-			if mx is not None:
+			if bool(mx):
 				d = cls._fix_date(mx.group(1))
 				return 'NetBSD' if d is None else 'NetBSD ({0})'.format(d)
 			mx = re.match(r'^FreeBSD(?:\slocalisations)?[\s-]+(\d{8})(.*)$', c)
-			if mx is None:
+			if not bool(mx):
 				mx = re.match(r'^[^@]+@FreeBSD\.org[\s-]+(\d{8})(.*)$', c)
-			if mx is not None:
+			if bool(mx):
 				d = cls._fix_date(mx.group(1))
 				return 'FreeBSD' if d is None else 'FreeBSD ({0})'.format(d)
 			w = ['RemotelyAnywhere', 'DesktopAuthority', 'RemoteSupportManager']
 			for win_soft in w:
 				mx = re.match(r'^in ' + win_soft + r' ([\d\.]+\d)$', c)
-				if mx is not None:
+				if bool(mx):
 					ver = mx.group(1)
 					return 'Microsoft Windows ({0} {1})'.format(win_soft, ver)
 			generic = ['NetBSD', 'FreeBSD']
@@ -1037,35 +1034,35 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			software = str(banner.software)
 			mx = re.match(r'^dropbear_([\d\.]+\d+)(.*)', software)
 			v = None  # type: Optional[str]
-			if mx is not None:
+			if bool(mx):
 				patch = cls._fix_patch(mx.group(2))
 				v, p = 'Matt Johnston', SSH.Product.DropbearSSH
 				v = None
 				return cls(v, p, mx.group(1), patch, None)
 			mx = re.match(r'^OpenSSH[_\.-]+([\d\.]+\d+)(.*)', software)
-			if mx is not None:
+			if bool(mx):
 				patch = cls._fix_patch(mx.group(2))
 				v, p = 'OpenBSD', SSH.Product.OpenSSH
 				v = None
 				os_version = cls._extract_os_version(banner.comments)
 				return cls(v, p, mx.group(1), patch, os_version)
 			mx = re.match(r'^libssh-([\d\.]+\d+)(.*)', software)
-			if mx is not None:
+			if bool(mx):
 				patch = cls._fix_patch(mx.group(2))
 				v, p = None, SSH.Product.LibSSH
 				os_version = cls._extract_os_version(banner.comments)
 				return cls(v, p, mx.group(1), patch, os_version)
 			mx = re.match(r'^RomSShell_([\d\.]+\d+)(.*)', software)
-			if mx is not None:
+			if bool(mx):
 				patch = cls._fix_patch(mx.group(2))
 				v, p = 'Allegro Software', 'RomSShell'
 				return cls(v, p, mx.group(1), patch, None)
 			mx = re.match(r'^mpSSH_([\d\.]+\d+)', software)
-			if mx is not None:
+			if bool(mx):
 				v, p = 'HP', 'iLO (Integrated Lights-Out) sshd'
 				return cls(v, p, mx.group(1), None, None)
 			mx = re.match(r'^Cisco-([\d\.]+\d+)', software)
-			if mx is not None:
+			if bool(mx):
 				v, p = 'Cisco', 'IOS/PIX sshd'
 				return cls(v, p, mx.group(1), None, None)
 			return None
@@ -1107,7 +1104,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			r = 'SSH-{0}.{1}'.format(self.protocol[0], self.protocol[1])
 			if self.software is not None:
 				r += '-{0}'.format(self.software)
-			if self.comments:
+			if bool(self.comments):
 				r += ' {0}'.format(self.comments)
 			return r
 		
@@ -1115,19 +1112,19 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			# type: () -> str
 			p = '{0}.{1}'.format(self.protocol[0], self.protocol[1])
 			r = 'protocol={0}'.format(p)
-			if self.software:
+			if self.software is not None:
 				r += ', software={0}'.format(self.software)
-			if self.comments:
+			if bool(self.comments):
 				r += ', comments={0}'.format(self.comments)
 			return '<{0}({1})>'.format(self.__class__.__name__, r)
 		
 		@classmethod
 		def parse(cls, banner):
-			# type: (text_type) -> SSH.Banner
+			# type: (text_type) -> Optional[SSH.Banner]
 			valid_ascii = utils.is_print_ascii(banner)
 			ascii_banner = utils.to_print_ascii(banner)
 			mx = cls.RX_BANNER.match(ascii_banner)
-			if mx is None:
+			if not bool(mx):
 				return None
 			protocol = min(re.findall(cls.RX_PROTOCOL, mx.group(1)))
 			protocol = (int(protocol[0]), int(protocol[1]))
@@ -1814,7 +1811,7 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 			if level == 'info':
 				versions = alg_desc[0]
 				since_text = SSH.Algorithm.get_since_text(versions)
-				if since_text:
+				if since_text is not None and len(since_text) > 0:
 					texts.append((level, since_text))
 			idx = idx + 1
 			if ldesc > idx:
@@ -1951,7 +1948,10 @@ def output_recommendations(algs, software, padlen=0):
 						fm = '(rec) {0}{1}{2}-- {3} algorithm to {4} {5}'
 						fn(fm.format(sg, name, p, alg_type, an, b))
 	if len(obuf) > 0:
-		title = '(for {0})'.format(software.display(False)) if software else ''
+		if software is not None:
+			title = '(for {0})'.format(software.display(False))
+		else:
+			title = ''
 		out.head('# algorithm recommendations {0}'.format(title))
 		obuf.flush()
 		out.sep()
@@ -2150,7 +2150,10 @@ def audit(aconf, sshv=None):
 		packet_type, payload = s.read_packet(sshv)
 		if packet_type < 0:
 			try:
-				payload_txt = payload.decode('utf-8') if payload else u'empty'
+				if payload is not None and len(payload) > 0:
+					payload_txt = payload.decode('utf-8')
+				else:
+					payload_txt = u'empty'
 			except UnicodeDecodeError:
 				payload_txt = u'"{0}"'.format(repr(payload).lstrip('b')[1:-1])
 			if payload_txt == u'Protocol major versions differ.':
