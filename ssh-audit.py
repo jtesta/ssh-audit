@@ -83,7 +83,7 @@ class AuditConf(object):
 		self.batch = False
 		self.colors = True
 		self.verbose = False
-		self.minlevel = 'info'
+		self.level = 'info'
 		self.ipvo = ()  # type: Sequence[int]
 		self.ipv4 = False
 		self.ipv6 = False
@@ -118,7 +118,7 @@ class AuditConf(object):
 			if port < 1 or port > 65535:
 				raise ValueError('invalid port: {0}'.format(value))
 			value = port
-		elif name in ['minlevel']:
+		elif name in ['level']:
 			if value not in ('info', 'warn', 'fail'):
 				raise ValueError('invalid level: {0}'.format(value))
 			valid = True
@@ -164,7 +164,7 @@ class AuditConf(object):
 			elif o in ('-l', '--level'):
 				if a not in ('info', 'warn', 'fail'):
 					usage_cb('level {0} is not valid'.format(a))
-				aconf.minlevel = a
+				aconf.level = a
 		if len(args) == 0:
 			usage_cb()
 		if oport is not None:
@@ -189,30 +189,30 @@ class AuditConf(object):
 
 
 class Output(object):
-	LEVELS = ['info', 'warn', 'fail']
+	LEVELS = ('info', 'warn', 'fail')  # type: Sequence[str]
 	COLORS = {'head': 36, 'good': 32, 'warn': 33, 'fail': 31}
 	
 	def __init__(self):
 		# type: () -> None
 		self.batch = False
-		self.colors = True
 		self.verbose = False
-		self.__minlevel = 0
+		self.use_colors = True
+		self.__level = 0
 		self.__colsupport = 'colorama' in sys.modules or os.name == 'posix'
 	
 	@property
-	def minlevel(self):
+	def level(self):
 		# type: () -> str
-		if self.__minlevel < len(self.LEVELS):
-			return self.LEVELS[self.__minlevel]
+		if self.__level < len(self.LEVELS):
+			return self.LEVELS[self.__level]
 		return 'unknown'
 	
-	@minlevel.setter
-	def minlevel(self, name):
+	@level.setter
+	def level(self, name):
 		# type: (str) -> None
-		self.__minlevel = self.getlevel(name)
+		self.__level = self.get_level(name)
 	
-	def getlevel(self, name):
+	def get_level(self, name):
 		# type: (str) -> int
 		cname = 'info' if name == 'good' else name
 		if cname not in self.LEVELS:
@@ -238,9 +238,9 @@ class Output(object):
 		# type: (str) -> Callable[[text_type], None]
 		if name == 'head' and self.batch:
 			return lambda x: None
-		if not self.getlevel(name) >= self.__minlevel:
+		if not self.get_level(name) >= self.__level:
 			return lambda x: None
-		if self.colors and self.colors_supported and name in self.COLORS:
+		if self.use_colors and self.colors_supported and name in self.COLORS:
 			color = '\033[0;{0}m'.format(self.COLORS[name])
 			return self._colorized(color)
 		else:
@@ -2160,9 +2160,9 @@ class Utils(object):
 def audit(aconf, sshv=None):
 	# type: (AuditConf, Optional[int]) -> None
 	out.batch = aconf.batch
-	out.colors = aconf.colors
 	out.verbose = aconf.verbose
-	out.minlevel = aconf.minlevel
+	out.level = aconf.level
+	out.use_colors = aconf.colors
 	s = SSH.Socket(aconf.host, aconf.port)
 	s.connect(aconf.ipvo)
 	if sshv is None:
