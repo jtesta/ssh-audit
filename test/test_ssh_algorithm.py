@@ -119,9 +119,10 @@ class TestSSHAlgorithm(object):
 		ov = "'OpenSSH': ['6.1', '6.6', '6.2', '7.1']"
 		dv = "'Dropbear SSH': ['2016.72', '2016.73', '2016.72', '2016.74']"
 		assert len(str(tf1)) == len(str(tf2)) == len(str(tf3))
-		assert ov in str(tf1) and dv in str(tf1)
-		assert ov in str(tf2) and dv in str(tf3)
-		assert ov in str(tf2) and dv in str(tf3)
+		assert ov in str(tf1) and ov in str(tf2) and ov in str(tf3)
+		assert dv in str(tf1) and dv in str(tf2) and dv in str(tf3)
+		assert ov in repr(tf1) and ov in repr(tf2) and ov in repr(tf3)
+		assert dv in repr(tf1) and dv in repr(tf2) and dv in repr(tf3)
 	
 	def test_timeframe_object(self):
 		tf = self._tf(['6.1,6.2C', '6.6', '7.1'])
@@ -155,3 +156,9 @@ class TestSSHAlgorithm(object):
 		assert tf.get_till('Dropbear SSH', True) == '2016.73'
 		assert tf.get_from('Dropbear SSH', False) == '2016.72'
 		assert tf.get_till('Dropbear SSH', False) == '2016.74'
+		ov = "'OpenSSH': ['6.1', '6.6', '6.2', '7.1']"
+		dv = "'Dropbear SSH': ['2016.72', '2016.73', '2016.72', '2016.74']"
+		assert ov in str(tf)
+		assert dv in str(tf)
+		assert ov in repr(tf)
+		assert dv in repr(tf)
