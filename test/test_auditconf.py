@@ -148,6 +148,14 @@ class TestAuditConf(object):
 		self._test_conf(conf, host='localhost', port=2222)
 		conf = c('-p 2222 localhost')
 		self._test_conf(conf, host='localhost', port=2222)
+		conf = c('2001:4860:4860::8888')
+		self._test_conf(conf, host='2001:4860:4860::8888')
+		conf = c('[2001:4860:4860::8888]:22')
+		self._test_conf(conf, host='2001:4860:4860::8888')
+		conf = c('[2001:4860:4860::8888]:2222')
+		self._test_conf(conf, host='2001:4860:4860::8888', port=2222)
+		conf = c('-p 2222 2001:4860:4860::8888')
+		self._test_conf(conf, host='2001:4860:4860::8888', port=2222)
 		with pytest.raises(SystemExit):
 			conf = c('localhost:')
 		with pytest.raises(SystemExit):

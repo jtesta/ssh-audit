@@ -169,14 +169,17 @@ class AuditConf(object):
 			usage_cb()
 		if oport is not None:
 			host = args[0]
-			port = utils.parse_int(oport)
 		else:
-			s = args[0].split(':')
-			host = s[0].strip()
-			if len(s) == 2:
-				oport, port = s[1], utils.parse_int(s[1])
+			mx = re.match(r'^\[([^\]]+)\](?::(.*))?$', args[0])
+			if bool(mx):
+				host, oport = mx.group(1), mx.group(2)
 			else:
-				oport, port = '22', 22
+				s = args[0].split(':')
+				if len(s) > 2:
+					host, oport = args[0], '22'
+				else:
+					host, oport = s[0], s[1] if len(s) > 1 else '22'
+		port = utils.parse_int(oport)
 		if not host:
 			usage_cb('host is empty')
 		if port <= 0 or port > 65535:
