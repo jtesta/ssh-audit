@@ -2265,8 +2265,8 @@ class KexGroupExchange(KexDH):
 
 		# Now that we got the generator and modulus, perform the DH exchange
 		# like usual.
-		super().set_params(g, p)
-		super().send_init(s, SSH.Protocol.MSG_KEXDH_GEX_INIT)
+		super(KexGroupExchange, self).set_params(g, p)
+		super(KexGroupExchange, self).send_init(s, SSH.Protocol.MSG_KEXDH_GEX_INIT)
 
 
 class KexGroupExchange_SHA1(KexGroupExchange):
