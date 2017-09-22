@@ -24,7 +24,7 @@
    THE SOFTWARE.
 """
 from __future__ import print_function
-import os, io, sys, socket, struct, random, errno, getopt, re, hashlib, base64
+import binascii, os, io, sys, socket, struct, random, errno, getopt, re, hashlib, base64
 
 VERSION = 'v1.7.1.dev'
 
@@ -288,7 +288,6 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		WARN_CURVES_WEAK      = 'using weak elliptic curves'
 		WARN_RNDSIG_KEY       = 'using weak random number generator could reveal the key'
 		WARN_MODULUS_SIZE     = 'using small 1024-bit modulus'
-		WARN_MODULUS_CUSTOM   = 'using custom size modulus (possibly weak)'
 		WARN_HASH_WEAK        = 'using weak hashing algorithm'
 		WARN_CIPHER_MODE      = 'using weak cipher mode'
 		WARN_BLOCK_SIZE       = 'using small 64-bit block size'
@@ -304,7 +303,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'diffie-hellman-group16-sha512': [['7.3,d2016.73']],
 				'diffie-hellman-group18-sha512': [['7.3']],
 				'diffie-hellman-group-exchange-sha1': [['2.3.0', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_HASH_WEAK]],
-				'diffie-hellman-group-exchange-sha256': [['4.4'], [], [WARN_MODULUS_CUSTOM]],
+				'diffie-hellman-group-exchange-sha256': [['4.4']],
 				'ecdh-sha2-nistp256': [['5.7,d2013.62,l10.6.0'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp384': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
@@ -422,7 +421,10 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 			self.__server = srv
 			self.__follows = follows
 			self.__unused = unused
-		
+
+			self.__rsa_key_sizes = {}
+			self.__dh_modulus_sizes = {}
+
 		@property
 		def cookie(self):
 			# type: () -> binary_type
@@ -459,7 +461,19 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		def unused(self):
 			# type: () -> int
 			return self.__unused
-		
+
+		def set_rsa_hostkey_size(self, rsa_type, rsa_hostkey_size):
+			self.__rsa_key_sizes[rsa_type] = rsa_hostkey_size;
+
+		def rsa_hostkey_sizes(self):
+			return self.__rsa_key_sizes
+
+		def set_dh_modulus_size(self, gex_alg, modulus_size):
+			self.__dh_modulus_sizes[gex_alg] = modulus_size
+
+		def dh_modulus_sizes(self):
+			return self.__dh_modulus_sizes
+
 		def write(self, wbuf):
 			# type: (WriteBuf) -> None
 			wbuf.write(self.cookie)
@@ -505,6 +519,196 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 			kex = cls(cookie, kex_algs, key_algs, cli, srv, follows, unused)
 			return kex
 
+	# Obtains RSA host keys and checks their size.
+	class RSAKeyTest(object):
+		RSA_TYPES = ['ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512']
+
+		@staticmethod
+		def run(s, kex):
+			KEX_TO_DHGROUP = {
+				'diffie-hellman-group1-sha1': KexGroup1,
+				'diffie-hellman-group14-sha1': KexGroup14_SHA1,
+				'diffie-hellman-group14-sha256': KexGroup14_SHA256,
+				'curve25519-sha256': KexCurve25519_SHA256,
+				'curve25519-sha256@libssh.org': KexCurve25519_SHA256,
+				'diffie-hellman-group16-sha512': KexGroup16_SHA512,
+				'diffie-hellman-group18-sha512': KexGroup18_SHA512,
+				'diffie-hellman-group-exchange-sha1': KexGroupExchange_SHA1,
+				'diffie-hellman-group-exchange-sha256': KexGroupExchange_SHA256,
+				'ecdh-sha2-nistp256': KexNISTP256,
+				'ecdh-sha2-nistp384': KexNISTP384,
+				'ecdh-sha2-nistp521': KexNISTP521,
+				#'kexguess2@matt.ucc.asn.au': ???
+			}
+
+			# Pick the first kex algorithm that the server supports, which we
+			# happen to support as well.
+			selected_kex_str = None
+			kex_group = None
+			for server_kex_alg in kex.kex_algorithms:
+				if server_kex_alg in KEX_TO_DHGROUP:
+					selected_kex_str = server_kex_alg
+					kex_group = KEX_TO_DHGROUP[server_kex_alg]()
+					break
+
+			# If the server supports one of the RSA types, extract its key size.
+			modulus_size = 0
+			if selected_kex_str is not None:
+				for rsa_type in SSH2.RSAKeyTest.RSA_TYPES:
+					if rsa_type in kex.key_algorithms:
+
+						# Send the server our KEXINIT message, using only our
+						# selected kex and RSA type.  Send the server's own
+						# list of ciphers and MACs back to it (this doesn't
+						# matter, really).
+						client_kex = SSH2.Kex(os.urandom(16), [selected_kex_str], [rsa_type], kex.client, kex.server, 0, 0)
+
+						s.write_byte(SSH.Protocol.MSG_KEXINIT)
+						client_kex.write(s)
+						s.send_packet()
+
+						# Do the initial DH exchange.  The server responds back
+						# with the host key and its length.  Bingo.
+						kex_group.send_init(s)
+						kex_group.recv_reply(s)
+						modulus_size = kex_group.get_hostkey_size()
+
+						# We only need to test one RSA type, since the others
+						# will all be the same.
+						break
+
+			if modulus_size > 0:
+
+				# Set the hostkey size for all RSA key types since 'ssh-rsa',
+				# 'rsa-sha2-256', etc. are all using the same host key.
+				for rsa_type in SSH2.RSAKeyTest.RSA_TYPES:
+					kex.set_rsa_hostkey_size(rsa_type, modulus_size)
+
+				# Keys smaller than 2048 result in a failure.
+				fail = False
+				if modulus_size < 2048:
+					fail = True
+
+				# If this is a bad key size, update the database accordingly.
+				if fail:
+					for rsa_type in SSH2.RSAKeyTest.RSA_TYPES:
+						alg_list = SSH2.KexDB.ALGORITHMS['key'][rsa_type]
+						alg_list.append(['using small %d-bit modulus' % modulus_size])
+
+	# Performs DH group exchanges to find what moduli are supported, and checks
+	# their size.
+	class GEXTest(object):
+
+		# Creates a new connection to the server.  Returns an SSH.Socket, or
+		# None on failure.
+		@staticmethod
+		def reconnect(ipvo, host, port, gex_alg):
+			s = SSH.Socket(host, port)
+			s.connect(ipvo)
+			unused, unused, err = s.get_banner()
+			if err is not None:
+				s.close()
+				return None
+
+			# Parse the server's initial KEX.
+			packet_type, payload = s.read_packet(2)
+			kex = SSH2.Kex.parse(payload)
+
+			# Send our KEX using the specified group-exchange and most of the
+			# server's own values.
+			client_kex = SSH2.Kex(os.urandom(16), [gex_alg], kex.key_algorithms, kex.client, kex.server, 0, 0)
+			s.write_byte(SSH.Protocol.MSG_KEXINIT)
+			client_kex.write(s)
+			s.send_packet()
+			return s
+
+		# Runs the DH moduli test against the specified target.
+		@staticmethod
+		def run(ipvo, host, port, s, kex):
+			GEX_ALGS = {
+				'diffie-hellman-group-exchange-sha1': KexGroupExchange_SHA1,
+				'diffie-hellman-group-exchange-sha256': KexGroupExchange_SHA256,
+			}
+
+			# Check if the server supports any of the group-exchange
+			# algorithms.  If so, test each one.
+			for gex_alg in GEX_ALGS:
+				if gex_alg in kex.kex_algorithms:
+
+					# The previous RSA tests put the server in a state we can't
+					# test.  So we need a new connection to start with a clean
+					# slate.
+					if s is not None:
+						s.close()
+						s = None
+
+					s = SSH2.GEXTest.reconnect(ipvo, host, port, gex_alg)
+					if s is None:
+						break
+
+					kex_group = GEX_ALGS[gex_alg]()
+					smallest_modulus = -1
+
+					# First try a range of weak sizes.
+					try:
+						kex_group.send_init(s, 512, 1024, 1536)
+						kex_group.recv_reply(s)
+
+						# Its been observed that servers will return a group
+						# larger than the requested max.  So just because we
+						# got here, doesn't mean the server is vulnerable...
+						smallest_modulus = kex_group.get_modulus_size()
+					except Exception as e:
+						pass
+					finally:
+						s.close()
+						s = None
+
+					# Try an array of specific modulus sizes... one at a time.
+					reconnect_failed = False
+					for bits in [512, 768, 1024, 1536, 2048, 3072, 4096]:
+
+						# If we found one modulus size already, but we're about
+						# to test a larger one, don't bother.
+						if smallest_modulus > 0 and bits >= smallest_modulus:
+							break
+
+						if s is None:
+							s = SSH2.GEXTest.reconnect(ipvo, host, port, gex_alg)
+							if s is None:
+								reconnect_failed = True
+								break
+
+						try:
+							kex_group.send_init(s, bits, bits, bits)
+							kex_group.recv_reply(s)
+							smallest_modulus = kex_group.get_modulus_size()
+						except Exception as e:
+							pass
+						finally:
+							s.close()
+							s = None
+
+					if smallest_modulus > 0:
+						kex.set_dh_modulus_size(gex_alg, smallest_modulus)
+
+						# We flag moduli smaller than 2048 as a failure.
+						if smallest_modulus < 2048:
+							text = 'using small %d-bit modulus' % smallest_modulus
+							lst = SSH2.KexDB.ALGORITHMS['kex'][gex_alg]
+							# For 'diffie-hellman-group-exchange-sha256', add
+							# a failure reason.
+							if len(lst) == 1:
+								lst.append(text)
+							# For 'diffie-hellman-group-exchange-sha1', delete
+							# the existing failure reason (which is vague), and
+							# insert our own.
+							else:
+								del lst[1]
+								lst.insert(1, [text])
+
+					if reconnect_failed:
+						break
 
 class SSH1(object):
 	class CRC32(object):
@@ -868,7 +1072,11 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		MSG_KEXINIT     = 20
 		MSG_NEWKEYS     = 21
 		MSG_KEXDH_INIT  = 30
-		MSG_KEXDH_REPLY = 32
+		MSG_KEXDH_REPLY = 31
+		MSG_KEXDH_GEX_REQUEST = 34
+		MSG_KEXDH_GEX_GROUP   = 31
+		MSG_KEXDH_GEX_INIT    = 32
+		MSG_KEXDH_GEX_REPLY   = 33
 	
 	class Product(object):  # pylint: disable=too-few-public-methods
 		OpenSSH = 'OpenSSH'
@@ -1747,7 +1955,10 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			pad_bytes = b'\x00' * padding
 			data = struct.pack('>Ib', plen, padding) + payload + pad_bytes
 			return self.send(data)
-		
+
+		def close(self):
+			self.__cleanup()
+
 		def _close_socket(self, s):
 			# type: (Optional[socket.socket]) -> None
 			try:
@@ -1767,23 +1978,98 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 
 
 class KexDH(object):  # pragma: nocover
-	def __init__(self, alg, g, p):
+	def __init__(self, kex_name, hash_alg, g, p):
 		# type: (str, int, int) -> None
-		self.__alg = alg
+		self.__kex_name = kex_name
+		self.__hash_alg = hash_alg
+		self.set_params(g, p)
+
+		self.__ed25519_pubkey = 0
+		self.__hostkey_type = None
+		self.__hostkey_e = 0
+		self.__hostkey_n = 0
+		self.__hostkey_n_len = 0 # This is the length of the host key modulus.
+		self.__f = 0
+		self.__h_sig = 0
+
+	def set_params(self, g, p):
 		self.__g = g
 		self.__p = p
 		self.__q = (self.__p - 1) // 2
 		self.__x = 0
 		self.__e = 0
-	
-	def send_init(self, s):
+
+
+	def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
 		# type: (SSH.Socket) -> None
 		r = random.SystemRandom()
 		self.__x = r.randrange(2, self.__q)
 		self.__e = pow(self.__g, self.__x, self.__p)
-		s.write_byte(SSH.Protocol.MSG_KEXDH_INIT)
+		s.write_byte(init_msg)
 		s.write_mpint2(self.__e)
 		s.send_packet()
+
+	# Parse a KEXDH_REPLY or KEXDH_GEX_REPLY message from the server.  This
+	# Contains the host key, among other things.
+	def recv_reply(self, s):
+		packet_type, payload = s.read_packet(2)
+		if packet_type not in [SSH.Protocol.MSG_KEXDH_REPLY, SSH.Protocol.MSG_KEXDH_GEX_REPLY]:
+			# TODO: change Exception to something more specific.
+			raise Exception('Expected MSG_KEXDH_REPLY (%d) or MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (SSH.Protocol.MSG_KEXDH_REPLY, SSH.Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
+
+		host_key_len = struct.unpack('>I', payload[0:4])[0]
+		ptr = 4
+
+		hostkey = payload[ptr:ptr + host_key_len]
+		ptr += host_key_len
+
+		f_len = struct.unpack('>I', payload[ptr:ptr+4])[0]
+		ptr += 4
+
+		self.__f = payload[ptr:ptr + f_len]
+		ptr += f_len
+
+		h_sig_len = struct.unpack('>I', payload[ptr:ptr+4])[0]
+		ptr += 4
+
+		self.__h_sig = payload[ptr:ptr + h_sig_len]
+		ptr += h_sig_len
+
+		# Now pick apart the host key blob.
+		hostkey_type_len = struct.unpack('>I', hostkey[0:4])[0]
+		ptr = 4
+
+		# Get the host key type (i.e.: 'ssh-rsa', 'ssh-ed25519', etc).
+		self.__hostkey_type = hostkey[ptr:ptr + hostkey_type_len]
+		ptr += hostkey_type_len
+
+		hostkey_e_len = struct.unpack('>I', hostkey[ptr:ptr + 4])[0]
+		ptr += 4
+
+		self.__hostkey_e = int(binascii.hexlify(hostkey[ptr:ptr + hostkey_e_len]), 16)
+		ptr += hostkey_e_len
+
+		# Here is the modulus size & actual modulus of the host key public key.
+		self.__hostkey_n_len = struct.unpack('>I', hostkey[ptr:ptr + 4])[0]
+		ptr += 4
+		self.__hostkey_n = int(binascii.hexlify(hostkey[ptr:ptr + self.__hostkey_n_len]), 16)
+
+	# Returns the size of the hostkey, in bits.
+	def get_hostkey_size(self):
+		size = self.__hostkey_n_len * 8
+
+		# Actual keys are observed to be about 8 bits bigger than expected
+		# (i.e.: 1024-bit keys have a 1032-bit modulus).  Check if this is
+		# the case, and subtract 8 if so.  This simply improves readability
+		# in the UI.
+		if (size >> 3) % 2 != 0:
+			size = size - 8
+		return size
+
+	# Returns the size of the DH modulus, in bits.
+	def get_modulus_size(self):
+		# -2 to account for the '0b' prefix in the string.
+		return len(bin(self.__p)) - 2
 
 
 class KexGroup1(KexDH):  # pragma: nocover
@@ -1795,11 +2081,11 @@ class KexGroup1(KexDH):  # pragma: nocover
 		        'f25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff'
 		        '5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece65381'
 		        'ffffffffffffffff', 16)
-		super(KexGroup1, self).__init__('sha1', 2, p)
+		super(KexGroup1, self).__init__('KexGroup1', 'sha1', 2, p)
 
 
 class KexGroup14(KexDH):  # pragma: nocover
-	def __init__(self):
+	def __init__(self, hash_alg):
 		# type: () -> None
 		# rfc3526: 2048-bit modp group
 		p = int('ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67'
@@ -1811,26 +2097,213 @@ class KexGroup14(KexDH):  # pragma: nocover
 		        'ca18217c32905e462e36ce3be39e772c180e86039b2783a2ec07a28fb5c5'
 		        '5df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa0510'
 		        '15728e5a8aacaa68ffffffffffffffff', 16)
-		super(KexGroup14, self).__init__('sha1', 2, p)
+		super(KexGroup14, self).__init__('KexGroup14', hash_alg, 2, p)
 
 
-def output_algorithms(title, alg_db, alg_type, algorithms, maxlen=0):
+class KexGroup14_SHA1(KexGroup14):
+	def __init__(self):
+		super(KexGroup14_SHA1, self).__init__('sha1')
+
+
+class KexGroup14_SHA256(KexGroup14):
+	def __init__(self):
+		super(KexGroup14_SHA256, self).__init__('sha256')
+
+
+class KexGroup16_SHA512(KexDH):
+	def __init__(self):
+		# rfc3526: 4096-bit modp group
+		p = int('ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67'
+		        'cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6d'
+				'f25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff'
+				'5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3d'
+				'c2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3'
+				'ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08'
+				'ca18217c32905e462e36ce3be39e772c180e86039b2783a2ec07a28fb5c5'
+				'5df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa0510'
+				'15728e5a8aaac42dad33170d04507a33a85521abdf1cba64ecfb850458db'
+				'ef0a8aea71575d060c7db3970f85a6e1e4c7abf5ae8cdb0933d71e8c94e0'
+				'4a25619dcee3d2261ad2ee6bf12ffa06d98a0864d87602733ec86a64521f'
+				'2b18177b200cbbe117577a615d6c770988c0bad946e208e24fa074e5ab31'
+				'43db5bfce0fd108e4b82d120a92108011a723c12a787e6d788719a10bdba'
+				'5b2699c327186af4e23c1a946834b6150bda2583e9ca2ad44ce8dbbbc2db'
+				'04de8ef92e8efc141fbecaa6287c59474e6bc05d99b2964fa090c3a2233b'
+				'a186515be7ed1f612970cee2d7afb81bdd762170481cd0069127d5b05aa9'
+				'93b4ea988d8fddc186ffb7dc90a6c08f4df435c934063199ffffffffffff'
+				'ffff', 16)
+		super(KexGroup16_SHA512, self).__init__('KexGroup16_SHA512', 'sha512', 2, p)
+
+
+class KexGroup18_SHA512(KexDH):
+	def __init__(self):
+		# rfc3526: 8192-bit modp group
+		p = int('ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67'
+				'cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6d'
+				'f25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff'
+				'5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3d'
+				'c2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3'
+				'ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08'
+				'ca18217c32905e462e36ce3be39e772c180e86039b2783a2ec07a28fb5c5'
+				'5df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa0510'
+				'15728e5a8aaac42dad33170d04507a33a85521abdf1cba64ecfb850458db'
+				'ef0a8aea71575d060c7db3970f85a6e1e4c7abf5ae8cdb0933d71e8c94e0'
+				'4a25619dcee3d2261ad2ee6bf12ffa06d98a0864d87602733ec86a64521f'
+				'2b18177b200cbbe117577a615d6c770988c0bad946e208e24fa074e5ab31'
+				'43db5bfce0fd108e4b82d120a92108011a723c12a787e6d788719a10bdba'
+				'5b2699c327186af4e23c1a946834b6150bda2583e9ca2ad44ce8dbbbc2db'
+				'04de8ef92e8efc141fbecaa6287c59474e6bc05d99b2964fa090c3a2233b'
+				'a186515be7ed1f612970cee2d7afb81bdd762170481cd0069127d5b05aa9'
+				'93b4ea988d8fddc186ffb7dc90a6c08f4df435c93402849236c3fab4d27c'
+				'7026c1d4dcb2602646dec9751e763dba37bdf8ff9406ad9e530ee5db382f'
+				'413001aeb06a53ed9027d831179727b0865a8918da3edbebcf9b14ed44ce'
+				'6cbaced4bb1bdb7f1447e6cc254b332051512bd7af426fb8f401378cd2bf'
+				'5983ca01c64b92ecf032ea15d1721d03f482d7ce6e74fef6d55e702f4698'
+				'0c82b5a84031900b1c9e59e7c97fbec7e8f323a97a7e36cc88be0f1d45b7'
+				'ff585ac54bd407b22b4154aacc8f6d7ebf48e1d814cc5ed20f8037e0a797'
+				'15eef29be32806a1d58bb7c5da76f550aa3d8a1fbff0eb19ccb1a313d55c'
+				'da56c9ec2ef29632387fe8d76e3c0468043e8f663f4860ee12bf2d5b0b74'
+				'74d6e694f91e6dbe115974a3926f12fee5e438777cb6a932df8cd8bec4d0'
+				'73b931ba3bc832b68d9dd300741fa7bf8afc47ed2576f6936ba424663aab'
+				'639c5ae4f5683423b4742bf1c978238f16cbe39d652de3fdb8befc848ad9'
+				'22222e04a4037c0713eb57a81a23f0c73473fc646cea306b4bcbc8862f83'
+				'85ddfa9d4b7fa2c087e879683303ed5bdd3a062b3cf5b3a278a66d2a13f8'
+				'3f44f82ddf310ee074ab6a364597e899a0255dc164f31cc50846851df9ab'
+				'48195ded7ea1b1d510bd7ee74d73faf36bc31ecfa268359046f4eb879f92'
+				'4009438b481c6cd7889a002ed5ee382bc9190da6fc026e479558e4475677'
+				'e9aa9e3050e2765694dfc81f56e880b96e7160c980dd98edd3dfffffffff'
+				'ffffffff', 16)
+		super(KexGroup18_SHA512, self).__init__('KexGroup18_SHA512', 'sha512', 2, p)
+
+
+class KexCurve25519_SHA256(KexDH):
+	def __init__(self):
+		super(KexCurve25519_SHA256, self).__init__('KexCurve25519_SHA256', 'sha256', 0, 0)
+
+	# To start an ED25519 kex, we simply send a random 256-bit number as the
+	# public key.
+	def send_init(self, s):
+		self.__ed25519_pubkey = os.urandom(32)
+		s.write_byte(SSH.Protocol.MSG_KEXDH_INIT)
+		s.write_string(self.__ed25519_pubkey)
+		s.send_packet()
+
+
+class KexNISTP256(KexDH):
+	def __init__(self):
+		super(KexNISTP256, self).__init__('KexNISTP256', 'sha256', 0, 0)
+
+	# Because the server checks that the value sent here is valid (i.e.: it lies
+	# on the curve, among other things), we would have to write a lot of code
+	# or import an elliptic curve library in order to randomly generate a
+	# valid elliptic point each time.  Hence, we will simply send a static
+	# value, which is enough for us to extract the server's host key.
+	def send_init(self, s):
+		s.write_byte(SSH.Protocol.MSG_KEXDH_INIT)
+		s.write_string(b'\x04\x0b\x60\x44\x9f\x8a\x11\x9e\xc7\x81\x0c\xa9\x98\xfc\xb7\x90\xaa\x6b\x26\x8c\x12\x4a\xc0\x09\xbb\xdf\xc4\x2c\x4c\x2c\x99\xb6\xe1\x71\xa0\xd4\xb3\x62\x47\x74\xb3\x39\x0c\xf2\x88\x4a\x84\x6b\x3b\x15\x77\xa5\x77\xd2\xa9\xc9\x94\xf9\xd5\x66\x19\xcd\x02\x34\xd1')
+		s.send_packet()
+
+
+class KexNISTP384(KexDH):
+	def __init__(self):
+		super(KexNISTP384, self).__init__('KexNISTP384', 'sha256', 0, 0)
+
+	# See comment for KexNISTP256.send_init().
+	def send_init(self, s):
+		s.write_byte(SSH.Protocol.MSG_KEXDH_INIT)
+		s.write_string(b'\x04\xe2\x9b\x84\xce\xa1\x39\x50\xfe\x1e\xa3\x18\x70\x1c\xe2\x7a\xe4\xb5\x6f\xdf\x93\x9f\xd4\xf4\x08\xcc\x9b\x02\x10\xa4\xca\x77\x9c\x2e\x51\x44\x1d\x50\x7a\x65\x4e\x7e\x2f\x10\x2d\x2d\x4a\x32\xc9\x8e\x18\x75\x90\x6c\x19\x10\xda\xcc\xa8\xe9\xf4\xc4\x3a\x53\x80\x35\xf4\x97\x9c\x04\x16\xf9\x5a\xdc\xcc\x05\x94\x29\xfa\xc4\xd6\x87\x4e\x13\x21\xdb\x3d\x12\xac\xbd\x20\x3b\x60\xff\xe6\x58\x42')
+		s.send_packet()
+
+
+class KexNISTP521(KexDH):
+	def __init__(self):
+		super(KexNISTP521, self).__init__('KexNISTP521', 'sha256', 0, 0)
+
+	# See comment for KexNISTP256.send_init().
+	def send_init(self, s):
+		s.write_byte(SSH.Protocol.MSG_KEXDH_INIT)
+		s.write_string(b'\x04\x01\x02\x90\x29\xe9\x8f\xa8\x04\xaf\x1c\x00\xf9\xc6\x29\xc0\x39\x74\x8e\xea\x47\x7e\x7c\xf7\x15\x6e\x43\x3b\x59\x13\x53\x43\xb0\xae\x0b\xe7\xe6\x7c\x55\x73\x52\xa5\x2a\xc1\x42\xde\xfc\xf4\x1f\x8b\x5a\x8d\xfa\xcd\x0a\x65\x77\xa8\xce\x68\xd2\xc6\x26\xb5\x3f\xee\x4b\x01\x7b\xd2\x96\x23\x69\x53\xc7\x01\xe1\x0d\x39\xe9\x87\x49\x3b\xc8\xec\xda\x0c\xf9\xca\xad\x89\x42\x36\x6f\x93\x78\x78\x31\x55\x51\x09\x51\xc0\x96\xd7\xea\x61\xbf\xc2\x44\x08\x80\x43\xed\xc6\xbb\xfb\x94\xbd\xf8\xdf\x2b\xd8\x0b\x2e\x29\x1b\x8c\xc4\x8a\x04\x2d\x3a')
+		s.send_packet()
+
+
+class KexGroupExchange(KexDH):
+	def __init__(self, classname, hash_alg):
+		super(KexGroupExchange, self).__init__(classname, hash_alg, 0, 0)
+
+	# The group exchange starts with sending a message to the server with
+	# the minimum, maximum, and preferred number of bits are for the DH group.
+	# The server responds with a generator and prime modulus that matches that,
+	# then the handshake continues on like a normal DH handshake (except the
+	# SSH message types differ).
+	def send_init(self, s, minbits=1024, prefbits=2048, maxbits=8192):
+
+		# Send the initial group exchange request.  Tell the server what range
+		# of modulus sizes we will accept, along with our preference.
+		s.write_byte(SSH.Protocol.MSG_KEXDH_GEX_REQUEST)
+		s.write_int(minbits)
+		s.write_int(prefbits)
+		s.write_int(maxbits)
+		s.send_packet()
+
+		packet_type, payload = s.read_packet(2)
+		if packet_type != SSH.Protocol.MSG_KEXDH_GEX_GROUP:
+			# TODO: replace with a better exception type.
+			raise Exception('Expected MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (SSH.Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
+
+		# Parse the modulus (p) and generator (g) values from the server.
+		ptr = 0
+		p_len = struct.unpack('>I', payload[ptr:ptr + 4])[0]
+		ptr += 4
+
+		p = int(binascii.hexlify(payload[ptr:ptr + p_len]), 16)
+		ptr += p_len
+
+		g_len = struct.unpack('>I', payload[ptr:ptr + 4])[0]
+		ptr += 4
+
+		g = int(binascii.hexlify(payload[ptr:ptr + g_len]), 16)
+		ptr += g_len
+
+		# Now that we got the generator and modulus, perform the DH exchange
+		# like usual.
+		super().set_params(g, p)
+		super().send_init(s, SSH.Protocol.MSG_KEXDH_GEX_INIT)
+
+
+class KexGroupExchange_SHA1(KexGroupExchange):
+	def __init__(self):
+		super(KexGroupExchange_SHA1, self).__init__('KexGroupExchange_SHA1', 'sha1')
+
+
+class KexGroupExchange_SHA256(KexGroupExchange):
+	def __init__(self):
+		super(KexGroupExchange_SHA256, self).__init__('KexGroupExchange_SHA256', 'sha256')
+
+
+def output_algorithms(title, alg_db, alg_type, algorithms, maxlen=0, alg_sizes=None):
 	# type: (str, Dict[str, Dict[str, List[List[Optional[str]]]]], str, List[text_type], int) -> None
 	with OutputBuffer() as obuf:
 		for algorithm in algorithms:
-			output_algorithm(alg_db, alg_type, algorithm, maxlen)
+			output_algorithm(alg_db, alg_type, algorithm, maxlen, alg_sizes)
 	if len(obuf) > 0:
 		out.head('# ' + title)
 		obuf.flush()
 		out.sep()
 
 
-def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
+def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0, alg_sizes=None):
 	# type: (Dict[str, Dict[str, List[List[Optional[str]]]]], str, text_type, int) -> None
 	prefix = '(' + alg_type + ') '
 	if alg_max_len == 0:
 		alg_max_len = len(alg_name)
 	padding = '' if out.batch else ' ' * (alg_max_len - len(alg_name))
+
+	# If this is an RSA host key or DH GEX, append the size to its name and fix
+	# the padding.
+	alg_name_with_size = None
+	if (alg_sizes is not None) and (alg_name in alg_sizes):
+		alg_name_with_size = '%s (%d-bit)' % (alg_name, alg_sizes[alg_name])
+		padding = padding[0:-11]
+
 	texts = []
 	if len(alg_name.strip()) == 0:
 		return
@@ -1854,6 +2327,8 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 			texts.append(('info', ''))
 	else:
 		texts.append(('warn', 'unknown algorithm'))
+
+	alg_name = alg_name_with_size if alg_name_with_size is not None else alg_name
 	first = True
 	for level, text in texts:
 		f = getattr(out, level)
@@ -2034,9 +2509,9 @@ def output(banner, header, kex=None, pkm=None):
 	if kex is not None:
 		adb = SSH2.KexDB.ALGORITHMS
 		title, atype = 'key exchange algorithms', 'kex'
-		output_algorithms(title, adb, atype, kex.kex_algorithms, maxlen)
+		output_algorithms(title, adb, atype, kex.kex_algorithms, maxlen, kex.dh_modulus_sizes())
 		title, atype = 'host-key algorithms', 'key'
-		output_algorithms(title, adb, atype, kex.key_algorithms, maxlen)
+		output_algorithms(title, adb, atype, kex.key_algorithms, maxlen, kex.rsa_hostkey_sizes())
 		title, atype = 'encryption algorithms (ciphers)', 'enc'
 		output_algorithms(title, adb, atype, kex.server.encryption, maxlen)
 		title, atype = 'message authentication code algorithms', 'mac'
@@ -2211,6 +2686,8 @@ def audit(aconf, sshv=None):
 		output(banner, header, pkm=pkm)
 	elif sshv == 2:
 		kex = SSH2.Kex.parse(payload)
+		SSH2.RSAKeyTest.run(s, kex)
+		SSH2.GEXTest.run(aconf.ipvo, aconf.host, aconf.port, s, kex)
 		output(banner, header, kex=kex)
 
 
