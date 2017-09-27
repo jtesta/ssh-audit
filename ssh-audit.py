@@ -2095,7 +2095,7 @@ class KexDH(object):  # pragma: nocover
 		self.__hostkey_type, hostkey_type_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
 		# If this is an RSA certificate, skip over the nonce.
-		if self.__hostkey_type.startswith('ssh-rsa-cert-v0'):
+		if self.__hostkey_type.startswith(b'ssh-rsa-cert-v0'):
 			nonce, nonce_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
 		# The public key exponent.
@@ -2108,7 +2108,7 @@ class KexDH(object):  # pragma: nocover
 
 		# If this is an RSA certificate, continue parsing to extract the CA
 		# key.
-		if self.__hostkey_type.startswith('ssh-rsa-cert-v0'):
+		if self.__hostkey_type.startswith(b'ssh-rsa-cert-v0'):
 			# Skip over the serial number.
 			ptr += 8
 
