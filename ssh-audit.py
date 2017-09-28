@@ -706,7 +706,6 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 						smallest_modulus = kex_group.get_dh_modulus_size()
 					except Exception: # pylint: disable=bare-except
 						x = 1 # pylint: disable=unused-variable
-						pass
 					finally:
 						s.close()
 
@@ -729,7 +728,6 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 							smallest_modulus = kex_group.get_dh_modulus_size()
 						except Exception: # pylint: disable=bare-except
 							x = 1 # pylint: disable=unused-variable
-							pass
 						finally:
 							# The server is in a state that is not re-testable,
 							# so there's nothing else to do with this open
