@@ -566,7 +566,8 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 			# If the connection is closed, re-open it and get the kex again.
 			if not s.is_connected():
 				s.connect()
-				unused1, unused2, err = s.get_banner()
+				unused = None # pylint: disable=unused-variable
+				unused, unused, err = s.get_banner()
 				if err is not None:
 					s.close()
 					return
@@ -648,12 +649,14 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				return
 
 			s.connect()
+			unused = None # pylint: disable=unused-variable
 			unused, unused, err = s.get_banner()
 			if err is not None:
 				s.close()
 				return False
 
 			# Parse the server's initial KEX.
+			packet_type = 0 # pylint: disable=unused-variable
 			packet_type, payload = s.read_packet(2)
 			kex = SSH2.Kex.parse(payload)
 
@@ -700,7 +703,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 						# larger than the requested max.  So just because we
 						# got here, doesn't mean the server is vulnerable...
 						smallest_modulus = kex_group.get_dh_modulus_size()
-					except Exception as e: # pylint: disable=bare-except
+					except Exception: # pylint: disable=bare-except
 						pass
 					finally:
 						s.close()
@@ -722,7 +725,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 							kex_group.send_init_gex(s, bits, bits, bits)
 							kex_group.recv_reply(s)
 							smallest_modulus = kex_group.get_dh_modulus_size()
-						except Exception as e: # pylint: disable=bare-except
+						except Exception: # pylint: disable=bare-except
 							pass
 						finally:
 							# The server is in a state that is not re-testable,
@@ -2147,7 +2150,7 @@ class KexDH(object):  # pragma: nocover
 				key_id, key_id_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
 				# The principles, which are... I don't know what.
-				principles, prinicples_len, ptr = KexDH.__get_bytes(hostkey, ptr)
+				principles, princicples_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
 				# The timestamp that this certificate is valid after.
 				valid_after = hostkey[ptr:ptr + 8]
