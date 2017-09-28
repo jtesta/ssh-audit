@@ -693,14 +693,14 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 
 					# First try a range of weak sizes.
 					try:
-						kex_group.send_init(s, 512, 1024, 1536)
+						kex_group.send_init_gex(s, 512, 1024, 1536)
 						kex_group.recv_reply(s)
 
 						# Its been observed that servers will return a group
 						# larger than the requested max.  So just because we
 						# got here, doesn't mean the server is vulnerable...
 						smallest_modulus = kex_group.get_dh_modulus_size()
-					except Exception as e:
+					except Exception as e: # pylint: disable=bare-except
 						pass
 					finally:
 						s.close()
@@ -719,10 +719,10 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 							break
 
 						try:
-							kex_group.send_init(s, bits, bits, bits)
+							kex_group.send_init_gex(s, bits, bits, bits)
 							kex_group.recv_reply(s)
 							smallest_modulus = kex_group.get_dh_modulus_size()
-						except Exception as e:
+						except Exception as e: # pylint: disable=bare-except
 							pass
 						finally:
 							# The server is in a state that is not re-testable,
@@ -2047,6 +2047,11 @@ class KexDH(object):  # pragma: nocover
 		# type: (str, int, int) -> None
 		self.__kex_name = kex_name
 		self.__hash_alg = hash_alg
+		self.__g = 0
+		self.__p = 0
+		self.__q = 0
+		self.__x = 0
+		self.__e = 0
 		self.set_params(g, p)
 
 		self.__ed25519_pubkey = 0
@@ -2079,9 +2084,14 @@ class KexDH(object):  # pragma: nocover
 	# Contains the host key, among other things.
 	def recv_reply(self, s):
 		packet_type, payload = s.read_packet(2)
-		if packet_type not in [SSH.Protocol.MSG_KEXDH_REPLY, SSH.Protocol.MSG_KEXDH_GEX_REPLY]:
+		if packet_type != -1 and packet_type not in [SSH.Protocol.MSG_KEXDH_REPLY, SSH.Protocol.MSG_KEXDH_GEX_REPLY]:
 			# TODO: change Exception to something more specific.
 			raise Exception('Expected MSG_KEXDH_REPLY (%d) or MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (SSH.Protocol.MSG_KEXDH_REPLY, SSH.Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
+		elif packet_type == -1:
+			# A connection error occurred.  We can't parse anything, so just
+			# return.  The host key modulus (and perhaps certificate modulus)
+			# will remain at length 0.
+			return
 
 		# Get the host key blob, F, and signature.
 		ptr = 0
@@ -2305,9 +2315,9 @@ class KexCurve25519_SHA256(KexDH):
 
 	# To start an ED25519 kex, we simply send a random 256-bit number as the
 	# public key.
-	def send_init(self, s):
+	def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
 		self.__ed25519_pubkey = os.urandom(32)
-		s.write_byte(SSH.Protocol.MSG_KEXDH_INIT)
+		s.write_byte(init_msg)
 		s.write_string(self.__ed25519_pubkey)
 		s.send_packet()
 
@@ -2321,8 +2331,8 @@ class KexNISTP256(KexDH):
 	# or import an elliptic curve library in order to randomly generate a
 	# valid elliptic point each time.  Hence, we will simply send a static
 	# value, which is enough for us to extract the server's host key.
-	def send_init(self, s):
-		s.write_byte(SSH.Protocol.MSG_KEXDH_INIT)
+	def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
+		s.write_byte(init_msg)
 		s.write_string(b'\x04\x0b\x60\x44\x9f\x8a\x11\x9e\xc7\x81\x0c\xa9\x98\xfc\xb7\x90\xaa\x6b\x26\x8c\x12\x4a\xc0\x09\xbb\xdf\xc4\x2c\x4c\x2c\x99\xb6\xe1\x71\xa0\xd4\xb3\x62\x47\x74\xb3\x39\x0c\xf2\x88\x4a\x84\x6b\x3b\x15\x77\xa5\x77\xd2\xa9\xc9\x94\xf9\xd5\x66\x19\xcd\x02\x34\xd1')
 		s.send_packet()
 
@@ -2332,8 +2342,8 @@ class KexNISTP384(KexDH):
 		super(KexNISTP384, self).__init__('KexNISTP384', 'sha256', 0, 0)
 
 	# See comment for KexNISTP256.send_init().
-	def send_init(self, s):
-		s.write_byte(SSH.Protocol.MSG_KEXDH_INIT)
+	def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
+		s.write_byte(init_msg)
 		s.write_string(b'\x04\xe2\x9b\x84\xce\xa1\x39\x50\xfe\x1e\xa3\x18\x70\x1c\xe2\x7a\xe4\xb5\x6f\xdf\x93\x9f\xd4\xf4\x08\xcc\x9b\x02\x10\xa4\xca\x77\x9c\x2e\x51\x44\x1d\x50\x7a\x65\x4e\x7e\x2f\x10\x2d\x2d\x4a\x32\xc9\x8e\x18\x75\x90\x6c\x19\x10\xda\xcc\xa8\xe9\xf4\xc4\x3a\x53\x80\x35\xf4\x97\x9c\x04\x16\xf9\x5a\xdc\xcc\x05\x94\x29\xfa\xc4\xd6\x87\x4e\x13\x21\xdb\x3d\x12\xac\xbd\x20\x3b\x60\xff\xe6\x58\x42')
 		s.send_packet()
 
@@ -2343,8 +2353,8 @@ class KexNISTP521(KexDH):
 		super(KexNISTP521, self).__init__('KexNISTP521', 'sha256', 0, 0)
 
 	# See comment for KexNISTP256.send_init().
-	def send_init(self, s):
-		s.write_byte(SSH.Protocol.MSG_KEXDH_INIT)
+	def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
+		s.write_byte(init_msg)
 		s.write_string(b'\x04\x01\x02\x90\x29\xe9\x8f\xa8\x04\xaf\x1c\x00\xf9\xc6\x29\xc0\x39\x74\x8e\xea\x47\x7e\x7c\xf7\x15\x6e\x43\x3b\x59\x13\x53\x43\xb0\xae\x0b\xe7\xe6\x7c\x55\x73\x52\xa5\x2a\xc1\x42\xde\xfc\xf4\x1f\x8b\x5a\x8d\xfa\xcd\x0a\x65\x77\xa8\xce\x68\xd2\xc6\x26\xb5\x3f\xee\x4b\x01\x7b\xd2\x96\x23\x69\x53\xc7\x01\xe1\x0d\x39\xe9\x87\x49\x3b\xc8\xec\xda\x0c\xf9\xca\xad\x89\x42\x36\x6f\x93\x78\x78\x31\x55\x51\x09\x51\xc0\x96\xd7\xea\x61\xbf\xc2\x44\x08\x80\x43\xed\xc6\xbb\xfb\x94\xbd\xf8\xdf\x2b\xd8\x0b\x2e\x29\x1b\x8c\xc4\x8a\x04\x2d\x3a')
 		s.send_packet()
 
@@ -2353,12 +2363,15 @@ class KexGroupExchange(KexDH):
 	def __init__(self, classname, hash_alg):
 		super(KexGroupExchange, self).__init__(classname, hash_alg, 0, 0)
 
+	def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_GEX_REQUEST):
+		self.send_init_gex(s)
+
 	# The group exchange starts with sending a message to the server with
 	# the minimum, maximum, and preferred number of bits are for the DH group.
 	# The server responds with a generator and prime modulus that matches that,
 	# then the handshake continues on like a normal DH handshake (except the
 	# SSH message types differ).
-	def send_init(self, s, minbits=1024, prefbits=2048, maxbits=8192):
+	def send_init_gex(self, s, minbits=1024, prefbits=2048, maxbits=8192):
 
 		# Send the initial group exchange request.  Tell the server what range
 		# of modulus sizes we will accept, along with our preference.
