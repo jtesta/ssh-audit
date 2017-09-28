@@ -573,6 +573,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 					return
 
 				# Parse the server's initial KEX.
+				packet_type = 0 # pylint: disable=unused-variable
 				packet_type, payload = s.read_packet()
 				SSH2.Kex.parse(payload)
 
@@ -704,6 +705,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 						# got here, doesn't mean the server is vulnerable...
 						smallest_modulus = kex_group.get_dh_modulus_size()
 					except Exception: # pylint: disable=bare-except
+						x = 1 # pylint: disable=unused-variable
 						pass
 					finally:
 						s.close()
@@ -726,6 +728,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 							kex_group.recv_reply(s)
 							smallest_modulus = kex_group.get_dh_modulus_size()
 						except Exception: # pylint: disable=bare-except
+							x = 1 # pylint: disable=unused-variable
 							pass
 						finally:
 							# The server is in a state that is not re-testable,
@@ -2150,7 +2153,7 @@ class KexDH(object):  # pragma: nocover
 				key_id, key_id_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
 				# The principles, which are... I don't know what.
-				principles, princicples_len, ptr = KexDH.__get_bytes(hostkey, ptr)
+				principles, principles_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
 				# The timestamp that this certificate is valid after.
 				valid_after = hostkey[ptr:ptr + 8]
