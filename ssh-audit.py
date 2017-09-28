@@ -2093,6 +2093,19 @@ class KexDH(object):  # pragma: nocover
 			# will remain at length 0.
 			return
 
+		hostkey_len = f_len = h_sig_len = 0  # pylint: disable=unused-variable
+		hostkey_type_len = hostkey_e_len = 0 # pylint: disable=unused-variable
+		key_id_len = principles_len = 0      # pylint: disable=unused-variable
+		critical_options_len = extensions_len = 0        # pylint: disable=unused-variable
+		nonce_len = ca_key_len = ca_key_type_len = 0     # pylint: disable=unused-variable
+		ca_key_len = ca_key_type_len = ca_key_e_len = 0  # pylint: disable=unused-variable
+
+		key_id = principles = None           # pylint: disable=unused-variable
+		critical_options = extensions = None # pylint: disable=unused-variable
+		valid_after = valid_before = None    # pylint: disable=unused-variable
+		nonce = ca_key = ca_key_type = None  # pylint: disable=unused-variable
+		ca_key_e = ca_key_n = None           # pylint: disable=unused-variable
+
 		# Get the host key blob, F, and signature.
 		ptr = 0
 		hostkey, hostkey_len, ptr = KexDH.__get_bytes(payload, ptr)
@@ -2134,7 +2147,7 @@ class KexDH(object):  # pragma: nocover
 				key_id, key_id_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
 				# The principles, which are... I don't know what.
-				principles, printicples_len, ptr = KexDH.__get_bytes(hostkey, ptr)
+				principles, prinicples_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
 				# The timestamp that this certificate is valid after.
 				valid_after = hostkey[ptr:ptr + 8]
