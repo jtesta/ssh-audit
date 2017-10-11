@@ -285,6 +285,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		FAIL_DBEAR67_DISABLED = 'disabled since Dropbear SSH 2015.67'
 		FAIL_DBEAR53_DISABLED = 'disabled since Dropbear SSH 0.53'
 		FAIL_DEPRECATED_CIPHER = 'deprecated cipher'
+		FAIL_WEAK_CIPHER      = 'using weak cipher'
 		FAIL_PLAINTEXT        = 'no encryption/integrity'
 		WARN_CURVES_WEAK      = 'using weak elliptic curves'
 		WARN_RNDSIG_KEY       = 'using weak random number generator could reveal the key'
@@ -313,6 +314,8 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
 				'curve25519-sha256': [['7.4']],
 				'kexguess2@matt.ucc.asn.au': [['d2013.57']],
+				'rsa1024-sha1': [[], [], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
+				'rsa2048-sha256': [[]],
 			},
 			'key': {
 				'rsa-sha2-256': [['7.2']],
@@ -335,6 +338,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 			},
 			'enc': {
 				'none': [['1.2.2,d2013.56,l10.2'], [FAIL_PLAINTEXT]],
+				'des-cbc': [[], [FAIL_WEAK_CIPHER], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'3des-cbc': [['1.2.2,d0.28,l10.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH74_UNSAFE, WARN_CIPHER_WEAK, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'3des-ctr': [['d0.52']],
 				'blowfish-cbc': [['1.2.2,d0.28,l10.2', '6.6,d0.52', '7.1,d0.52'], [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
