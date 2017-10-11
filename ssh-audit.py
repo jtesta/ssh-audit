@@ -284,6 +284,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		FAIL_OPENSSH31_REMOVE = 'removed since OpenSSH 3.1'
 		FAIL_DBEAR67_DISABLED = 'disabled since Dropbear SSH 2015.67'
 		FAIL_DBEAR53_DISABLED = 'disabled since Dropbear SSH 0.53'
+		FAIL_DEPRECATED_CIPHER = 'deprecated cipher'
 		FAIL_PLAINTEXT        = 'no encryption/integrity'
 		WARN_CURVES_WEAK      = 'using weak elliptic curves'
 		WARN_RNDSIG_KEY       = 'using weak random number generator could reveal the key'
@@ -301,6 +302,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
 				'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
+				'diffie-hellman-group15-sha512': [[]],
 				'diffie-hellman-group16-sha512': [['7.3,d2016.73']],
 				'diffie-hellman-group18-sha512': [['7.3']],
 				'diffie-hellman-group-exchange-sha1': [['2.3.0', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_HASH_WEAK]],
@@ -329,6 +331,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdsa-sha2-nistp256-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp384-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp521-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
+				'ssh-rsa-sha256@ssh.com': [[]],
 			},
 			'enc': {
 				'none': [['1.2.2,d2013.56,l10.2'], [FAIL_PLAINTEXT]],
@@ -337,9 +340,16 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'blowfish-cbc': [['1.2.2,d0.28,l10.2', '6.6,d0.52', '7.1,d0.52'], [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'twofish-cbc': [['d0.28', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [WARN_CIPHER_MODE]],
 				'twofish128-cbc': [['d0.47', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [WARN_CIPHER_MODE]],
+				'twofish192-cbc': [[], [], [WARN_CIPHER_MODE]],
 				'twofish256-cbc': [['d0.47', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [WARN_CIPHER_MODE]],
 				'twofish128-ctr': [['d2015.68']],
+				'twofish192-ctr': [[]],
 				'twofish256-ctr': [['d2015.68']],
+				'serpent128-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
+				'serpent192-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
+				'serpent256-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
+				'idea-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
+				'cast128-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
 				'cast128-cbc': [['2.1.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'arcfour': [['2.1.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_WEAK]],
 				'arcfour128': [['4.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_WEAK]],
@@ -1857,17 +1867,18 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0):
 	first = True
 	for level, text in texts:
 		f = getattr(out, level)
-		text = '[' + level + '] ' + text
+		comment = (padding + ' -- [' + level + '] ' + text) if text != '' else ''
 		if first:
 			if first and level == 'info':
 				f = out.good
-			f(prefix + alg_name + padding + ' -- ' + text)
+			f(prefix + alg_name + comment)
 			first = False
 		else:  # pylint: disable=else-if-used
 			if out.verbose:
-				f(prefix + alg_name + padding + ' -- ' + text)
-			else:
-				f(' ' * len(prefix + alg_name) + padding + ' `- ' + text)
+				f(prefix + alg_name + comment)
+			elif text != '':
+				comment = (padding + ' `- [' + level + '] ' + text)
+				f(' ' * len(prefix + alg_name) + comment)
 
 
 def output_compatibility(algs, for_server=True):
