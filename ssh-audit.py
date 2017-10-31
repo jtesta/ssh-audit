@@ -1832,7 +1832,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		
 		SM_BANNER_SENT = 1
 		
-		def __init__(self, host, port):
+		def __init__(self, host, port, ipvo, timeout):
 			# type: (Optional[str], int) -> None
 			super(SSH.Socket, self).__init__()
 			self.__sock = None  # type: Optional[socket.socket]
@@ -1847,7 +1847,12 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				raise ValueError('invalid port: {0}'.format(port))
 			self.__host = host
 			self.__port = nport
-			self.__ipvo = ()
+			if ipvo is not None:
+				self.__ipvo = ipvo
+			else:
+				self.__ipvo = ()
+			self.__timeout = timeout
+
 		
 		def _resolve(self, ipvo):
 			# type: (Sequence[int]) -> Iterable[Tuple[int, Tuple[Any, ...]]]
@@ -1872,16 +1877,14 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				out.fail('[exception] {0}'.format(e))
 				sys.exit(1)
 		
-		def connect(self, ipvo, timeout):
-			# type: (Sequence[int], float) -> None
+		def connect(self):
+			# type: () -> None
 			err = None
-			if ipvo is not None:
-				self.__ipvo = ipvo
 			for af, addr in self._resolve(self.__ipvo):
 				s = None
 				try:
 					s = socket.socket(af, socket.SOCK_STREAM)
-					s.settimeout(timeout)
+					s.settimeout(self.__timeout)
 					s.connect(addr)
 					self.__sock = s
 					return
@@ -2835,8 +2838,8 @@ def audit(aconf, sshv=None):
 	out.verbose = aconf.verbose
 	out.level = aconf.level
 	out.use_colors = aconf.colors
-	s = SSH.Socket(aconf.host, aconf.port)
-	s.connect(aconf.ipvo, aconf.timeout)
+	s = SSH.Socket(aconf.host, aconf.port, aconf.ipvo, aconf.timeout)
+	s.connect()
 	if sshv is None:
 		sshv = 2 if aconf.ssh2 else 1
 	err = None
