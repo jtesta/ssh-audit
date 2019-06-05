@@ -136,7 +136,7 @@ class AuditConf(object):
 			sopts = 'h1246p:bnvl:'
 			lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'port',
 			         'batch', 'no-colors', 'verbose', 'level=']
-			opts, args = getopt.getopt(args, sopts, lopts)
+			opts, args = getopt.gnu_getopt(args, sopts, lopts)
 		except getopt.GetoptError as err:
 			usage_cb(str(err))
 		aconf.ssh1, aconf.ssh2 = False, False
