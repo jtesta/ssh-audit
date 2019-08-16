@@ -66,34 +66,51 @@ class TestSSH1(object):
 		assert fp.md5 == 'MD5:9d:26:f8:39:fc:20:9d:9b:ca:cc:4a:0f:e1:93:f5:96'
 		assert fp.sha256 == 'SHA256:vZdx3mhzbvVJmn08t/ruv8WDhJ9jfKYsCTuSzot+QIs'
 	
-	def test_pkm_read(self):
-		pkm = self.ssh1.PublicKeyMessage.parse(self._pkm_payload())
-		assert pkm is not None
-		assert pkm.cookie == b'\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
-		b, e, m = self._server_key()
+	def _assert_pkm_keys(self, pkm, skey, hkey):
+		b, e, m = skey
 		assert pkm.server_key_bits == b
 		assert pkm.server_key_public_exponent == e
 		assert pkm.server_key_public_modulus == m
-		b, e, m = self._host_key()
+		b, e, m = hkey
 		assert pkm.host_key_bits == b
 		assert pkm.host_key_public_exponent == e
 		assert pkm.host_key_public_modulus == m
-		fp = self.ssh.Fingerprint(pkm.host_key_fingerprint_data)
+	
+	def _assert_pkm_fields(self, pkm, skey, hkey):
+		assert pkm is not None
+		assert pkm.cookie == b'\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
+		self._assert_pkm_keys(pkm, skey, hkey)
 		assert pkm.protocol_flags == 2
 		assert pkm.supported_ciphers_mask == 72
 		assert pkm.supported_ciphers == ['3des', 'blowfish']
 		assert pkm.supported_authentications_mask == 36
 		assert pkm.supported_authentications == ['rsa', 'tis']
+		fp = self.ssh.Fingerprint(pkm.host_key_fingerprint_data)
 		assert fp.md5 == 'MD5:9d:26:f8:39:fc:20:9d:9b:ca:cc:4a:0f:e1:93:f5:96'
 		assert fp.sha256 == 'SHA256:vZdx3mhzbvVJmn08t/ruv8WDhJ9jfKYsCTuSzot+QIs'
 	
+	def test_pkm_init(self):
+		cookie = b'\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
+		pflags, cmask, amask = 2, 72, 36
+		skey, hkey = self._server_key(), self._host_key()
+		pkm = self.ssh1.PublicKeyMessage(cookie, skey, hkey, pflags, cmask, amask)
+		self._assert_pkm_fields(pkm, skey, hkey)
+		for skey2 in ([], [0], [0,1], [0,1,2,3]):
+			with pytest.raises(ValueError):
+				pkm = self.ssh1.PublicKeyMessage(cookie, skey2, hkey, pflags, cmask, amask)
+		for hkey2 in ([], [0], [0,1], [0,1,2,3]):
+			with pytest.raises(ValueError):
+				print(hkey2)
+				pkm = self.ssh1.PublicKeyMessage(cookie, skey, hkey2, pflags, cmask, amask)
+	
+	def test_pkm_read(self):
+		pkm = self.ssh1.PublicKeyMessage.parse(self._pkm_payload())
+		self._assert_pkm_fields(pkm, self._server_key(), self._host_key())
+	
 	def test_pkm_payload(self):
 		cookie = b'\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
-		skey = self._server_key()
-		hkey = self._host_key()
-		pflags = 2
-		cmask = 72
-		amask = 36
+		skey, hkey = self._server_key(), self._host_key()
+		pflags, cmask, amask = 2, 72, 36
 		pkm1 = self.ssh1.PublicKeyMessage(cookie, skey, hkey, pflags, cmask, amask)
 		pkm2 = self.ssh1.PublicKeyMessage.parse(self._pkm_payload())
 		assert pkm1.payload == pkm2.payload
@@ -108,7 +125,7 @@ class TestSSH1(object):
 		output_spy.begin()
 		self.audit(self._conf())
 		lines = output_spy.flush()
-		assert len(lines) == 10
+		assert len(lines) == 13
 	
 	def test_ssh1_server_invalid_first_packet(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
@@ -121,7 +138,7 @@ class TestSSH1(object):
 		with pytest.raises(SystemExit):
 			self.audit(self._conf())
 		lines = output_spy.flush()
-		assert len(lines) == 4
+		assert len(lines) == 7
 		assert 'unknown message' in lines[-1]
 
 	def test_ssh1_server_invalid_checksum(self, output_spy, virtual_socket):

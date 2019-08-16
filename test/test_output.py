@@ -41,13 +41,13 @@ class TestOutput(object):
 		out = self.Output()
 		# default: on
 		assert out.batch is False
-		assert out.colors is True
-		assert out.minlevel == 'info'
+		assert out.use_colors is True
+		assert out.level == 'info'
 	
 	def test_output_colors(self, output_spy):
 		out = self.Output()
 		# test without colors
-		out.colors = False
+		out.use_colors = False
 		output_spy.begin()
 		out.info('info color')
 		assert output_spy.flush() == [u'info color']
@@ -66,7 +66,7 @@ class TestOutput(object):
 		if not out.colors_supported:
 			return
 		# test with colors
-		out.colors = True
+		out.use_colors = True
 		output_spy.begin()
 		out.info('info color')
 		assert output_spy.flush() == [u'info color']
@@ -93,29 +93,29 @@ class TestOutput(object):
 	
 	def test_output_levels(self):
 		out = self.Output()
-		assert out.getlevel('info') == 0
-		assert out.getlevel('good') == 0
-		assert out.getlevel('warn') == 1
-		assert out.getlevel('fail') == 2
-		assert out.getlevel('unknown') > 2
+		assert out.get_level('info') == 0
+		assert out.get_level('good') == 0
+		assert out.get_level('warn') == 1
+		assert out.get_level('fail') == 2
+		assert out.get_level('unknown') > 2
 	
-	def test_output_minlevel_property(self):
+	def test_output_level_property(self):
 		out = self.Output()
-		out.minlevel = 'info'
-		assert out.minlevel == 'info'
-		out.minlevel = 'good'
-		assert out.minlevel == 'info'
-		out.minlevel = 'warn'
-		assert out.minlevel == 'warn'
-		out.minlevel = 'fail'
-		assert out.minlevel == 'fail'
-		out.minlevel = 'invalid level'
-		assert out.minlevel == 'unknown'
+		out.level = 'info'
+		assert out.level == 'info'
+		out.level = 'good'
+		assert out.level == 'info'
+		out.level = 'warn'
+		assert out.level == 'warn'
+		out.level = 'fail'
+		assert out.level == 'fail'
+		out.level = 'invalid level'
+		assert out.level == 'unknown'
 	
-	def test_output_minlevel(self, output_spy):
+	def test_output_level(self, output_spy):
 		out = self.Output()
 		# visible: all
-		out.minlevel = 'info'
+		out.level = 'info'
 		output_spy.begin()
 		out.info('info color')
 		out.head('head color')
@@ -124,7 +124,7 @@ class TestOutput(object):
 		out.fail('fail color')
 		assert len(output_spy.flush()) == 5
 		# visible: head, warn, fail
-		out.minlevel = 'warn'
+		out.level = 'warn'
 		output_spy.begin()
 		out.info('info color')
 		out.head('head color')
@@ -133,7 +133,7 @@ class TestOutput(object):
 		out.fail('fail color')
 		assert len(output_spy.flush()) == 3
 		# visible: head, fail
-		out.minlevel = 'fail'
+		out.level = 'fail'
 		output_spy.begin()
 		out.info('info color')
 		out.head('head color')
@@ -142,7 +142,7 @@ class TestOutput(object):
 		out.fail('fail color')
 		assert len(output_spy.flush()) == 2
 		# visible: head
-		out.minlevel = 'invalid level'
+		out.level = 'invalid level'
 		output_spy.begin()
 		out.info('info color')
 		out.head('head color')
@@ -155,7 +155,7 @@ class TestOutput(object):
 		out = self.Output()
 		# visible: all
 		output_spy.begin()
-		out.minlevel = 'info'
+		out.level = 'info'
 		out.batch = False
 		out.info('info color')
 		out.head('head color')
@@ -165,7 +165,7 @@ class TestOutput(object):
 		assert len(output_spy.flush()) == 5
 		# visible: all except head
 		output_spy.begin()
-		out.minlevel = 'info'
+		out.level = 'info'
 		out.batch = True
 		out.info('info color')
 		out.head('head color')

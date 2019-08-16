@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 import socket
+import errno
 import pytest
 
 
@@ -17,46 +18,99 @@ class TestErrors(object):
 		conf.batch = True
 		return conf
 	
+	def _audit(self, spy, conf=None, sysexit=True):
+		if conf is None:
+			conf = self._conf()
+		spy.begin()
+		if sysexit:
+			with pytest.raises(SystemExit):
+				self.audit(conf)
+		else:
+			self.audit(conf)
+		lines = spy.flush()
+		return lines
+	
+	def test_connection_unresolved(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		vsocket.gsock.addrinfodata['localhost#22'] = []
+		lines = self._audit(output_spy)
+		assert len(lines) == 1
+		assert 'has no DNS records' in lines[-1]
+	
 	def test_connection_refused(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
-		vsocket.errors['connect'] = socket.error(61, 'Connection refused')
-		output_spy.begin()
-		with pytest.raises(SystemExit):
-			self.audit(self._conf())
-		lines = output_spy.flush()
+		vsocket.errors['connect'] = socket.error(errno.ECONNREFUSED, 'Connection refused')
+		lines = self._audit(output_spy)
 		assert len(lines) == 1
 		assert 'Connection refused' in lines[-1]
 	
-	def test_connection_closed_before_banner(self, output_spy, virtual_socket):
+	def test_connection_timeout(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
-		vsocket.rdata.append(socket.error(54, 'Connection reset by peer'))
-		output_spy.begin()
-		with pytest.raises(SystemExit):
-			self.audit(self._conf())
-		lines = output_spy.flush()
+		vsocket.errors['connect'] = socket.timeout('timed out')
+		lines = self._audit(output_spy)
+		assert len(lines) == 1
+		assert 'timed out' in lines[-1]
+	
+	def test_recv_empty(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		lines = self._audit(output_spy)
 		assert len(lines) == 1
 		assert 'did not receive banner' in lines[-1]
+	
+	def test_recv_timeout(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		vsocket.rdata.append(socket.timeout('timed out'))
+		lines = self._audit(output_spy)
+		assert len(lines) == 1
+		assert 'did not receive banner' in lines[-1]
+		assert 'timed out' in lines[-1]
+	
+	def test_recv_retry_till_timeout(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		vsocket.rdata.append(socket.error(errno.EAGAIN, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.EWOULDBLOCK, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.EAGAIN, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.timeout('timed out'))
+		lines = self._audit(output_spy)
+		assert len(lines) == 1
+		assert 'did not receive banner' in lines[-1]
+		assert 'timed out' in lines[-1]
+	
+	def test_recv_retry_till_reset(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		vsocket.rdata.append(socket.error(errno.EAGAIN, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.EWOULDBLOCK, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.EAGAIN, 'Resource temporarily unavailable'))
+		vsocket.rdata.append(socket.error(errno.ECONNRESET, 'Connection reset by peer'))
+		lines = self._audit(output_spy)
+		assert len(lines) == 1
+		assert 'did not receive banner' in lines[-1]
+		assert 'reset by peer' in lines[-1]
+	
+	def test_connection_closed_before_banner(self, output_spy, virtual_socket):
+		vsocket = virtual_socket
+		vsocket.rdata.append(socket.error(errno.ECONNRESET, 'Connection reset by peer'))
+		lines = self._audit(output_spy)
+		assert len(lines) == 1
+		assert 'did not receive banner' in lines[-1]
+		assert 'reset by peer' in lines[-1]
 	
 	def test_connection_closed_after_header(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'header line 1\n')
+		vsocket.rdata.append(b'\n')
 		vsocket.rdata.append(b'header line 2\n')
-		vsocket.rdata.append(socket.error(54, 'Connection reset by peer'))
-		output_spy.begin()
-		with pytest.raises(SystemExit):
-			self.audit(self._conf())
-		lines = output_spy.flush()
+		vsocket.rdata.append(socket.error(errno.ECONNRESET, 'Connection reset by peer'))
+		lines = self._audit(output_spy)
 		assert len(lines) == 3
 		assert 'did not receive banner' in lines[-1]
+		assert 'reset by peer' in lines[-1]
 	
 	def test_connection_closed_after_banner(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'SSH-2.0-ssh-audit-test\r\n')
 		vsocket.rdata.append(socket.error(54, 'Connection reset by peer'))
-		output_spy.begin()
-		with pytest.raises(SystemExit):
-			self.audit(self._conf())
-		lines = output_spy.flush()
+		lines = self._audit(output_spy)
 		assert len(lines) == 2
 		assert 'error reading packet' in lines[-1]
 		assert 'reset by peer' in lines[-1]
@@ -64,10 +118,7 @@ class TestErrors(object):
 	def test_empty_data_after_banner(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'SSH-2.0-ssh-audit-test\r\n')
-		output_spy.begin()
-		with pytest.raises(SystemExit):
-			self.audit(self._conf())
-		lines = output_spy.flush()
+		lines = self._audit(output_spy)
 		assert len(lines) == 2
 		assert 'error reading packet' in lines[-1]
 		assert 'empty' in lines[-1]
@@ -76,10 +127,7 @@ class TestErrors(object):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'SSH-2.0-ssh-audit-test\r\n')
 		vsocket.rdata.append(b'xxx\n')
-		output_spy.begin()
-		with pytest.raises(SystemExit):
-			self.audit(self._conf())
-		lines = output_spy.flush()
+		lines = self._audit(output_spy)
 		assert len(lines) == 2
 		assert 'error reading packet' in lines[-1]
 		assert 'xxx' in lines[-1]
@@ -87,10 +135,7 @@ class TestErrors(object):
 	def test_non_ascii_banner(self, output_spy, virtual_socket):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'SSH-2.0-ssh-audit-test\xc3\xbc\r\n')
-		output_spy.begin()
-		with pytest.raises(SystemExit):
-			self.audit(self._conf())
-		lines = output_spy.flush()
+		lines = self._audit(output_spy)
 		assert len(lines) == 3
 		assert 'error reading packet' in lines[-1]
 		assert 'ASCII' in lines[-2]
@@ -100,10 +145,7 @@ class TestErrors(object):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'SSH-2.0-ssh-audit-test\r\n')
 		vsocket.rdata.append(b'\x81\xff\n')
-		output_spy.begin()
-		with pytest.raises(SystemExit):
-			self.audit(self._conf())
-		lines = output_spy.flush()
+		lines = self._audit(output_spy)
 		assert len(lines) == 2
 		assert 'error reading packet' in lines[-1]
 		assert '\\x81\\xff' in lines[-1]
@@ -112,12 +154,9 @@ class TestErrors(object):
 		vsocket = virtual_socket
 		vsocket.rdata.append(b'SSH-1.3-ssh-audit-test\r\n')
 		vsocket.rdata.append(b'Protocol major versions differ.\n')
-		output_spy.begin()
-		with pytest.raises(SystemExit):
-			conf = self._conf()
-			conf.ssh1, conf.ssh2 = True, False
-			self.audit(conf)
-		lines = output_spy.flush()
+		conf = self._conf()
+		conf.ssh1, conf.ssh2 = True, False
+		lines = self._audit(output_spy, conf)
 		assert len(lines) == 3
 		assert 'error reading packet' in lines[-1]
 		assert 'major versions differ' in lines[-1]

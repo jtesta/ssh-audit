@@ -200,7 +200,7 @@ class TestVersionCompare(object):
 			versions.append('0.5.{0}'.format(i))
 		for i in range(0, 6):
 			versions.append('0.6.{0}'.format(i))
-		for i in range(0, 4):
+		for i in range(0, 5):
 			versions.append('0.7.{0}'.format(i))
 		l = len(versions)
 		for i in range(l):

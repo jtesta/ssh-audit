@@ -10,8 +10,8 @@ class TestAuditConf(object):
 		self.AuditConf = ssh_audit.AuditConf
 		self.usage = ssh_audit.usage
 	
-	@classmethod
-	def _test_conf(cls, conf, **kwargs):
+	@staticmethod
+	def _test_conf(conf, **kwargs):
 		options = {
 			'host': None,
 			'port': 22,
@@ -20,7 +20,7 @@ class TestAuditConf(object):
 			'batch': False,
 			'colors': True,
 			'verbose': False,
-			'minlevel': 'info',
+			'level': 'info',
 			'ipv4': True,
 			'ipv6': True,
 			'ipvo': ()
@@ -34,7 +34,7 @@ class TestAuditConf(object):
 		assert conf.batch is options['batch']
 		assert conf.colors is options['colors']
 		assert conf.verbose is options['verbose']
-		assert conf.minlevel == options['minlevel']
+		assert conf.level == options['level']
 		assert conf.ipv4 == options['ipv4']
 		assert conf.ipv6 == options['ipv6']
 		assert conf.ipvo == options['ipvo']
@@ -115,14 +115,14 @@ class TestAuditConf(object):
 		conf.ipvo = (4, 4, 4, 6, 6)
 		assert conf.ipvo == (4, 6)
 	
-	def test_audit_conf_minlevel(self):
+	def test_audit_conf_level(self):
 		conf = self.AuditConf()
 		for level in ['info', 'warn', 'fail']:
-			conf.minlevel = level
-			assert conf.minlevel == level
+			conf.level = level
+			assert conf.level == level
 		for level in ['head', 'good', 'unknown', None]:
 			with pytest.raises(ValueError) as excinfo:
-				conf.minlevel = level
+				conf.level = level
 			excinfo.match(r'.*invalid level.*')
 	
 	def test_audit_conf_cmdline(self):
@@ -148,6 +148,14 @@ class TestAuditConf(object):
 		self._test_conf(conf, host='localhost', port=2222)
 		conf = c('-p 2222 localhost')
 		self._test_conf(conf, host='localhost', port=2222)
+		conf = c('2001:4860:4860::8888')
+		self._test_conf(conf, host='2001:4860:4860::8888')
+		conf = c('[2001:4860:4860::8888]:22')
+		self._test_conf(conf, host='2001:4860:4860::8888')
+		conf = c('[2001:4860:4860::8888]:2222')
+		self._test_conf(conf, host='2001:4860:4860::8888', port=2222)
+		conf = c('-p 2222 2001:4860:4860::8888')
+		self._test_conf(conf, host='2001:4860:4860::8888', port=2222)
 		with pytest.raises(SystemExit):
 			conf = c('localhost:')
 		with pytest.raises(SystemExit):
@@ -183,10 +191,10 @@ class TestAuditConf(object):
 		conf = c('-v localhost')
 		self._test_conf(conf, host='localhost', verbose=True)
 		conf = c('-l info localhost')
-		self._test_conf(conf, host='localhost', minlevel='info')
+		self._test_conf(conf, host='localhost', level='info')
 		conf = c('-l warn localhost')
-		self._test_conf(conf, host='localhost', minlevel='warn')
+		self._test_conf(conf, host='localhost', level='warn')
 		conf = c('-l fail localhost')
-		self._test_conf(conf, host='localhost', minlevel='fail')
+		self._test_conf(conf, host='localhost', level='fail')
 		with pytest.raises(SystemExit):
 			conf = c('-l something localhost')
