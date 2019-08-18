@@ -29,13 +29,14 @@ usage: ssh-audit.py [-1246pbnvl] <host>
    -n,  --no-colors        disable colors
    -v,  --verbose          verbose output
    -l,  --level=<level>    minimum output level (info|warn|fail)
-   
+   -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
+                           (default: 5)
 ```
 * if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.  
 * batch flag `-b` will output sections without header and without empty lines (implies verbose flag).  
 * verbose flag `-v` will prefix each line with section type and algorithm name.  
 
-### example
+### Example
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/19233757/3e09b168-8ef0-11e6-91b4-e880bacd0b8a.png)
 
 ## ChangeLog
