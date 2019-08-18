@@ -2498,18 +2498,18 @@ class KexGroupExchange_SHA256(KexGroupExchange):
 		super(KexGroupExchange_SHA256, self).__init__('KexGroupExchange_SHA256', 'sha256')
 
 
-def output_algorithms(title, alg_db, alg_type, algorithms, maxlen=0, alg_sizes=None):
+def output_algorithms(title, alg_db, alg_type, algorithms, unknown_algs, maxlen=0, alg_sizes=None):
 	# type: (str, Dict[str, Dict[str, List[List[Optional[str]]]]], str, List[text_type], int) -> None
 	with OutputBuffer() as obuf:
 		for algorithm in algorithms:
-			output_algorithm(alg_db, alg_type, algorithm, maxlen, alg_sizes)
+			output_algorithm(alg_db, alg_type, algorithm, unknown_algs, maxlen, alg_sizes)
 	if len(obuf) > 0:
 		out.head('# ' + title)
 		obuf.flush()
 		out.sep()
 
 
-def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0, alg_sizes=None):
+def output_algorithm(alg_db, alg_type, alg_name, unknown_algs, alg_max_len=0, alg_sizes=None):
 	# type: (Dict[str, Dict[str, List[List[Optional[str]]]]], str, text_type, int) -> None
 	prefix = '(' + alg_type + ') '
 	if alg_max_len == 0:
@@ -2551,6 +2551,7 @@ def output_algorithm(alg_db, alg_type, alg_name, alg_max_len=0, alg_sizes=None):
 			texts.append(('info', ''))
 	else:
 		texts.append(('warn', 'unknown algorithm'))
+		unknown_algs.append(alg_name)
 
 	alg_name = alg_name_with_size if alg_name_with_size is not None else alg_name
 	first = True
@@ -2730,29 +2731,33 @@ def output(banner, header, kex=None, pkm=None):
 		out.sep()
 	maxlen = algs.maxlen + 1
 	output_security(banner, maxlen)
+	unknown_algorithms = []  # Filled in by output_algorithms() with unidentified algs.
 	if pkm is not None:
 		adb = SSH1.KexDB.ALGORITHMS
 		ciphers = pkm.supported_ciphers
 		auths = pkm.supported_authentications
 		title, atype = 'SSH1 host-key algorithms', 'key'
-		output_algorithms(title, adb, atype, ['ssh-rsa1'], maxlen)
+		output_algorithms(title, adb, atype, ['ssh-rsa1'], unknown_algorithms, maxlen)
 		title, atype = 'SSH1 encryption algorithms (ciphers)', 'enc'
-		output_algorithms(title, adb, atype, ciphers, maxlen)
+		output_algorithms(title, adb, atype, ciphers, unknown_algorithms, maxlen)
 		title, atype = 'SSH1 authentication types', 'aut'
-		output_algorithms(title, adb, atype, auths, maxlen)
+		output_algorithms(title, adb, atype, auths, unknown_algorithms, maxlen)
 	if kex is not None:
 		adb = SSH2.KexDB.ALGORITHMS
 		title, atype = 'key exchange algorithms', 'kex'
-		output_algorithms(title, adb, atype, kex.kex_algorithms, maxlen, kex.dh_modulus_sizes())
+		output_algorithms(title, adb, atype, kex.kex_algorithms, unknown_algorithms, maxlen, kex.dh_modulus_sizes())
 		title, atype = 'host-key algorithms', 'key'
-		output_algorithms(title, adb, atype, kex.key_algorithms, maxlen, kex.rsa_key_sizes())
+		output_algorithms(title, adb, atype, kex.key_algorithms, unknown_algorithms, maxlen, kex.rsa_key_sizes())
 		title, atype = 'encryption algorithms (ciphers)', 'enc'
-		output_algorithms(title, adb, atype, kex.server.encryption, maxlen)
+		output_algorithms(title, adb, atype, kex.server.encryption, unknown_algorithms, maxlen)
 		title, atype = 'message authentication code algorithms', 'mac'
-		output_algorithms(title, adb, atype, kex.server.mac, maxlen)
+		output_algorithms(title, adb, atype, kex.server.mac, unknown_algorithms, maxlen)
 	output_recommendations(algs, software, maxlen)
 	output_fingerprint(algs, True, maxlen)
 
+	# If we encountered any unknown algorithms, ask the user to report them.
+	if len(unknown_algorithms) > 0:
+		out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at <https://github.com/jtesta/ssh-audit/issues>.\n" % ','.join(unknown_algorithms))
 
 class Utils(object):
 	@classmethod
