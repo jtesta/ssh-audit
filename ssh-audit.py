@@ -3,6 +3,7 @@
 """
    The MIT License (MIT)
    
+   Copyright (C) 2017-2019 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
    
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,7 +27,10 @@
 from __future__ import print_function
 import binascii, os, io, sys, socket, struct, random, errno, getopt, re, hashlib, base64
 
-VERSION = 'v1.7.1.dev'
+VERSION = 'v2.0.0-dev'
+
+if sys.version_info.major < 3:
+        print("\n!!!! NOTE: Python 2 is being considered for deprecation.  If you have a good reason to need continued Python 2 support, please e-mail jtesta@positronsecurity.com with your rationale.\n\n")
 
 if sys.version_info >= (3,):  # pragma: nocover
 	StringIO, BytesIO = io.StringIO, io.BytesIO
@@ -54,7 +58,7 @@ def usage(err=None):
 	# type: (Optional[str]) -> None
 	uout = Output()
 	p = os.path.basename(sys.argv[0])
-	uout.head('# {0} {1}, moo@arthepsy.eu\n'.format(p, VERSION))
+	uout.head('# {0} {1}, https://github.com/jtesta/ssh-audit\n'.format(p, VERSION))
 	if err is not None and len(err) > 0:
 		uout.fail('\n' + err)
 	uout.info('usage: {0} [-1246pbnvl] <host>\n'.format(p))
