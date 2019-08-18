@@ -312,6 +312,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		WARN_EXPERIMENTAL     = 'using experimental algorithm'
 		
 		ALGORITHMS = {
+                        # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
 			'kex': {
 				'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
