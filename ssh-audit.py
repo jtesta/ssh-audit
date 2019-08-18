@@ -309,6 +309,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		WARN_CIPHER_WEAK      = 'using weak cipher'
 		WARN_ENCRYPT_AND_MAC  = 'using encrypt-and-MAC mode'
 		WARN_TAG_SIZE         = 'using small 64-bit tag size'
+		WARN_EXPERIMENTAL     = 'using experimental algorithm'
 		
 		ALGORITHMS = {
 			'kex': {
@@ -328,7 +329,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'kexguess2@matt.ucc.asn.au': [['d2013.57']],
 				'rsa1024-sha1': [[], [], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'rsa2048-sha256': [[]],
-                                'sntrup4591761x25519-sha512@tinyssh.org': [['8.0']]
+                                'sntrup4591761x25519-sha512@tinyssh.org': [['8.0'], [], [WARN_EXPERIMENTAL]],
 			},
 			'key': {
 				'rsa-sha2-256': [['7.2']],
