@@ -1343,6 +1343,12 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				v, p = None, SSH.Product.LibSSH
 				os_version = cls._extract_os_version(banner.comments)
 				return cls(v, p, mx.group(1), patch, os_version)
+			mx = re.match(r'^libssh_([\d\.]+\d+)(.*)', software)
+			if bool(mx):
+				patch = cls._fix_patch(mx.group(2))
+				v, p = None, SSH.Product.LibSSH
+				os_version = cls._extract_os_version(banner.comments)
+				return cls(v, p, mx.group(1), patch, os_version)
 			mx = re.match(r'^RomSShell_([\d\.]+\d+)(.*)', software)
 			if bool(mx):
 				patch = cls._fix_patch(mx.group(2))
@@ -1739,9 +1745,21 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				return self.__storage.items()
 	
 	class Security(object):  # pylint: disable=too-few-public-methods
+                # Format: [starting_vuln_version, last_vuln_version, affected, CVE_ID, CVSSv2, description]
+                #   affected: 1 = server, 2 = client, 4 = local
+                #   Example:  if it affects servers, both remote & local, then affected
+                #             = 1.  If it affects servers, but is a local issue only,
+                #             then affected = 1 + 4 = 5.
 		# pylint: disable=bad-whitespace
 		CVE = {
 			'Dropbear SSH': [
+                                ['0.0', '2018.76', 1, 'CVE-2018-15599', 5.0, 'remote users may enumerate users on the system'],
+                                ['0.0', '2017.74', 5, 'CVE-2017-9079', 4.7, 'local users can read certain files as root'],
+                                ['0.0', '2017.74', 5, 'CVE-2017-9078', 9.3, 'local users may elevate privileges to root under certain conditions'],
+                                ['0.0', '2016.73', 5, 'CVE-2016-7409', 2.1, 'local users can read process memory under limited conditions'],
+                                ['0.0', '2016.73', 1, 'CVE-2016-7408', 6.5, 'remote users can execute arbitrary code'],
+                                ['0.0', '2016.73', 5, 'CVE-2016-7407', 10.0, 'local users can execute arbitrary code'],
+                                ['0.0', '2016.73', 1, 'CVE-2016-7406', 10.0, 'remote users can execute arbitrary code'],
 				['0.44', '2015.71', 1, 'CVE-2016-3116', 5.5, 'bypass command restrictions via xauth command injection'],
 				['0.28', '2013.58', 1, 'CVE-2013-4434', 5.0, 'discover valid usernames through different time delays'],
 				['0.28', '2013.58', 1, 'CVE-2013-4421', 5.0, 'cause DoS via a compressed packet (memory consumption)'],
@@ -1752,6 +1770,9 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				['0.28', '0.46',    1, 'CVE-2005-4178', 6.5, 'execute arbitrary code via buffer overflow vulnerability'],
 				['0.28', '0.42',    1, 'CVE-2004-2486', 7.5, 'execute arbitrary code via DSS verification code']],
 			'libssh': [
+                                ['0.6.4',   '0.6.4',  1, 'CVE-2018-10933', 6.4, 'authentication bypass'],
+                                ['0.7.0',   '0.7.5',  1, 'CVE-2018-10933', 6.4, 'authentication bypass'],
+                                ['0.8.0',   '0.8.3',  1, 'CVE-2018-10933', 6.4, 'authentication bypass'],
 				['0.1',   '0.7.2',  1, 'CVE-2016-0739', 4.3, 'conduct a MitM attack (weakness in DH key generation)'],
 				['0.5.1', '0.6.4',  1, 'CVE-2015-3146', 5.0, 'cause DoS via kex packets (null pointer dereference)'],
 				['0.5.1', '0.6.3',  1, 'CVE-2014-8132', 5.0, 'cause DoS via kex init packet (dangling pointer)'],
@@ -2578,7 +2599,12 @@ def output_security_sub(sub, software, padlen):
 		p = '' if out.batch else ' ' * (padlen - len(name))
 		if sub == 'cve':
 			cvss, descr = line[4:6]  # type: float, str
-			out.fail('(cve) {0}{1} -- ({2}) {3}'.format(name, p, cvss, descr))
+
+                        # Critical CVSS scores (>= 8.0) are printed as a fail, otherwise they are printed as a warning.
+			out_func = out.warn
+			if cvss >= 8.0:
+				out_func = out.fail
+			out_func('(cve) {0}{1} -- (CVSSv2: {2}) {3}'.format(name, p, cvss, descr))
 		else:
 			descr = line[4]
 			out.fail('(sec) {0}{1} -- {2}'.format(name, p, descr))
