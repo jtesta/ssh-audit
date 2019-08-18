@@ -328,6 +328,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'kexguess2@matt.ucc.asn.au': [['d2013.57']],
 				'rsa1024-sha1': [[], [], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'rsa2048-sha256': [[]],
+                                'sntrup4591761x25519-sha512@tinyssh.org': [['8.0']]
 			},
 			'key': {
 				'rsa-sha2-256': [['7.2']],
