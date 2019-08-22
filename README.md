@@ -18,7 +18,7 @@
 
 ## Usage
 ```
-usage: ssh-audit.py [-1246pbnvl] <host>
+usage: ssh-audit.py [-1246pbnvlt] <host>
 
    -1,  --ssh1             force ssh version 1 only
    -2,  --ssh2             force ssh version 2 only
@@ -40,6 +40,18 @@ usage: ssh-audit.py [-1246pbnvl] <host>
 ![screenshot](https://cloud.githubusercontent.com/assets/7356025/19233757/3e09b168-8ef0-11e6-91b4-e880bacd0b8a.png)
 
 ## ChangeLog
+### v2.0.0-dev (???)
+ - Forked from https://github.com/arthepsy/ssh-audit (development was stalled, and developer went MIA).
+ - Added RSA host key length test.
+ - Added RSA certificate key length test.
+ - Added Diffie-Hellman modulus size test.
+ - Now outputs host key fingerprints for RSA and ED25519.
+ - Added 2 new key exchanges: sntrup4591761x25519-sha512@tinyssh.org, diffie-hellman-group-exchange-sha256@ssh.com.
+ - Added 3 new encryption algorithms: des-cbc-ssh1, blowfish-ctr, twofish-ctr.
+ - Added 8 new MACs: hmac-sha2-56, hmac-sha2-224, hmac-sha2-384, hmac-sha3-256, hmac-sha3-384, hmac-sha3-512, hmac-sha256, hmac-sha256@ssh.com.
+ - Added command line argument (-t / --timeout) for connection & reading timeouts.
+ - Updated CVEs for libssh & Dropbear.
+
 ### v1.7.0 (2016-10-26)
  - implement options to allow specify IPv4/IPv6 usage and order of precedence
  - implement option to specify remote port (old behavior kept for compatibility)
