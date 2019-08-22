@@ -71,19 +71,31 @@ function create_docker_image {
 
     # Aside from checking the GPG signatures, we also compare against this known-good
     # SHA-256 hash just in case.
+    get_openssh '4.0p1' '5adb9b2c2002650e15216bf94ed9db9541d9a17c96fcd876784861a8890bc92b'
     get_openssh '5.6p1' '538af53b2b8162c21a293bb004ae2bdb141abd250f61b4cea55244749f3c6c2b'
     get_openssh '8.0p1' 'bd943879e69498e8031eb6b7f44d08cdc37d59a7ab689aa0b437320c3481fd68'
 
     # Compile the versions of OpenSSH.
+    compile_openssh '4.0p1'
     compile_openssh '5.6p1'
     compile_openssh '8.0p1'
 
     # Rename the default config files so we know they are our originals.
+    mv openssh-4.0p1/sshd_config sshd_config-4.0p1_orig
     mv openssh-5.6p1/sshd_config sshd_config-5.6p1_orig
     mv openssh-8.0p1/sshd_config sshd_config-8.0p1_orig
 
 
     # Create the configurations for each test.
+
+
+    #
+    # OpenSSH v4.0p1
+    #
+
+    # Test 1: Basic test.
+    create_openssh_config '4.0p1' 'test1' "HostKey /etc/ssh/ssh1_host_key\nHostKey /etc/ssh/ssh_host_rsa_key_1024\nHostKey /etc/ssh/ssh_host_dsa_key"
+
 
     #
     # OpenSSH v5.6p1
@@ -164,8 +176,15 @@ function get_openssh {
 
     echo -e "\nGetting OpenSSH $1 signature...\n"
     wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$1.tar.gz.asc
+    openssh_sig=openssh-$1.tar.gz.asc
 
-    local gpg_verify=`gpg --verify openssh-$1.tar.gz.asc openssh-$1.tar.gz 2>&1`
+    # Older releases were .sigs.
+    if [[ ! -f $openssh_sig ]]; then
+	wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$1.tar.gz.sig
+	openssh_sig=openssh-$1.tar.gz.sig
+    fi
+
+    local gpg_verify=`gpg --verify $openssh_sig openssh-$1.tar.gz 2>&1`
     if [[ $gpg_verify != *"Good signature from \"Damien Miller "* ]]; then
         echo -e "\n\n${REDB}Error: OpenSSH signature invalid!\n$gpg_verify\n\nTerminating.${CLR}"
         exit -1
@@ -246,12 +265,14 @@ TEST_RESULT_DIR=`mktemp -d /tmp/ssh-audit_test-results_XXXXXXXXXX`
 
 # Now run all the tests.
 echo -e "\nRunning tests..."
+run_openssh_test '4.0p1' 'test1'
+echo
 run_openssh_test '5.6p1' 'test1'
 run_openssh_test '5.6p1' 'test2'
 run_openssh_test '5.6p1' 'test3'
 run_openssh_test '5.6p1' 'test4'
 run_openssh_test '5.6p1' 'test5'
-echo ""
+echo
 run_openssh_test '8.0p1' 'test1'
 run_openssh_test '8.0p1' 'test2'
 run_openssh_test '8.0p1' 'test3'
