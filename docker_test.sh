@@ -15,7 +15,7 @@
 
 # This is the docker tag for the image.  If this tag doesn't exist, then we assume the
 # image is out of date, and generate a new one with this tag.
-IMAGE_VERSION=1
+IMAGE_VERSION=2
 
 # This is the name of our docker image.
 IMAGE_NAME=ssh-audit-test
@@ -35,21 +35,52 @@ function check_if_docker_image_exists {
 }
 
 
+# Uncompresses and compiles the specified version of Dropbear.
+function compile_dropbear {
+    version=$1
+    compile 'Dropbear' $version
+}
+
+
 # Uncompresses and compiles the specified version of OpenSSH.
 function compile_openssh {
-    echo "Uncompressing $1..."
-    tar xzf openssh-$1.tar.gz
+    version=$1
+    compile 'OpenSSH' $version
+}
 
-    echo "Compiling $1..."
-    pushd openssh-$1 > /dev/null
+function compile {
+    project=$1
+    version=$2
+
+    tarball=
+    uncompress_options=
+    source_dir=
+    server_executable=
+    if [[ $project == 'OpenSSH' ]]; then
+	tarball="openssh-${version}.tar.gz"
+	uncompress_options="xzf"
+	source_dir="openssh-${version}"
+	server_executable=sshd
+    elif [[ $project == 'Dropbear' ]]; then
+	tarball="dropbear-${version}.tar.bz2"
+	uncompress_options="xjf"
+	source_dir="dropbear-${version}"
+	server_executable=dropbear
+    fi
+
+    echo "Uncompressing ${project} ${version}..."
+    tar $uncompress_options $tarball
+
+    echo "Compiling ${project} ${version}..."
+    pushd $source_dir > /dev/null
     ./configure && make -j 10
 
-    if [[ ! -f "sshd" ]]; then
-	echo -e "${REDB}Error: sshd not built!${CLR}"
+    if [[ ! -f $server_executable ]]; then
+	echo -e "${REDB}Error: ${server_executable} not built!${CLR}"
 	exit 1
     fi
 
-    echo -e "\n${GREEN}Successfully built OpenSSH ${1}${CLR}\n"
+    echo -e "\n${GREEN}Successfully built ${project} ${version}${CLR}\n"
     popd > /dev/null
 }
 
@@ -68,17 +99,23 @@ function create_docker_image {
 
     # Get the release key for OpenSSH.
     get_openssh_release_key
+    get_dropbear_release_key
 
     # Aside from checking the GPG signatures, we also compare against this known-good
     # SHA-256 hash just in case.
     get_openssh '4.0p1' '5adb9b2c2002650e15216bf94ed9db9541d9a17c96fcd876784861a8890bc92b'
     get_openssh '5.6p1' '538af53b2b8162c21a293bb004ae2bdb141abd250f61b4cea55244749f3c6c2b'
     get_openssh '8.0p1' 'bd943879e69498e8031eb6b7f44d08cdc37d59a7ab689aa0b437320c3481fd68'
+    get_dropbear '2019.78' '525965971272270995364a0eb01f35180d793182e63dd0b0c3eb0292291644a4'
 
     # Compile the versions of OpenSSH.
     compile_openssh '4.0p1'
     compile_openssh '5.6p1'
     compile_openssh '8.0p1'
+
+    # Compile the versions of Dropbear.
+    compile_dropbear '2019.78'
+
 
     # Rename the default config files so we know they are our originals.
     mv openssh-4.0p1/sshd_config sshd_config-4.0p1_orig
@@ -150,61 +187,122 @@ function create_openssh_config {
 }
 
 
+# Downloads the Dropbear release key and adds it to the local keyring.
+function get_dropbear_release_key {
+    get_release_key 'Dropbear' 'https://matt.ucc.asn.au/dropbear/releases/dropbear-key-2015.asc' 'F29C6773' 'F734 7EF2 EE2E 07A2 6762  8CA9 4493 1494 F29C 6773'
+}
+
+
 # Downloads the OpenSSH release key and adds it to the local keyring.
 function get_openssh_release_key {
-    local release_key_fingerprint_expected='59C2 118E D206 D927 E667  EBE3 D3E5 F56B 6D92 0D30'
+    get_release_key 'OpenSSH' 'https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/RELEASE_KEY.asc' '6D920D30' '59C2 118E D206 D927 E667  EBE3 D3E5 F56B 6D92 0D30'
+}
 
-    echo -e "\nGetting OpenSSH release key...\n"
-    wget https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/RELEASE_KEY.asc
 
-    echo -e "\nImporting OpenSSH release key...\n"
-    gpg --import RELEASE_KEY.asc
+function get_release_key {
+    project=$1
+    key_url=$2
+    key_id=$3
+    release_key_fingerprint_expected=$4
 
-    local release_key_fingerprint_actual=`gpg --fingerprint 6D920D30`
+    echo -e "\nGetting ${project} release key...\n"
+    wget -O key.asc $2
+
+    echo -e "\nImporting ${project} release key...\n"
+    gpg --import key.asc
+
+    rm key.asc
+
+    local release_key_fingerprint_actual=`gpg --fingerprint ${key_id}`
     if [[ $release_key_fingerprint_actual != *"$release_key_fingerprint_expected"* ]]; then
-        echo -e "\n${REDB}Error: OpenSSH release key fingerprint does not match expected value!\n\tExpected: $release_key_fingerprint_expected\n\tActual: $release_key_fingerprint_actual\n\nTerminating.${CLR}"
+        echo -e "\n${REDB}Error: ${project} release key fingerprint does not match expected value!\n\tExpected: $release_key_fingerprint_expected\n\tActual: $release_key_fingerprint_actual\n\nTerminating.${CLR}"
         exit -1
     fi
-    echo -e "\n\n${GREEN}OpenSSH release key matches expected value.${CLR}\n"
+    echo -e "\n\n${GREEN}${project} release key matches expected value.${CLR}\n"
+}
+
+
+# Downloads the specified version of Dropbear.
+function get_dropbear {
+    version=$1
+    tarball_checksum_expected=$2
+    get_source 'Dropbear' $version $tarball_checksum_expected
 }
 
 
 # Downloads the specified version of OpenSSH.
 function get_openssh {
-    echo -e "\nGetting OpenSSH $1 sources...\n"
-    wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$1.tar.gz
+    version=$1
+    tarball_checksum_expected=$2
+    get_source 'OpenSSH' $version $tarball_checksum_expected
+}
 
-    echo -e "\nGetting OpenSSH $1 signature...\n"
-    wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$1.tar.gz.asc
-    openssh_sig=openssh-$1.tar.gz.asc
 
-    # Older releases were .sigs.
-    if [[ ! -f $openssh_sig ]]; then
-	wget https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/openssh-$1.tar.gz.sig
-	openssh_sig=openssh-$1.tar.gz.sig
+function get_source {
+    project=$1
+    version=$2
+    tarball_checksum_expected=$3
+
+    base_url=
+    tarball=
+    sig=
+    signer=
+    if [[ $project == 'OpenSSH' ]]; then
+	base_url='https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/'
+	tarball="openssh-${version}.tar.gz"
+	sig="${tarball}.asc"
+	signer="Damien Miller "
+    elif [[ $project == 'Dropbear' ]]; then
+	base_url='https://matt.ucc.asn.au/dropbear/releases/'
+	tarball="dropbear-${version}.tar.bz2"
+	sig="${tarball}.asc"
+	signer="Dropbear SSH Release Signing <matt@ucc.asn.au>"
     fi
 
-    local gpg_verify=`gpg --verify $openssh_sig openssh-$1.tar.gz 2>&1`
-    if [[ $gpg_verify != *"Good signature from \"Damien Miller "* ]]; then
-        echo -e "\n\n${REDB}Error: OpenSSH signature invalid!\n$gpg_verify\n\nTerminating.${CLR}"
+    echo -e "\nGetting ${project} ${version} sources...\n"
+    wget "${base_url}${tarball}"
+
+    echo -e "\nGetting ${project} ${version} signature...\n"
+    wget "${base_url}${sig}"
+
+
+    # Older OpenSSH releases were .sigs.
+    if [[ ($project == 'OpenSSH') && (! -f $sig) ]]; then
+	wget ${base_url}openssh-${version}.tar.gz.sig
+	sig=openssh-${version}.tar.gz.sig
+    fi
+
+    local gpg_verify=`gpg --verify ${sig} ${tarball} 2>&1`
+    if [[ $gpg_verify != *"Good signature from \"${signer}"* ]]; then
+        echo -e "\n\n${REDB}Error: ${project} signature invalid!\n$gpg_verify\n\nTerminating.${CLR}"
         exit -1
     fi
 
     # Check GPG's return value.  0 denotes a valid signature, and 1 is returned
     # on invalid signatures.
     if [[ $? != 0 ]]; then
-        echo -e "\n\n${REDB}Error: OpenSSH signature invalid!  Verification returned code: $?\n\nTerminating.${CLR}"
+        echo -e "\n\n${REDB}Error: ${project} signature invalid!  Verification returned code: $?\n\nTerminating.${CLR}"
         exit -1
     fi
 
-    echo -e "${GREEN}Signature on OpenSSH sources verified.${CLR}\n"
+    echo -e "${GREEN}Signature on ${project} sources verified.${CLR}\n"
 
-    local openssh_checksum_actual=`sha256sum openssh-$1.tar.gz | cut -f1 -d" "`
-    if [[ $openssh_checksum_actual != "$2" ]]; then
-        echo -e "${REDB}Error: OpenSSH checksum is invalid!\n  Expected: $2\n  Actual:   $openssh_checksum_actual\n\n  Terminating.${CLR}"
+    local checksum_actual=`sha256sum ${tarball} | cut -f1 -d" "`
+    if [[ $checksum_actual != $tarball_checksum_expected ]]; then
+        echo -e "${REDB}Error: ${project} checksum is invalid!\n  Expected: ${tarball_checksum_expected}\n  Actual:   ${checksum_actual}\n\n  Terminating.${CLR}"
         exit -1
     fi
+}
 
+
+# Runs a Dropbear test.  Upon failure, a diff between the expected and actual results
+# is shown, then the script immediately terminates.
+function run_dropbear_test {
+    dropbear_version=$1
+    test_number=$2
+    options=$3
+
+    run_test 'Dropbear' $dropbear_version $test_number "$options"
 }
 
 
@@ -214,15 +312,42 @@ function run_openssh_test {
     openssh_version=$1
     test_number=$2
 
-    cid=`docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} /openssh/sshd-${openssh_version} -D -f /etc/ssh/sshd_config-${openssh_version}_${test_number}`
+    run_test 'OpenSSH' $openssh_version $test_number ''
+}
+
+
+function run_test {
+    server_type=$1
+    version=$2
+    test_number=$3
+    options=$4
+
+    server_exec=
+    test_result=
+    expected_result=
+    test_name=
+    if [[ $server_type == 'OpenSSH' ]]; then
+	server_exec="/openssh/sshd-${version} -D -f /etc/ssh/sshd_config-${version}_${test_number}"
+	test_result="${TEST_RESULT_DIR}/openssh_${version}_${test_number}.txt"
+	expected_result="test/docker/expected_results/openssh_${version}_${test_number}.txt"
+	test_name="OpenSSH ${version} ${test_number}"
+	options=
+    elif [[ $server_type == 'Dropbear' ]]; then
+	server_exec="/dropbear/dropbear-${version} -F ${options}"
+	test_result="${TEST_RESULT_DIR}/dropbear_${version}_${test_number}.txt"
+	expected_result="test/docker/expected_results/dropbear_${version}_${test_number}.txt"
+	test_name="Dropbear ${version} ${test_number}"
+    fi
+
+    cid=`docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}`
     if [[ $? != 0 ]]; then
 	echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
 	exit 1
     fi
 
-    ./ssh-audit.py localhost:2222 > ${TEST_RESULT_DIR}/openssh_${openssh_version}_${test_number}.txt
+    ./ssh-audit.py localhost:2222 > $test_result
     if [[ $? != 0 ]]; then
-	echo -e "${REDB}Failed to ssh-audit.py! (exit code: $?)${CLR}"
+	echo -e "${REDB}Failed to run ssh-audit.py! (exit code: $?)${CLR}"
 	docker container stop $cid > /dev/null
 	exit 1
     fi
@@ -233,14 +358,15 @@ function run_openssh_test {
        exit 1
     fi
 
-    diff=`diff -u test/docker/expected_results/openssh_${openssh_version}_${test_number}.txt ${TEST_RESULT_DIR}/openssh_${openssh_version}_${test_number}.txt`
+    diff=`diff -u ${expected_result} ${test_result}`
     if [[ $? == 0 ]]; then
-	echo -e "OpenSSH ${openssh_version} ${test_number} ${GREEN}passed${CLR}."
+	echo -e "${test_name} ${GREEN}passed${CLR}."
     else
-	echo -e "OpenSSH ${openssh_version} ${test_number} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
 	exit 1
     fi
 }
+
 
 
 # First check if docker is functional.
@@ -276,6 +402,8 @@ echo
 run_openssh_test '8.0p1' 'test1'
 run_openssh_test '8.0p1' 'test2'
 run_openssh_test '8.0p1' 'test3'
+echo
+run_dropbear_test '2019.78' 'test1' '-r /etc/dropbear/dropbear_rsa_host_key_1024 -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_ecdsa_host_key'
 
 # The test functions above will terminate the script on failure, so if we reached here,
 # all tests are successful.
