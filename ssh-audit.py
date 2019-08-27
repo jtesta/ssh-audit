@@ -1206,6 +1206,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		OpenSSH = 'OpenSSH'
 		DropbearSSH = 'Dropbear SSH'
 		LibSSH = 'libssh'
+		TinySSH = 'TinySSH'
 	
 	class Software(object):
 		def __init__(self, vendor, product, version, patch, os_version):
@@ -1406,6 +1407,9 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if bool(mx):
 				v, p = 'Cisco', 'IOS/PIX sshd'
 				return cls(v, p, mx.group(1), None, None)
+			mx = re.match(r'^tinyssh_(.*)', software)
+			if bool(mx):
+				return cls(None, SSH.Product.TinySSH, mx.group(1), None, None)
 			return None
 	
 	class Banner(object):
@@ -1675,7 +1679,8 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			# pylint: disable=too-many-locals,too-many-statements
 			vproducts = [SSH.Product.OpenSSH,
 			             SSH.Product.DropbearSSH,
-			             SSH.Product.LibSSH]
+			             SSH.Product.LibSSH,
+			             SSH.Product.TinySSH]
 			if software is not None:
 				if software.product not in vproducts:
 					software = None
