@@ -1681,21 +1681,27 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			             SSH.Product.DropbearSSH,
 			             SSH.Product.LibSSH,
 			             SSH.Product.TinySSH]
+			# Set to True if server is not one of vproducts, above.
+			unknown_software = False
 			if software is not None:
 				if software.product not in vproducts:
-					software = None
-			if software is None:
-				ssh_timeframe = self.get_ssh_timeframe(for_server)
-				for product in vproducts:
-					if product not in ssh_timeframe:
-						continue
-					version = ssh_timeframe.get_from(product, for_server)
-					if version is not None:
-						software = SSH.Software(None, product, version, None, None)
-						break
+					unknown_software = True
+#
+# The code below is commented out because it would try to guess what the server is,
+# usually resulting in wild & incorrect recommendations.
+#
+#			if software is None:
+#				ssh_timeframe = self.get_ssh_timeframe(for_server)
+#				for product in vproducts:
+#					if product not in ssh_timeframe:
+#						continue
+#					version = ssh_timeframe.get_from(product, for_server)
+#					if version is not None:
+#						software = SSH.Software(None, product, version, None, None)
+#						break
 			rec = {}  # type: Dict[int, Dict[str, Dict[str, Dict[str, int]]]]
 			if software is None:
-				return software, rec
+				unknown_software = True
 			for alg_pair in self.values:
 				sshv, alg_db = alg_pair.sshv, alg_pair.db
 				rec[sshv] = {}
@@ -1708,15 +1714,17 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 						if len(versions) == 0 or versions[0] is None:
 							continue
 						matches = False
+						if unknown_software:
+							matches = True
 						for v in versions[0].split(','):
 							ssh_prefix, ssh_version, is_cli = SSH.Algorithm.get_ssh_version(v)
 							if not ssh_version:
 								continue
-							if ssh_prefix != software.product:
+							if (software is not None) and (ssh_prefix != software.product):
 								continue
 							if is_cli and for_server:
 								continue
-							if software.compare_version(ssh_version) < 0:
+							if (software is not None) and (software.compare_version(ssh_version) < 0):
 								continue
 							matches = True
 							break
@@ -1740,6 +1748,9 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 								rec[sshv][alg_type]['chg'][n] = faults
 							else:
 								rec[sshv][alg_type]['del'][n] = faults
+					# If we are working with unknown software, drop all add recommendations, because we don't know if they're valid.
+					if unknown_software:
+						rec[sshv][alg_type]['add'] = {}
 					add_count = len(rec[sshv][alg_type]['add'])
 					del_count = len(rec[sshv][alg_type]['del'])
 					chg_count = len(rec[sshv][alg_type]['chg'])
