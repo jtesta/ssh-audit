@@ -15,7 +15,7 @@
 
 # This is the docker tag for the image.  If this tag doesn't exist, then we assume the
 # image is out of date, and generate a new one with this tag.
-IMAGE_VERSION=2
+IMAGE_VERSION=3
 
 # This is the name of our docker image.
 IMAGE_NAME=ssh-audit-test
@@ -48,6 +48,14 @@ function compile_openssh {
     compile 'OpenSSH' $version
 }
 
+
+# Uncompresses and compiles the specified version of TinySSH.
+function compile_tinyssh {
+    version=$1
+    compile 'TinySSH' $version
+}
+
+
 function compile {
     project=$1
     version=$2
@@ -66,6 +74,11 @@ function compile {
 	uncompress_options="xjf"
 	source_dir="dropbear-${version}"
 	server_executable=dropbear
+    elif [[ $project == 'TinySSH' ]]; then
+	tarball="${version}.tar.gz"
+	uncompress_options="xzf"
+	source_dir="tinyssh-${version}"
+	server_executable='build/bin/tinysshd'
     fi
 
     echo "Uncompressing ${project} ${version}..."
@@ -73,7 +86,13 @@ function compile {
 
     echo "Compiling ${project} ${version}..."
     pushd $source_dir > /dev/null
-    ./configure && make -j 10
+
+    # TinySSH has no configure script... only a Makefile.
+    if [[ $project == 'TinySSH' ]]; then
+	make -j 10
+    else
+	./configure && make -j 10
+    fi
 
     if [[ ! -f $server_executable ]]; then
 	echo -e "${REDB}Error: ${server_executable} not built!${CLR}"
@@ -90,16 +109,17 @@ function create_docker_image {
     # Create a new temporary directory.
     TMP_DIR=`mktemp -d /tmp/sshaudit-docker-XXXXXXXXXX`
 
-    # Copy the Dockerfile to our new temp directory.
-    cp test/docker/* $TMP_DIR
+    # Copy the Dockerfile and all files in the test/docker/ dir to our new temp directory.
+    find test/docker/ -maxdepth 1 -type f | xargs cp -t $TMP_DIR
 
     # Make the temp directory our working directory for the duration of the build
     # process.
     pushd $TMP_DIR > /dev/null
 
-    # Get the release key for OpenSSH.
-    get_openssh_release_key
+    # Get the release keys.
     get_dropbear_release_key
+    get_openssh_release_key
+    get_tinyssh_release_key
 
     # Aside from checking the GPG signatures, we also compare against this known-good
     # SHA-256 hash just in case.
@@ -107,6 +127,7 @@ function create_docker_image {
     get_openssh '5.6p1' '538af53b2b8162c21a293bb004ae2bdb141abd250f61b4cea55244749f3c6c2b'
     get_openssh '8.0p1' 'bd943879e69498e8031eb6b7f44d08cdc37d59a7ab689aa0b437320c3481fd68'
     get_dropbear '2019.78' '525965971272270995364a0eb01f35180d793182e63dd0b0c3eb0292291644a4'
+    get_tinyssh '20190101' '554a9a94e53b370f0cd0c5fbbd322c34d1f695cbcea6a6a32dcb8c9f595b3fea'
 
     # Compile the versions of OpenSSH.
     compile_openssh '4.0p1'
@@ -115,6 +136,9 @@ function create_docker_image {
 
     # Compile the versions of Dropbear.
     compile_dropbear '2019.78'
+
+    # Compile the versions of TinySSH.
+    compile_tinyssh '20190101'
 
 
     # Rename the default config files so we know they are our originals.
@@ -199,19 +223,30 @@ function get_openssh_release_key {
 }
 
 
+# Downloads the TinySSH release key and adds it to the local keyring.
+function get_tinyssh_release_key {
+    get_release_key 'TinySSH' '' '96939FF9' 'AADF 2EDF 5529 F170 2772  C8A2 DEC4 D246 931E F49B'
+}
+
+
 function get_release_key {
     project=$1
     key_url=$2
     key_id=$3
     release_key_fingerprint_expected=$4
 
-    echo -e "\nGetting ${project} release key...\n"
-    wget -O key.asc $2
+    # The TinySSH release key isn't on any website, apparently.
+    if [[ $project == 'TinySSH' ]]; then
+	gpg --recv-key $key_id
+    else
+	echo -e "\nGetting ${project} release key...\n"
+	wget -O key.asc $2
 
-    echo -e "\nImporting ${project} release key...\n"
-    gpg --import key.asc
+	echo -e "\nImporting ${project} release key...\n"
+	gpg --import key.asc
 
-    rm key.asc
+	rm key.asc
+    fi
 
     local release_key_fingerprint_actual=`gpg --fingerprint ${key_id}`
     if [[ $release_key_fingerprint_actual != *"$release_key_fingerprint_expected"* ]]; then
@@ -238,37 +273,54 @@ function get_openssh {
 }
 
 
+# Downloads the specified version of TinySSH.
+function get_tinyssh {
+    version=$1
+    tarball_checksum_expected=$2
+    get_source 'TinySSH' $version $tarball_checksum_expected
+}
+
+
 function get_source {
     project=$1
     version=$2
     tarball_checksum_expected=$3
 
-    base_url=
+    base_url_source=
+    base_url_sig=
     tarball=
     sig=
     signer=
     if [[ $project == 'OpenSSH' ]]; then
-	base_url='https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/'
+	base_url_source='https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/'
+	base_url_sig=$base_url_source
 	tarball="openssh-${version}.tar.gz"
 	sig="${tarball}.asc"
 	signer="Damien Miller "
     elif [[ $project == 'Dropbear' ]]; then
-	base_url='https://matt.ucc.asn.au/dropbear/releases/'
+	base_url_source='https://matt.ucc.asn.au/dropbear/releases/'
+	base_url_sig=$base_url_source
 	tarball="dropbear-${version}.tar.bz2"
 	sig="${tarball}.asc"
 	signer="Dropbear SSH Release Signing <matt@ucc.asn.au>"
+    elif [[ $project == 'TinySSH' ]]; then
+	base_url_source='https://github.com/janmojzis/tinyssh/archive/'
+	base_url_sig="https://github.com/janmojzis/tinyssh/releases/download/${version}/"
+	tarball="${version}.tar.gz"
+	sig="${tarball}.asc"
+	signer="Jan Mojžíš <jan.mojzis@gmail.com>"
     fi
 
     echo -e "\nGetting ${project} ${version} sources...\n"
-    wget "${base_url}${tarball}"
+    wget "${base_url_source}${tarball}"
 
     echo -e "\nGetting ${project} ${version} signature...\n"
-    wget "${base_url}${sig}"
+    wget "${base_url_sig}${sig}"
 
 
     # Older OpenSSH releases were .sigs.
     if [[ ($project == 'OpenSSH') && (! -f $sig) ]]; then
-	wget ${base_url}openssh-${version}.tar.gz.sig
+	wget ${base_url_sig}openssh-${version}.tar.gz.sig
 	sig=openssh-${version}.tar.gz.sig
     fi
 
@@ -316,6 +368,16 @@ function run_openssh_test {
 }
 
 
+# Runs a TinySSH test.  Upon failure, a diff between the expected and actual results
+# is shown, then the script immediately terminates.
+function run_tinyssh_test {
+    tinyssh_version=$1
+    test_number=$2
+
+    run_test 'TinySSH' $tinyssh_version $test_number ''
+}
+
+
 function run_test {
     server_type=$1
     version=$2
@@ -337,6 +399,11 @@ function run_test {
 	test_result="${TEST_RESULT_DIR}/dropbear_${version}_${test_number}.txt"
 	expected_result="test/docker/expected_results/dropbear_${version}_${test_number}.txt"
 	test_name="Dropbear ${version} ${test_number}"
+    elif [[ $server_type == 'TinySSH' ]]; then
+	server_exec="/usr/bin/tcpserver -HRDl0 0.0.0.0 22 /tinysshd/tinyssh-20190101 -v /etc/tinyssh/"
+	test_result="${TEST_RESULT_DIR}/tinyssh_${version}_${test_number}.txt"
+	expected_result="test/docker/expected_results/tinyssh_${version}_${test_number}.txt"
+	test_name="TinySSH ${version} ${test_number}"
     fi
 
     cid=`docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}`
@@ -356,6 +423,14 @@ function run_test {
     if [[ $? != 0 ]]; then
        echo -e "${REDB}Failed to stop docker container ${cid}! (exit code: $?)${CLR}"
        exit 1
+    fi
+
+    # TinySSH outputs a random string in each banner, which breaks our test.  So
+    # we need to filter out the banner part of the output so we get stable, repeatable
+    # results.
+    if [[ $server_type == 'TinySSH' ]]; then
+	grep -v "(gen) banner: " ${test_result} > "${test_result}.tmp"
+	mv "${test_result}.tmp" ${test_result}
     fi
 
     diff=`diff -u ${expected_result} ${test_result}`
@@ -404,6 +479,8 @@ run_openssh_test '8.0p1' 'test2'
 run_openssh_test '8.0p1' 'test3'
 echo
 run_dropbear_test '2019.78' 'test1' '-r /etc/dropbear/dropbear_rsa_host_key_1024 -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_ecdsa_host_key'
+echo
+run_tinyssh_test '20190101' 'test1'
 
 # The test functions above will terminate the script on failure, so if we reached here,
 # all tests are successful.
