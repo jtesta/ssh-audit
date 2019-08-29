@@ -1,8 +1,10 @@
 # ssh-audit
+<!--
 [![travis build status](https://api.travis-ci.org/arthepsy/ssh-audit.svg?branch=develop)](https://travis-ci.org/arthepsy/ssh-audit)
 [![appveyor build status](https://ci.appveyor.com/api/projects/status/4m5r73m0r023edil/branch/develop?svg=true)](https://ci.appveyor.com/project/arthepsy/ssh-audit)
 [![codecov](https://codecov.io/gh/arthepsy/ssh-audit/branch/develop/graph/badge.svg)](https://codecov.io/gh/arthepsy/ssh-audit)
 [![Quality Gate](https://sonarqube.com/api/badges/gate?key=arthepsy-github%3Assh-audit%3Adevelop&template=ROUNDED)](https://sq.evolutiongaming.com/dashboard?id=arthepsy-github%3Assh-audit%3Adevelop)  
+-->
 **ssh-audit** is a tool for ssh server auditing.  
 
 ## Features
@@ -37,10 +39,10 @@ usage: ssh-audit.py [-1246pbnvlt] <host>
 * verbose flag `-v` will prefix each line with section type and algorithm name.  
 
 ### Example
-![screenshot](https://cloud.githubusercontent.com/assets/7356025/19233757/3e09b168-8ef0-11e6-91b4-e880bacd0b8a.png)
+![screenshot](https://user-images.githubusercontent.com/2982011/63970414-104bdb00-ca72-11e9-832f-3e535be32811.png)
 
 ## ChangeLog
-### v2.0.0-dev (???)
+### v2.0.0 (2019-08-29)
  - Forked from https://github.com/arthepsy/ssh-audit (development was stalled, and developer went MIA).
  - Added RSA host key length test.
  - Added RSA certificate key length test.
