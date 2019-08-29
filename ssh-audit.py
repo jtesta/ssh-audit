@@ -27,7 +27,7 @@
 from __future__ import print_function
 import binascii, os, io, sys, socket, struct, random, errno, getopt, re, hashlib, base64
 
-VERSION = 'v2.0.0'
+VERSION = 'v2.1.0-dev'
 
 if sys.version_info.major < 3:
         print("\n!!!! NOTE: Python 2 is being considered for deprecation.  If you have a good reason to need continued Python 2 support, please e-mail jtesta@positronsecurity.com with your rationale.\n\n")

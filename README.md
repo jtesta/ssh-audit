@@ -42,6 +42,9 @@ usage: ssh-audit.py [-1246pbnvlt] <host>
 ![screenshot](https://user-images.githubusercontent.com/2982011/63970414-104bdb00-ca72-11e9-832f-3e535be32811.png)
 
 ## ChangeLog
+### v2.1.0 (???)
+ - ???
+
 ### v2.0.0 (2019-08-29)
  - Forked from https://github.com/arthepsy/ssh-audit (development was stalled, and developer went MIA).
  - Added RSA host key length test.
