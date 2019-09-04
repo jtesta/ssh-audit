@@ -1,0 +1,14 @@
+all:
+	cp ../ssh-audit.py sshaudit/sshaudit.py
+	cp ../LICENSE sshaudit/LICENSE
+	cp ../README.md sshaudit/README.md
+	python3 setup.py sdist bdist_wheel
+
+uploadtest:
+	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+uploadprod:
+	twine upload dist/*
+
+clean:
+	rm -rf build/ dist/ *.egg-info/ sshaudit/sshaudit.py sshaudit/LICENSE sshaudit/README.md
