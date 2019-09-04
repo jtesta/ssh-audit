@@ -6,3 +6,6 @@ venv*/
 .coverage*
 reports/
 .scannerwork/
+pypi/sshaudit/LICENSE
+pypi/sshaudit/README.md
+pypi/sshaudit/sshaudit.py
