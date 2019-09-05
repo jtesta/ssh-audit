@@ -39,7 +39,7 @@ usage: ssh-audit.py [-1246pbnvlt] <host>
 * verbose flag `-v` will prefix each line with section type and algorithm name.  
 
 ### Example
-![screenshot](https://user-images.githubusercontent.com/2982011/63970414-104bdb00-ca72-11e9-832f-3e535be32811.png)
+![screenshot](https://user-images.githubusercontent.com/2982011/64388792-317e6f80-d00e-11e9-826e-a4934769bb07.png)
 
 ## ChangeLog
 ### v2.1.0 (???)
