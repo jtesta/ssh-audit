@@ -43,7 +43,8 @@ usage: ssh-audit.py [-1246pbnvlt] <host>
 
 ## ChangeLog
 ### v2.1.0 (???)
- - Added 1 new key exchange: `diffie-hellman-group15-sha256`.
+ - Fixed crash while scanning Solaris Sun_SSH.
+ - Added 2 new key exchanges: `gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `diffie-hellman-group15-sha256`.
 
 ### v2.0.0 (2019-08-29)
  - Forked from https://github.com/arthepsy/ssh-audit (development was stalled, and developer went MIA).
