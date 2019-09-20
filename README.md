@@ -44,7 +44,9 @@ usage: ssh-audit.py [-1246pbnvlt] <host>
 ## ChangeLog
 ### v2.1.0 (???)
  - Fixed crash while scanning Solaris Sun_SSH.
- - Added 2 new key exchanges: `gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `diffie-hellman-group15-sha256`.
+ - Added 5 new key exchanges: `gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `diffie-hellman-group15-sha256`, `ecdh-sha2-1.3.132.0.10`, `curve448-sha512`.
+ - Added 1 new host key type: `ecdsa-sha2-1.3.132.0.10`.
+ - Added 2 new MACs: `hmac-sha2-256-96-etm@openssh.com`, `hmac-sha2-512-96-etm@openssh.com`.
 
 ### v2.0.0 (2019-08-29)
  - Forked from https://github.com/arthepsy/ssh-audit (development was stalled, and developer went MIA).

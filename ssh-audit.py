@@ -312,6 +312,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		WARN_CIPHER_WEAK      = 'using weak cipher'
 		WARN_ENCRYPT_AND_MAC  = 'using encrypt-and-MAC mode'
 		WARN_TAG_SIZE         = 'using small 64-bit tag size'
+		WARN_TAG_SIZE_96      = 'using small 96-bit tag size'
 		WARN_EXPERIMENTAL     = 'using experimental algorithm'
 		
 		ALGORITHMS = {
@@ -334,8 +335,10 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdh-sha2-nistp256': [['5.7,d2013.62,l10.6.0'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp384': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
+				'ecdh-sha2-1.3.132.0.10': [[]], # ECDH over secp256k1 (i.e.: the Bitcoin curve)
 				'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
 				'curve25519-sha256': [['7.4']],
+				'curve448-sha512': [[]],
 				'kexguess2@matt.ucc.asn.au': [['d2013.57']],
 				'rsa1024-sha1': [[], [], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'rsa2048-sha256': [[]],
@@ -359,6 +362,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdsa-sha2-nistp384-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp521-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ssh-rsa-sha256@ssh.com': [[]],
+				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]], # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
 			},
 			'enc': {
 				'none': [['1.2.2,d2013.56,l10.2'], [FAIL_PLAINTEXT]],
@@ -410,6 +414,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'hmac-sha2-384': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha2-512': [['5.9,d2013.56,l10.7.0'], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha2-512-96': [['5.9', '6.0'], [FAIL_OPENSSH61_REMOVE], [WARN_ENCRYPT_AND_MAC]],
+				'hmac-sha2-256-96-etm@openssh.com': [[]],
 				'hmac-sha3-256': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha3-384': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha3-512': [[], [], [WARN_ENCRYPT_AND_MAC]],
@@ -425,6 +430,8 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'umac-128@openssh.com': [['6.2'], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha1-etm@openssh.com': [['6.2'], [], [WARN_HASH_WEAK]],
 				'hmac-sha1-96-etm@openssh.com': [['6.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_HASH_WEAK]],
+				'hmac-sha2-256-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]], # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
+				'hmac-sha2-512-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]], # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
 				'hmac-sha2-256-etm@openssh.com': [['6.2']],
 				'hmac-sha2-512-etm@openssh.com': [['6.2']],
 				'hmac-md5-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_HASH_WEAK]],
