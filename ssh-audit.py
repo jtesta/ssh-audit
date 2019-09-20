@@ -2210,6 +2210,11 @@ class KexDH(object):  # pragma: nocover
 	# key blob (from which the fingerprint can be calculated).
 	def recv_reply(self, s, parse_host_key_size=True):
 		packet_type, payload = s.read_packet(2)
+
+		# Skip any & all MSG_DEBUG messages.
+		while packet_type == SSH.Protocol.MSG_DEBUG:
+			packet_type, payload = s.read_packet(2)
+
 		if packet_type != -1 and packet_type not in [SSH.Protocol.MSG_KEXDH_REPLY, SSH.Protocol.MSG_KEXDH_GEX_REPLY]:
 			# TODO: change Exception to something more specific.
 			raise Exception('Expected MSG_KEXDH_REPLY (%d) or MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (SSH.Protocol.MSG_KEXDH_REPLY, SSH.Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
