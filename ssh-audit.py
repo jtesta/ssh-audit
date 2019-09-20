@@ -318,6 +318,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
                         # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
 			'kex': {
 				'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
+				'gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
 				'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
 				'diffie-hellman-group15-sha256': [[]],
@@ -1194,6 +1195,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 	class Protocol(object):  # pylint: disable=too-few-public-methods
 		# pylint: disable=bad-whitespace
 		SMSG_PUBLIC_KEY = 2
+		MSG_DEBUG       = 4
 		MSG_KEXINIT     = 20
 		MSG_NEWKEYS     = 21
 		MSG_KEXDH_INIT  = 30
@@ -2518,9 +2520,13 @@ class KexGroupExchange(KexDH):
 		s.send_packet()
 
 		packet_type, payload = s.read_packet(2)
-		if packet_type != SSH.Protocol.MSG_KEXDH_GEX_GROUP:
+		if (packet_type != SSH.Protocol.MSG_KEXDH_GEX_GROUP) and (packet_type != SSH.Protocol.MSG_DEBUG):
 			# TODO: replace with a better exception type.
 			raise Exception('Expected MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (SSH.Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
+
+		# Skip any & all MSG_DEBUG messages.
+		while packet_type == SSH.Protocol.MSG_DEBUG:
+			packet_type, payload = s.read_packet(2)
 
 		# Parse the modulus (p) and generator (g) values from the server.
 		ptr = 0
