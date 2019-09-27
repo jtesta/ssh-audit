@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/arthepsy/ssh-audit/branch/develop/graph/badge.svg)](https://codecov.io/gh/arthepsy/ssh-audit)
 [![Quality Gate](https://sonarqube.com/api/badges/gate?key=arthepsy-github%3Assh-audit%3Adevelop&template=ROUNDED)](https://sq.evolutiongaming.com/dashboard?id=arthepsy-github%3Assh-audit%3Adevelop)  
 -->
-**ssh-audit** is a tool for ssh server auditing.  
+**ssh-audit** is a tool for ssh server & client auditing.
 
 ## Features
 - SSH1 and SSH2 protocol server support;
@@ -16,7 +16,8 @@
 - output security information (related issues, assigned CVE list, etc);
 - analyze SSH version compatibility based on algorithm information;
 - historical information from OpenSSH, Dropbear SSH and libssh;
-- no dependencies, compatible with Python 2.6+, Python 3.x and PyPy;
+- no dependencies
+- analyze SSH client configuration;
 
 ## Usage
 ```
