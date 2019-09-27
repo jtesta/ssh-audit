@@ -28,11 +28,13 @@ usage: ssh-audit.py [-1246pbnvlt] <host>
    -6,  --ipv6             enable IPv6 (order of precedence)
    -p,  --port=<port>      port to connect
    -b,  --batch            batch output
+   -c,  --client-audit     starts a server on port 2222 to audit client
+                               software config (use -p to change port)
    -n,  --no-colors        disable colors
    -v,  --verbose          verbose output
    -l,  --level=<level>    minimum output level (info|warn|fail)
    -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
-                           (default: 5)
+                               (default: 5)
 ```
 * if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.  
 * batch flag `-b` will output sections without header and without empty lines (implies verbose flag).  
@@ -43,6 +45,7 @@ usage: ssh-audit.py [-1246pbnvlt] <host>
 
 ## ChangeLog
 ### v2.1.0 (???)
+ - Added client software auditing functionality (see -c / --client-audit option).
  - Fixed crash while scanning Solaris Sun_SSH.
  - Added 5 new key exchanges: `gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `diffie-hellman-group15-sha256`, `ecdh-sha2-1.3.132.0.10`, `curve448-sha512`.
  - Added 1 new host key type: `ecdsa-sha2-1.3.132.0.10`.
