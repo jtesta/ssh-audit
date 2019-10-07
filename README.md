@@ -5,10 +5,11 @@
 [![codecov](https://codecov.io/gh/arthepsy/ssh-audit/branch/develop/graph/badge.svg)](https://codecov.io/gh/arthepsy/ssh-audit)
 [![Quality Gate](https://sonarqube.com/api/badges/gate?key=arthepsy-github%3Assh-audit%3Adevelop&template=ROUNDED)](https://sq.evolutiongaming.com/dashboard?id=arthepsy-github%3Assh-audit%3Adevelop)  
 -->
-**ssh-audit** is a tool for ssh server & client auditing.
+**ssh-audit** is a tool for ssh server & client configuration auditing.
 
 ## Features
 - SSH1 and SSH2 protocol server support;
+- analyze SSH client configuration;
 - grab banner, recognize device or software and operating system, detect compression;
 - gather key-exchange, host-key, encryption and message authentication code algorithms;
 - output algorithm information (available since, removed/disabled, unsafe/weak/legacy, etc);
@@ -17,11 +18,10 @@
 - analyze SSH version compatibility based on algorithm information;
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - no dependencies
-- analyze SSH client configuration;
 
 ## Usage
 ```
-usage: ssh-audit.py [-1246pbnvlt] <host>
+usage: ssh-audit.py [-1246pbcnvlt] <host>
 
    -1,  --ssh1             force ssh version 1 only
    -2,  --ssh2             force ssh version 2 only
@@ -41,14 +41,17 @@ usage: ssh-audit.py [-1246pbnvlt] <host>
 * batch flag `-b` will output sections without header and without empty lines (implies verbose flag).  
 * verbose flag `-v` will prefix each line with section type and algorithm name.  
 
-### Example
+### Server Audit Example
 ![screenshot](https://user-images.githubusercontent.com/2982011/64388792-317e6f80-d00e-11e9-826e-a4934769bb07.png)
+
+### Client Audit Example
+TODO
 
 ## ChangeLog
 ### v2.1.0 (???)
- - Added client software auditing functionality (see -c / --client-audit option).
+ - Added client software auditing functionality (see `-c` / `--client-audit` option).
  - Fixed crash while scanning Solaris Sun_SSH.
- - Added 5 new key exchanges: `gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `diffie-hellman-group15-sha256`, `ecdh-sha2-1.3.132.0.10`, `curve448-sha512`.
+ - Added 4 new key exchanges: `gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `diffie-hellman-group15-sha256`, `ecdh-sha2-1.3.132.0.10`, `curve448-sha512`.
  - Added 1 new host key type: `ecdsa-sha2-1.3.132.0.10`.
  - Added 2 new MACs: `hmac-sha2-256-96-etm@openssh.com`, `hmac-sha2-512-96-etm@openssh.com`.
 
