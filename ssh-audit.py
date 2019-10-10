@@ -2809,7 +2809,7 @@ def output_recommendations(algs, software, padlen=0):
 
 	ret = True
 	# PuTTY's algorithms cannot be modified, so there's no point in issuing recommendations.
-	if software.product == SSH.Product.PuTTY:
+	if (software is not None) and (software.product == SSH.Product.PuTTY):
 		max_vuln_version = 0.0
 		max_cvssv2_severity = 0.0
 		# Search the CVE database for the most recent vulnerable version and the max CVSSv2 score.
@@ -2880,7 +2880,7 @@ def output_recommendations(algs, software, padlen=0):
 def output_info(algs, software, client_audit, any_problems, padlen=0):
 	with OutputBuffer() as obuf:
 		# Tell user that PuTTY cannot be hardened at the protocol-level.
-		if client_audit and (software.product == SSH.Product.PuTTY):
+		if client_audit and (software is not None) and (software.product == SSH.Product.PuTTY):
 			out.warn('(nfo) PuTTY does not have the option of restricting any algorithms during the SSH handshake.')
 
 		# If any warnings or failures were given, print a link to the hardening guides.
