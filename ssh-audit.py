@@ -62,7 +62,7 @@ def usage(err=None):
 	uout.head('# {0} {1}, https://github.com/jtesta/ssh-audit\n'.format(p, VERSION))
 	if err is not None and len(err) > 0:
 		uout.fail('\n' + err)
-	uout.info('usage: {0} [-1246pbnvlt] <host>\n'.format(p))
+	uout.info('usage: {0} [-1246pbcnvlt] <host>\n'.format(p))
 	uout.info('   -h,  --help             print this help')
 	uout.info('   -1,  --ssh1             force ssh version 1 only')
 	uout.info('   -2,  --ssh2             force ssh version 2 only')
