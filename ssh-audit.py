@@ -2004,20 +2004,33 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		# auditing client connections).
 		def listen_and_accept(self):
 
-			# Socket to listen on all IPv4 addresses.
-			s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-			s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-			s.bind(('0.0.0.0', self.__port))
-			s.listen()
-			self.__sock_map[s.fileno()] = s
+			try:
+				# Socket to listen on all IPv4 addresses.
+				s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+				s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+				s.bind(('0.0.0.0', self.__port))
+				s.listen()
+				self.__sock_map[s.fileno()] = s
+			except Exception as e:
+				print("Warning: failed to listen on any IPv4 interfaces.")
+				pass
 
-			# Socket to listen on all IPv6 addresses.
-			s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-			s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-			s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 1)
-			s.bind(('::', self.__port))
-			s.listen()
-			self.__sock_map[s.fileno()] = s
+			try:
+				# Socket to listen on all IPv6 addresses.
+				s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+				s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+				s.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 1)
+				s.bind(('::', self.__port))
+				s.listen()
+				self.__sock_map[s.fileno()] = s
+			except Exception as e:
+				print("Warning: failed to listen on any IPv6 interfaces.")
+				pass
+
+			# If we failed to listen on any interfaces, terminate.
+			if len(self.__sock_map.keys()) == 0:
+				print("Error: failed to listen on any IPv4 and IPv6 interfaces!")
+				exit(-1)
 
 			# Wait for a connection on either socket.
 			fds = select.select(self.__sock_map.keys(), [], [])
