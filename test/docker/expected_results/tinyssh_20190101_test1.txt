@@ -1,10 +1,10 @@
 [0;36m# general[0m
 [0;32m(gen) software: TinySSH noversion[0m
-[0;32m(gen) compatibility: OpenSSH 8.0+, Dropbear SSH 2013.62+[0m
+[0;32m(gen) compatibility: OpenSSH 8.0+, Dropbear SSH 2018.76+[0m
 [0;32m(gen) compression: disabled[0m
 
 [0;36m# key exchange algorithms[0m
-[0;32m(kex) curve25519-sha256                       -- [info] available since OpenSSH 7.4[0m
+[0;32m(kex) curve25519-sha256                       -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
 [0;32m(kex) curve25519-sha256@libssh.org            -- [info] available since OpenSSH 6.5, Dropbear SSH 2013.62[0m
 [0;33m(kex) sntrup4591761x25519-sha512@tinyssh.org  -- [warn] using experimental algorithm[0m
                                               `- [info] available since OpenSSH 8.0

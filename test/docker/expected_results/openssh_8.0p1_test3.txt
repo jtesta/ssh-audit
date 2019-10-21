@@ -1,11 +1,11 @@
 [0;36m# general[0m
 [0;32m(gen) banner: SSH-2.0-OpenSSH_8.0[0m
 [0;32m(gen) software: OpenSSH 8.0[0m
-[0;32m(gen) compatibility: OpenSSH 7.4+, Dropbear SSH 2013.62+[0m
+[0;32m(gen) compatibility: OpenSSH 7.4+, Dropbear SSH 2018.76+[0m
 [0;32m(gen) compression: enabled (zlib@openssh.com)[0m
 
 [0;36m# key exchange algorithms[0m
-[0;32m(kex) curve25519-sha256                     -- [info] available since OpenSSH 7.4[0m
+[0;32m(kex) curve25519-sha256                     -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
 [0;32m(kex) curve25519-sha256@libssh.org          -- [info] available since OpenSSH 6.5, Dropbear SSH 2013.62[0m
 [0;32m(kex) diffie-hellman-group-exchange-sha256 (2048-bit) -- [info] available since OpenSSH 4.4[0m
 

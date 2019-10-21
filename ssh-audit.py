@@ -347,7 +347,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdh-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-1.3.132.0.10': [[]], # ECDH over secp256k1 (i.e.: the Bitcoin curve)
 				'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
-				'curve25519-sha256': [['7.4']],
+				'curve25519-sha256': [['7.4,d2018.76']],
 				'curve448-sha512': [[]],
 				'kexguess2@matt.ucc.asn.au': [['d2013.57']],
 				'rsa1024-sha1': [[], [], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
