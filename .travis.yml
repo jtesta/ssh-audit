@@ -1,18 +1,80 @@
 language: python
-python:
-  - 2.6
-  - 2.7
-  - 3.3
-  - 3.4
-  - 3.5
-  - pypy
-  - pypy3
-install:
-  - pip install --upgrade pytest
-  - pip install --upgrade pytest-cov
-  - pip install --upgrade coveralls
-script:
-  - py.test --cov-report= --cov=ssh-audit -v test
-after_success:
-  - coveralls
+sudo: false
+matrix:
+  include:
+    # (default)
+    - os: linux
+      python: 2.6
+    - os: linux
+      python: 2.7
+      env: SQ=1
+    - os: linux
+      python: 3.3
+    - os: linux
+      python: 3.4
+    - os: linux
+      python: 3.5
+    - os: linux
+      python: 3.6
+    - os: linux
+      python: pypy
+    - os: linux
+      python: pypy3
+    - os: linux
+      python: 3.7-dev
+    # Ubuntu 12.04
+    - os: linux
+      dist: precise
+      language: generic
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3 PY_ORIGIN=pyenv
+    # Ubuntu 14.04
+    - os: linux
+      dist: trusty
+      language: generic
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3 PY_ORIGIN=pyenv
+    # macOS 10.12 Sierra
+    - os: osx
+      osx_image: xcode8.3
+      language: generic
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3
+    # Mac OS X 10.11 El Capitan
+    - os: osx
+      osx_image: xcode7.3
+      language: generic
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3
+    # Mac OS X 10.10 Yosemite
+    - os: osx
+      osx_image: xcode6.4
+      language: generic
+      env: PY_VER=py26,py27,py33,py34,py35,py36,pypy,pypy3
+  allow_failures:
+    # PyPy3 on Travis CI is out of date
+    - python: pypy3
+    # Python nightly could fail
+    - python: 3.7-dev
+    - env: PY_VER=py37
+    - env: PY_VER=py37/pyenv
+    - env: PY_VER=py37 PY_ORIGIN=pyenv
+  fast_finish: true
 
+cache:
+  - pip
+  - directories:
+    - $HOME/.pyenv.cache
+    - $HOME/.bin
+
+before_install:
+  - source test/tools/ci-linux.sh
+  - ci_step_before_install
+
+install:
+  - ci_step_install
+
+script:
+  - ci_step_script
+
+after_success:
+  - ci_step_success
+
+after_failure:
+  - ci_step_failure

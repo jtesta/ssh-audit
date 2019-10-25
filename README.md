@@ -1,10 +1,15 @@
 # ssh-audit
-[![build status](https://api.travis-ci.org/arthepsy/ssh-audit.svg)](https://travis-ci.org/arthepsy/ssh-audit)
-[![coverage status](https://coveralls.io/repos/github/arthepsy/ssh-audit/badge.svg)](https://coveralls.io/github/arthepsy/ssh-audit)  
-**ssh-audit** is a tool for ssh server auditing.  
+<!--
+[![travis build status](https://api.travis-ci.org/arthepsy/ssh-audit.svg?branch=develop)](https://travis-ci.org/arthepsy/ssh-audit)
+[![appveyor build status](https://ci.appveyor.com/api/projects/status/4m5r73m0r023edil/branch/develop?svg=true)](https://ci.appveyor.com/project/arthepsy/ssh-audit)
+[![codecov](https://codecov.io/gh/arthepsy/ssh-audit/branch/develop/graph/badge.svg)](https://codecov.io/gh/arthepsy/ssh-audit)
+[![Quality Gate](https://sonarqube.com/api/badges/gate?key=arthepsy-github%3Assh-audit%3Adevelop&template=ROUNDED)](https://sq.evolutiongaming.com/dashboard?id=arthepsy-github%3Assh-audit%3Adevelop)  
+-->
+**ssh-audit** is a tool for ssh server & client configuration auditing.
 
 ## Features
 - SSH1 and SSH2 protocol server support;
+- analyze SSH client configuration;
 - grab banner, recognize device or software and operating system, detect compression;
 - gather key-exchange, host-key, encryption and message authentication code algorithms;
 - output algorithm information (available since, removed/disabled, unsafe/weak/legacy, etc);
@@ -12,11 +17,11 @@
 - output security information (related issues, assigned CVE list, etc);
 - analyze SSH version compatibility based on algorithm information;
 - historical information from OpenSSH, Dropbear SSH and libssh;
-- no dependencies, compatible with Python 2.6+, Python 3.x and PyPy;
+- no dependencies
 
 ## Usage
 ```
-usage: ssh-audit.py [-1246pbnvl] <host>
+usage: ssh-audit.py [-1246pbcnvlt] <host>
 
    -1,  --ssh1             force ssh version 1 only
    -2,  --ssh2             force ssh version 2 only
@@ -24,19 +29,45 @@ usage: ssh-audit.py [-1246pbnvl] <host>
    -6,  --ipv6             enable IPv6 (order of precedence)
    -p,  --port=<port>      port to connect
    -b,  --batch            batch output
+   -c,  --client-audit     starts a server on port 2222 to audit client
+                               software config (use -p to change port)
    -n,  --no-colors        disable colors
    -v,  --verbose          verbose output
    -l,  --level=<level>    minimum output level (info|warn|fail)
-   
+   -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
+                               (default: 5)
 ```
 * if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.  
 * batch flag `-b` will output sections without header and without empty lines (implies verbose flag).  
 * verbose flag `-v` will prefix each line with section type and algorithm name.  
 
-### example
-![screenshot](https://cloud.githubusercontent.com/assets/7356025/19233757/3e09b168-8ef0-11e6-91b4-e880bacd0b8a.png)
+### Server Audit Example
+![screenshot](https://user-images.githubusercontent.com/2982011/64388792-317e6f80-d00e-11e9-826e-a4934769bb07.png)
+
+### Client Audit Example
+TODO
 
 ## ChangeLog
+### v2.1.0 (???)
+ - Added client software auditing functionality (see `-c` / `--client-audit` option).
+ - Fixed crash while scanning Solaris Sun_SSH.
+ - Added 9 new key exchanges: `gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `gss-gex-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `gss-group14-sha1-`, `gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==`, `gss-group15-sha512-toWM5Slw5Ew8Mqkay+al2g==`, `diffie-hellman-group15-sha256`, `ecdh-sha2-1.3.132.0.10`, `curve448-sha512`.
+ - Added 1 new host key type: `ecdsa-sha2-1.3.132.0.10`.
+ - Added 4 new ciphers: `idea-cbc`, `serpent128-cbc`, `serpent192-cbc`, `serpent256-cbc`.
+ - Added 6 new MACs: `hmac-sha2-256-96-etm@openssh.com`, `hmac-sha2-512-96-etm@openssh.com`, `hmac-ripemd`, `hmac-sha256-96@ssh.com`, `umac-32@openssh.com`, `umac-96@openssh.com`.
+
+### v2.0.0 (2019-08-29)
+ - Forked from https://github.com/arthepsy/ssh-audit (development was stalled, and developer went MIA).
+ - Added RSA host key length test.
+ - Added RSA certificate key length test.
+ - Added Diffie-Hellman modulus size test.
+ - Now outputs host key fingerprints for RSA and ED25519.
+ - Added 5 new key exchanges: `sntrup4591761x25519-sha512@tinyssh.org`, `diffie-hellman-group-exchange-sha256@ssh.com`, `diffie-hellman-group-exchange-sha512@ssh.com`, `diffie-hellman-group16-sha256`, `diffie-hellman-group17-sha512`.
+ - Added 3 new encryption algorithms: `des-cbc-ssh1`, `blowfish-ctr`, `twofish-ctr`.
+ - Added 10 new MACs: `hmac-sha2-56`, `hmac-sha2-224`, `hmac-sha2-384`, `hmac-sha3-256`, `hmac-sha3-384`, `hmac-sha3-512`, `hmac-sha256`, `hmac-sha256@ssh.com`, `hmac-sha512`, `hmac-512@ssh.com`.
+ - Added command line argument (-t / --timeout) for connection & reading timeouts.
+ - Updated CVEs for libssh & Dropbear.
+
 ### v1.7.0 (2016-10-26)
  - implement options to allow specify IPv4/IPv6 usage and order of precedence
  - implement option to specify remote port (old behavior kept for compatibility)
