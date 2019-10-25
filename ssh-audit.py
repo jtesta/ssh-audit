@@ -313,6 +313,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		FAIL_DEPRECATED_CIPHER = 'deprecated cipher'
 		FAIL_WEAK_CIPHER      = 'using weak cipher'
 		FAIL_PLAINTEXT        = 'no encryption/integrity'
+		FAIL_DEPRECATED_MAC   = 'deprecated MAC'
 		WARN_CURVES_WEAK      = 'using weak elliptic curves'
 		WARN_RNDSIG_KEY       = 'using weak random number generator could reveal the key'
 		WARN_MODULUS_SIZE     = 'using small 1024-bit modulus'
@@ -330,6 +331,11 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 			'kex': {
 				'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
+				'gss-gex-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
+				'gss-group14-sha1-': [[], [], [WARN_HASH_WEAK]],
+				'gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
+				'gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==': [[]],
+				'gss-group15-sha512-toWM5Slw5Ew8Mqkay+al2g==': [[]],
 				'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
 				'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
 				'diffie-hellman-group15-sha256': [[]],
@@ -354,6 +360,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'rsa2048-sha256': [[]],
                                 'sntrup4591761x25519-sha512@tinyssh.org': [['8.0'], [], [WARN_EXPERIMENTAL]],
                                 'ext-info-c': [[]], # Extension negotiation (RFC 8308)
+                                'ext-info-s': [[]], # Extension negotiation (RFC 8308)
 			},
 			'key': {
 				'rsa-sha2-256': [['7.2']],
@@ -391,9 +398,13 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'twofish128-ctr': [['d2015.68']],
 				'twofish192-ctr': [[]],
 				'twofish256-ctr': [['d2015.68']],
+				'serpent128-cbc': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
+				'serpent192-cbc': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
+				'serpent256-cbc': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
 				'serpent128-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
 				'serpent192-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
 				'serpent256-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
+				'idea-cbc': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
 				'idea-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
 				'cast128-ctr': [[], [FAIL_DEPRECATED_CIPHER]],
 				'cast128-cbc': [['2.1.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
@@ -429,11 +440,13 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'hmac-sha3-384': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha3-512': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha256': [[], [], [WARN_ENCRYPT_AND_MAC]],
+				'hmac-sha256-96@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]],
 				'hmac-sha256@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha512': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha512@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-md5': [['2.1.0,d0.28', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
 				'hmac-md5-96': [['2.5.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
+				'hmac-ripemd': [[], [FAIL_DEPRECATED_MAC], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC]],
 				'hmac-ripemd160': [['2.5.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC]],
 				'hmac-ripemd160@openssh.com': [['2.1.0', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC]],
 				'umac-64@openssh.com': [['4.7'], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]],
@@ -447,7 +460,9 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'hmac-md5-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_HASH_WEAK]],
 				'hmac-md5-96-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_HASH_WEAK]],
 				'hmac-ripemd160-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
+				'umac-32@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]], # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
 				'umac-64-etm@openssh.com': [['6.2'], [], [WARN_TAG_SIZE]],
+				'umac-96@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]], # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
 				'umac-128-etm@openssh.com': [['6.2']],
 			}
 		}  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
