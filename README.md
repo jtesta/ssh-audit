@@ -30,7 +30,8 @@ usage: ssh-audit.py [-1246pbcnvlt] <host>
    -p,  --port=<port>      port to connect
    -b,  --batch            batch output
    -c,  --client-audit     starts a server on port 2222 to audit client
-                               software config (use -p to change port)
+                               software config (use -p to change port;
+                               use -t to change timeout)
    -n,  --no-colors        disable colors
    -v,  --verbose          verbose output
    -l,  --level=<level>    minimum output level (info|warn|fail)

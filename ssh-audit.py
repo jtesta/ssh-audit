@@ -70,7 +70,7 @@ def usage(err=None):
 	uout.info('   -6,  --ipv6             enable IPv6 (order of precedence)')
 	uout.info('   -p,  --port=<port>      port to connect')
 	uout.info('   -b,  --batch            batch output')
-	uout.info('   -c,  --client-audit     starts a server on port 2222 to audit client\n                               software config (use -p to change port)')
+	uout.info('   -c,  --client-audit     starts a server on port 2222 to audit client\n                               software config (use -p to change port;\n                               use -t to change timeout)')
 	uout.info('   -n,  --no-colors        disable colors')
 	uout.info('   -v,  --verbose          verbose output')
 	uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
@@ -96,11 +96,12 @@ class AuditConf(object):
 		self.ipv4 = False
 		self.ipv6 = False
 		self.timeout = 5.0
+		self.timeout_set = False # Set to True when the user explicitly sets it.
 
 	def __setattr__(self, name, value):
 		# type: (str, Union[str, int, bool, Sequence[int]]) -> None
 		valid = False
-		if name in ['ssh1', 'ssh2', 'batch', 'client_audit', 'colors', 'verbose']:
+		if name in ['ssh1', 'ssh2', 'batch', 'client_audit', 'colors', 'verbose', 'timeout_set']:
 			valid, value = True, True if bool(value) else False
 		elif name in ['ipv4', 'ipv6']:
 			valid = False
@@ -183,6 +184,7 @@ class AuditConf(object):
 				aconf.level = a
 			elif o in ('-t', '--timeout'):
 				aconf.timeout = float(a)
+				aconf.timeout_set = True
 		if len(args) == 0 and aconf.client_audit == False:
 			usage_cb()
 		if aconf.client_audit == False:
@@ -1968,7 +1970,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		
 		SM_BANNER_SENT = 1
 		
-		def __init__(self, host, port, ipvo, timeout):
+		def __init__(self, host, port, ipvo, timeout, timeout_set):
 			# type: (Optional[str], int) -> None
 			super(SSH.Socket, self).__init__()
 			self.__sock = None  # type: Optional[socket.socket]
@@ -1989,6 +1991,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			else:
 				self.__ipvo = ()
 			self.__timeout = timeout
+			self.__timeout_set = timeout_set
 
 		
 		def _resolve(self, ipvo):
@@ -2047,8 +2050,23 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				print("Error: failed to listen on any IPv4 and IPv6 interfaces!")
 				exit(-1)
 
-			# Wait for a connection on either socket.
-			fds = select.select(self.__sock_map.keys(), [], [])
+			# Wait for an incoming connection.  If a timeout was explicitly
+			# set by the user, terminate when it elapses.
+			fds = None
+			time_elapsed = 0.0
+			interval = 1.0
+			while True:
+				# Wait for a connection on either socket.
+				fds = select.select(self.__sock_map.keys(), [], [], interval)
+				time_elapsed += interval
+
+				# We have incoming data on at least one of the sockets.
+				if len(fds[0]) > 0:
+					break
+
+				if self.__timeout_set and time_elapsed >= self.__timeout:
+					print("Timeout elapsed.  Terminating...")
+					exit(-1)
 
 			# Accept the connection.
 			c, addr = self.__sock_map[fds[0][0]].accept()
@@ -3126,7 +3144,7 @@ def audit(aconf, sshv=None):
 	out.verbose = aconf.verbose
 	out.level = aconf.level
 	out.use_colors = aconf.colors
-	s = SSH.Socket(aconf.host, aconf.port, aconf.ipvo, aconf.timeout)
+	s = SSH.Socket(aconf.host, aconf.port, aconf.ipvo, aconf.timeout, aconf.timeout_set)
 	if aconf.client_audit:
 		s.listen_and_accept()
 	else:
