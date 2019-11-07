@@ -33,6 +33,7 @@ usage: ssh-audit.py [-1246pbcnvlt] <host>
                                software config (use -p to change port;
                                use -t to change timeout)
    -n,  --no-colors        disable colors
+   -j,  --json             JSON output
    -v,  --verbose          verbose output
    -l,  --level=<level>    minimum output level (info|warn|fail)
    -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
