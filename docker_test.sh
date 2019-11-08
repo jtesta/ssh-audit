@@ -385,24 +385,32 @@ function run_test {
     options=$4
 
     server_exec=
-    test_result=
-    expected_result=
+    test_result_stdout=
+    test_result_json=
+    expected_result_stdout=
+    expected_result_json=
     test_name=
     if [[ $server_type == 'OpenSSH' ]]; then
 	server_exec="/openssh/sshd-${version} -D -f /etc/ssh/sshd_config-${version}_${test_number}"
-	test_result="${TEST_RESULT_DIR}/openssh_${version}_${test_number}.txt"
-	expected_result="test/docker/expected_results/openssh_${version}_${test_number}.txt"
+	test_result_stdout="${TEST_RESULT_DIR}/openssh_${version}_${test_number}.txt"
+	test_result_json="${TEST_RESULT_DIR}/openssh_${version}_${test_number}.json"
+	expected_result_stdout="test/docker/expected_results/openssh_${version}_${test_number}.txt"
+	expected_result_json="test/docker/expected_results/openssh_${version}_${test_number}.json"
 	test_name="OpenSSH ${version} ${test_number}"
 	options=
     elif [[ $server_type == 'Dropbear' ]]; then
 	server_exec="/dropbear/dropbear-${version} -F ${options}"
-	test_result="${TEST_RESULT_DIR}/dropbear_${version}_${test_number}.txt"
-	expected_result="test/docker/expected_results/dropbear_${version}_${test_number}.txt"
+	test_result_stdout="${TEST_RESULT_DIR}/dropbear_${version}_${test_number}.txt"
+	test_result_json="${TEST_RESULT_DIR}/dropbear_${version}_${test_number}.json"
+	expected_result_stdout="test/docker/expected_results/dropbear_${version}_${test_number}.txt"
+	expected_result_json="test/docker/expected_results/dropbear_${version}_${test_number}.json"
 	test_name="Dropbear ${version} ${test_number}"
     elif [[ $server_type == 'TinySSH' ]]; then
 	server_exec="/usr/bin/tcpserver -HRDl0 0.0.0.0 22 /tinysshd/tinyssh-20190101 -v /etc/tinyssh/"
-	test_result="${TEST_RESULT_DIR}/tinyssh_${version}_${test_number}.txt"
-	expected_result="test/docker/expected_results/tinyssh_${version}_${test_number}.txt"
+	test_result_stdout="${TEST_RESULT_DIR}/tinyssh_${version}_${test_number}.txt"
+	test_result_json="${TEST_RESULT_DIR}/tinyssh_${version}_${test_number}.json"
+	expected_result_stdout="test/docker/expected_results/tinyssh_${version}_${test_number}.txt"
+	expected_result_json="test/docker/expected_results/tinyssh_${version}_${test_number}.json"
 	test_name="TinySSH ${version} ${test_number}"
     fi
 
@@ -412,7 +420,14 @@ function run_test {
 	exit 1
     fi
 
-    ./ssh-audit.py localhost:2222 > $test_result
+    ./ssh-audit.py localhost:2222 > $test_result_stdout
+    if [[ $? != 0 ]]; then
+	echo -e "${REDB}Failed to run ssh-audit.py! (exit code: $?)${CLR}"
+	docker container stop $cid > /dev/null
+	exit 1
+    fi
+
+    ./ssh-audit.py -j localhost:2222 > $test_result_json
     if [[ $? != 0 ]]; then
 	echo -e "${REDB}Failed to run ssh-audit.py! (exit code: $?)${CLR}"
 	docker container stop $cid > /dev/null
@@ -429,19 +444,25 @@ function run_test {
     # we need to filter out the banner part of the output so we get stable, repeatable
     # results.
     if [[ $server_type == 'TinySSH' ]]; then
-	grep -v "(gen) banner: " ${test_result} > "${test_result}.tmp"
-	mv "${test_result}.tmp" ${test_result}
+	grep -v "(gen) banner: " ${test_result_stdout} > "${test_result_stdout}.tmp"
+	mv "${test_result_stdout}.tmp" ${test_result_stdout}
+	cat "${test_result_json}" | perl -pe 's/"comments": ".*?"/"comments": ""/' | perl -pe 's/"raw": ".+?"/"raw": ""/' > "${test_result_json}.tmp"
+	mv "${test_result_json}.tmp" ${test_result_json}
     fi
 
-    diff=`diff -u ${expected_result} ${test_result}`
-    if [[ $? == 0 ]]; then
-	echo -e "${test_name} ${GREEN}passed${CLR}."
-    else
+    diff=`diff -u ${expected_result_stdout} ${test_result_stdout}`
+    if [[ $? != 0 ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
 	exit 1
     fi
-}
 
+    diff=`diff -u ${expected_result_json} ${test_result_json}`
+    if [[ $? != 0 ]]; then
+	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+	exit 1
+    fi
+    echo -e "${test_name} ${GREEN}passed${CLR}."
+}
 
 
 # First check if docker is functional.

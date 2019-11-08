@@ -3184,15 +3184,19 @@ def build_struct(banner, kex=None, pkm=None):
 		res['mac'] = kex.server.mac
 		res['fingerprints'] = []
 		host_keys = kex.host_keys()
-		for host_key_type in host_keys:
+
+		# Normalize all RSA key types to 'ssh-rsa'.  Otherwise, due to Python's order-indifference dictionary types, we would iterate key types in unpredictable orders, which interferes with the docker testing framework (i.e.: tests would fail because elements are reported out of order, even though the output is semantically the same).
+		for host_key_type in host_keys.keys():
+			if host_key_type in SSH2.HostKeyTest.RSA_FAMILY:
+				val = host_keys[host_key_type]
+				del(host_keys[host_key_type])
+				host_keys['ssh-rsa'] = val
+
+		for host_key_type in sorted(host_keys):
 			if host_keys[host_key_type] is None:
 				continue
 
 			fp = SSH.Fingerprint(host_keys[host_key_type])
-
-			# Workaround for Python's order-indifference in dicts.  We might get a random RSA type (ssh-rsa, rsa-sha2-256, or rsa-sha2-512), so running the tool against the same server three times may give three different host key types here.  So if we have any RSA type, we will simply hard-code it to 'ssh-rsa'.
-			if host_key_type in SSH2.HostKeyTest.RSA_FAMILY:
-				host_key_type = 'ssh-rsa'
 
 			# Skip over certificate host types (or we would return invalid fingerprints).
 			if '-cert-' in host_key_type:
@@ -3265,7 +3269,7 @@ def audit(aconf, sshv=None):
 	if sshv == 1:
 		pkm = SSH1.PublicKeyMessage.parse(payload)
 		if aconf.json:
-			print(json.dumps(build_struct(banner, pkm=pkm)))
+			print(json.dumps(build_struct(banner, pkm=pkm), sort_keys=True))
 		else:
 			output(banner, header, pkm=pkm)
 	elif sshv == 2:
@@ -3274,7 +3278,7 @@ def audit(aconf, sshv=None):
 			SSH2.HostKeyTest.run(s, kex)
 			SSH2.GEXTest.run(s, kex)
 		if aconf.json:
-			print(json.dumps(build_struct(banner, kex=kex)))
+			print(json.dumps(build_struct(banner, kex=kex), sort_keys=True))
 		else:
 			output(banner, header, client_audit=aconf.client_audit, kex=kex)
 
