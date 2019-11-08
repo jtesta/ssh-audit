@@ -21,7 +21,7 @@
 
 ## Usage
 ```
-usage: ssh-audit.py [-1246pbcnvlt] <host>
+usage: ssh-audit.py [-1246pbcnjvlt] <host>
 
    -1,  --ssh1             force ssh version 1 only
    -2,  --ssh2             force ssh version 2 only
@@ -52,6 +52,7 @@ TODO
 ## ChangeLog
 ### v2.1.0 (???)
  - Added client software auditing functionality (see `-c` / `--client-audit` option).
+ - Added JSON output option (see `-j` / `--json` option).
  - Fixed crash while scanning Solaris Sun_SSH.
  - Added 9 new key exchanges: `gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `gss-gex-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `gss-group14-sha1-`, `gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==`, `gss-group15-sha512-toWM5Slw5Ew8Mqkay+al2g==`, `diffie-hellman-group15-sha256`, `ecdh-sha2-1.3.132.0.10`, `curve448-sha512`.
  - Added 1 new host key type: `ecdsa-sha2-1.3.132.0.10`.
