@@ -3276,7 +3276,7 @@ def audit(aconf, sshv=None):
 		if aconf.json:
 			print(json.dumps(build_struct(banner, kex=kex)))
 		else:
-                        output(banner, header, client_audit=aconf.client_audit, kex=kex)
+			output(banner, header, client_audit=aconf.client_audit, kex=kex)
 
 
 utils = Utils()
