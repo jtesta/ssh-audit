@@ -44,15 +44,17 @@ usage: ssh-audit.py [-1246pbcnjvlt] <host>
 * verbose flag `-v` will prefix each line with section type and algorithm name.  
 
 ### Server Audit Example
+Below is a screen shot of the server-auditing output when connecting to an unhardened OpenSSH v5.3 service:
 ![screenshot](https://user-images.githubusercontent.com/2982011/64388792-317e6f80-d00e-11e9-826e-a4934769bb07.png)
 
 ### Client Audit Example
-TODO
+Below is a screen shot of the client-auditing output when an unhardened OpenSSH v7.2 client connects:
+![client_screenshot](https://user-images.githubusercontent.com/2982011/68862940-59e4b300-06bc-11ea-95d2-1b5bc8824cc9.png)
 
 ## ChangeLog
-### v2.1.0 (???)
+### v2.1.0 (2019-11-14)
  - Added client software auditing functionality (see `-c` / `--client-audit` option).
- - Added JSON output option (see `-j` / `--json` option).
+ - Added JSON output option (see `-j` / `--json` option; credit [Andreas Jaggi](https://github.com/x-way)).
  - Fixed crash while scanning Solaris Sun_SSH.
  - Added 9 new key exchanges: `gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `gss-gex-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `gss-group14-sha1-`, `gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==`, `gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==`, `gss-group15-sha512-toWM5Slw5Ew8Mqkay+al2g==`, `diffie-hellman-group15-sha256`, `ecdh-sha2-1.3.132.0.10`, `curve448-sha512`.
  - Added 1 new host key type: `ecdsa-sha2-1.3.132.0.10`.
@@ -68,7 +70,7 @@ TODO
  - Added 5 new key exchanges: `sntrup4591761x25519-sha512@tinyssh.org`, `diffie-hellman-group-exchange-sha256@ssh.com`, `diffie-hellman-group-exchange-sha512@ssh.com`, `diffie-hellman-group16-sha256`, `diffie-hellman-group17-sha512`.
  - Added 3 new encryption algorithms: `des-cbc-ssh1`, `blowfish-ctr`, `twofish-ctr`.
  - Added 10 new MACs: `hmac-sha2-56`, `hmac-sha2-224`, `hmac-sha2-384`, `hmac-sha3-256`, `hmac-sha3-384`, `hmac-sha3-512`, `hmac-sha256`, `hmac-sha256@ssh.com`, `hmac-sha512`, `hmac-512@ssh.com`.
- - Added command line argument (-t / --timeout) for connection & reading timeouts.
+ - Added command line argument (`-t` / `--timeout`) for connection & reading timeouts.
  - Updated CVEs for libssh & Dropbear.
 
 ### v1.7.0 (2016-10-26)
