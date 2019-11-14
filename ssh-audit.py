@@ -1997,6 +1997,8 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				self.__ipvo = ()
 			self.__timeout = timeout
 			self.__timeout_set = timeout_set
+			self.client_host = None
+			self.client_port = None
 
 		
 		def _resolve(self, ipvo):
@@ -2957,11 +2959,14 @@ def output_info(algs, software, client_audit, any_problems, padlen=0):
 		out.sep()
 
 
-def output(banner, header, client_audit=False, kex=None, pkm=None):
+def output(banner, header, client_host=None, kex=None, pkm=None):
 	# type: (Optional[SSH.Banner], List[text_type], Optional[SSH2.Kex], Optional[SSH1.PublicKeyMessage]) -> None
+	client_audit = (client_host != None) # If set, this is a client audit.
 	sshv = 1 if pkm is not None else 2
 	algs = SSH.Algorithms(pkm, kex)
 	with OutputBuffer() as obuf:
+		if client_audit:
+			out.good('(gen) client IP: {0}'.format(client_host))
 		if len(header) > 0:
 			out.info('(gen) header: ' + '\n'.join(header))
 		if banner is not None:
@@ -3142,7 +3147,7 @@ class Utils(object):
 		except:  # pylint: disable=bare-except
 			return -1.0
 
-def build_struct(banner, kex=None, pkm=None):
+def build_struct(banner, kex=None, pkm=None, client_host=None):
 	res = {
 		"banner": {
 			"raw": str(banner),
@@ -3151,6 +3156,8 @@ def build_struct(banner, kex=None, pkm=None):
 			"comments": banner.comments,
 		},
 	}
+	if client_host is not None:
+		res['client_ip'] = client_host
 	if kex is not None:
 		res['compression'] = kex.server.compression
 
@@ -3278,9 +3285,9 @@ def audit(aconf, sshv=None):
 			SSH2.HostKeyTest.run(s, kex)
 			SSH2.GEXTest.run(s, kex)
 		if aconf.json:
-			print(json.dumps(build_struct(banner, kex=kex), sort_keys=True))
+			print(json.dumps(build_struct(banner, kex=kex, client_host=s.client_host), sort_keys=True))
 		else:
-			output(banner, header, client_audit=aconf.client_audit, kex=kex)
+			output(banner, header, client_host=s.client_host, kex=kex)
 
 
 utils = Utils()
