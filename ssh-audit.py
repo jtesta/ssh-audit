@@ -386,6 +386,8 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdsa-sha2-nistp256-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp384-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp521-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
+				'rsa-sha2-256-cert-v01@openssh.com': [['7.8']],
+				'rsa-sha2-512-cert-v01@openssh.com': [['7.8']],
 				'ssh-rsa-sha256@ssh.com': [[]],
 				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]], # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
 			},

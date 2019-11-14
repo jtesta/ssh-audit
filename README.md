@@ -53,7 +53,7 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 
 ## ChangeLog
 ### v2.2.0 (???)
- - ???
+ - Added two new host key types: `rsa-sha2-256-cert-v01@openssh.com`, `rsa-sha2-512-cert-v01@openssh.com`.
 
 ### v2.1.0 (2019-11-14)
  - Added client software auditing functionality (see `-c` / `--client-audit` option).
