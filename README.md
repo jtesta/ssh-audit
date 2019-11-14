@@ -52,6 +52,9 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 ![client_screenshot](https://user-images.githubusercontent.com/2982011/68867998-b946c100-06c4-11ea-975f-1f47e4178a74.png)
 
 ## ChangeLog
+### v2.2.0 (???)
+ - ???
+
 ### v2.1.0 (2019-11-14)
  - Added client software auditing functionality (see `-c` / `--client-audit` option).
  - Added JSON output option (see `-j` / `--json` option; credit [Andreas Jaggi](https://github.com/x-way)).
