@@ -49,7 +49,7 @@ Below is a screen shot of the server-auditing output when connecting to an unhar
 
 ### Client Audit Example
 Below is a screen shot of the client-auditing output when an unhardened OpenSSH v7.2 client connects:
-![client_screenshot](https://user-images.githubusercontent.com/2982011/68862940-59e4b300-06bc-11ea-95d2-1b5bc8824cc9.png)
+![client_screenshot](https://user-images.githubusercontent.com/2982011/68867998-b946c100-06c4-11ea-975f-1f47e4178a74.png)
 
 ## ChangeLog
 ### v2.1.0 (2019-11-14)
