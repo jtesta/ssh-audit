@@ -1,8 +1,8 @@
 To create package and upload to test server:
 
 # apt install virtualenv
-$ virtualenv -p /usr/bin/python3 pypi_upload
-$ cd pypi_upload; source bin/activate
+$ virtualenv -p /usr/bin/python3 /tmp/pypi_upload
+$ cd /tmp/pypi_upload; source bin/activate
 $ pip3 install twine
 $ cp -R path/to/ssh-audit .
 $ cd ssh-audit/pypi
@@ -12,6 +12,6 @@ $ make uploadtest
 
 To download from test server and verify:
 
-$ virtualenv -p /usr/bin/python3 pypi_test
-$ cd pypi_test; source bin/activate
+$ virtualenv -p /usr/bin/python3 /tmp/pypi_test
+$ cd /tmp/pypi_test; source bin/activate
 $ pip3 install --index-url https://test.pypi.org/simple ssh-audit
