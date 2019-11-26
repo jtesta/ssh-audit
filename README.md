@@ -51,10 +51,15 @@ Below is a screen shot of the server-auditing output when connecting to an unhar
 Below is a screen shot of the client-auditing output when an unhardened OpenSSH v7.2 client connects:
 ![client_screenshot](https://user-images.githubusercontent.com/2982011/68867998-b946c100-06c4-11ea-975f-1f47e4178a74.png)
 
+### Hardening Guides
+Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
+
 ## ChangeLog
-### v2.2.0 (???)
+### v2.1.1 (2019-11-26)
  - Added 2 new host key types: `rsa-sha2-256-cert-v01@openssh.com`, `rsa-sha2-512-cert-v01@openssh.com`.
  - Added 2 new ciphers: `des`, `3des`.
+ - Added 3 new PuTTY vulnerabilities.
+ - During client testing, client IP address is now listed in output.
 
 ### v2.1.0 (2019-11-14)
  - Added client software auditing functionality (see `-c` / `--client-audit` option).
