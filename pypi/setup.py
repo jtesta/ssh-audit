@@ -20,7 +20,7 @@ setup(
         "console_scripts": ['ssh-audit = sshaudit.sshaudit:main']
     },
     version = version,
-    description = "An SSH server configuration security auditing tool",
+    description = "An SSH server & client configuration security auditing tool",
     long_description = long_descr,
     long_description_content_type = "text/markdown",
     author = "Joe Testa",
