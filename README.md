@@ -17,6 +17,7 @@
 - output security information (related issues, assigned CVE list, etc);
 - analyze SSH version compatibility based on algorithm information;
 - historical information from OpenSSH, Dropbear SSH and libssh;
+- runs on Linux and Windows;
 - no dependencies
 
 ## Usage
@@ -55,6 +56,9 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
 ## ChangeLog
+### v2.2.0 (???)
+ - Added Windows builds.
+
 ### v2.1.1 (2019-11-26)
  - Added 2 new host key types: `rsa-sha2-256-cert-v01@openssh.com`, `rsa-sha2-512-cert-v01@openssh.com`.
  - Added 2 new ciphers: `des`, `3des`.
