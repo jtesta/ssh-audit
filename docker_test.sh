@@ -423,18 +423,18 @@ function run_test {
     ./ssh-audit.py localhost:2222 > $test_result_stdout
     if [[ $? != 0 ]]; then
 	echo -e "${REDB}Failed to run ssh-audit.py! (exit code: $?)${CLR}"
-	docker container stop $cid > /dev/null
+	docker container stop -t 0 $cid > /dev/null
 	exit 1
     fi
 
     ./ssh-audit.py -j localhost:2222 > $test_result_json
     if [[ $? != 0 ]]; then
 	echo -e "${REDB}Failed to run ssh-audit.py! (exit code: $?)${CLR}"
-	docker container stop $cid > /dev/null
+	docker container stop -t 0 $cid > /dev/null
 	exit 1
     fi
 
-    docker container stop $cid > /dev/null
+    docker container stop -t 0 $cid > /dev/null
     if [[ $? != 0 ]]; then
        echo -e "${REDB}Failed to stop docker container ${cid}! (exit code: $?)${CLR}"
        exit 1
