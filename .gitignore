@@ -1,5 +1,7 @@
 *~
 *.pyc
+*.exe
+*.asc
 venv*/
 .cache/
 .tox
