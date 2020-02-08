@@ -3,7 +3,7 @@
 """
    The MIT License (MIT)
    
-   Copyright (C) 2017-2019 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
    
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -27,7 +27,8 @@
 from __future__ import print_function
 import base64, binascii, errno, hashlib, getopt, io, os, random, re, select, socket, struct, sys, json
 
-VERSION = 'v2.2.0-dev'
+
+VERSION = 'v2.1.2-dev'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.0' # SSH software to impersonate
 
 if sys.version_info.major < 3:
@@ -50,7 +51,7 @@ except ImportError:  # pragma: nocover
 	pass
 try:  # pragma: nocover
 	from colorama import init as colorama_init
-	colorama_init()  # pragma: nocover
+	colorama_init(strip=False)  # pragma: nocover
 except ImportError:  # pragma: nocover
 	pass
 
@@ -339,25 +340,44 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'gss-gex-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
+				'gss-gex-sha1-': [[], [], [WARN_HASH_WEAK]],
+				'gss-group1-sha1-': [[], [], [WARN_HASH_WEAK]],
+
 				'gss-group14-sha1-': [[], [], [WARN_HASH_WEAK]],
 				'gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
 				'gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==': [[]],
 				'gss-group15-sha512-toWM5Slw5Ew8Mqkay+al2g==': [[]],
 				'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
 				'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
+				'diffie-hellman-group14-sha256@ssh.com': [[]],
 				'diffie-hellman-group15-sha256': [[]],
+				'diffie-hellman-group15-sha256@ssh.com': [[]],
+				'diffie-hellman-group15-sha384@ssh.com': [[]],
 				'diffie-hellman-group15-sha512': [[]],
 				'diffie-hellman-group16-sha256': [[]],
+				'diffie-hellman-group16-sha384@ssh.com': [[]],
 				'diffie-hellman-group16-sha512': [['7.3,d2016.73']],
+				'diffie-hellman-group16-sha512@ssh.com': [[]],
 				'diffie-hellman-group17-sha512': [[]],
 				'diffie-hellman-group18-sha512': [['7.3']],
+				'diffie-hellman-group18-sha512@ssh.com': [[]],
 				'diffie-hellman-group-exchange-sha1': [['2.3.0', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_HASH_WEAK]],
 				'diffie-hellman-group-exchange-sha256': [['4.4']],
 				'diffie-hellman-group-exchange-sha256@ssh.com': [[]],
 				'diffie-hellman-group-exchange-sha512@ssh.com': [[]],
+				'ecdh-sha2-curve25519': [[], []],
+				'ecdh-sha2-nistb233': [[], [WARN_CURVES_WEAK]],
+				'ecdh-sha2-nistb409': [[], [WARN_CURVES_WEAK]],
+				'ecdh-sha2-nistk163': [[], [WARN_CURVES_WEAK]],
+				'ecdh-sha2-nistk233': [[], [WARN_CURVES_WEAK]],
+				'ecdh-sha2-nistk283': [[], [WARN_CURVES_WEAK]],
+				'ecdh-sha2-nistk409': [[], [WARN_CURVES_WEAK]],
+				'ecdh-sha2-nistp192': [[], [WARN_CURVES_WEAK]],
+				'ecdh-sha2-nistp224': [[], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp256': [['5.7,d2013.62,l10.6.0'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp384': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
+				'ecdh-sha2-nistt571': [[], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-1.3.132.0.10': [[]], # ECDH over secp256k1 (i.e.: the Bitcoin curve)
 				'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
 				'curve25519-sha256': [['7.4,d2018.76']],
@@ -379,6 +399,12 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdsa-sha2-nistp256': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp384': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp521': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
+				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]], # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
+				'x509v3-sign-dss': [[], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
+				'x509v3-sign-rsa': [[], [], [WARN_HASH_WEAK]],
+				'x509v3-sign-rsa-sha256@ssh.com': [[]],
+				'x509v3-ssh-dss': [[], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
+				'x509v3-ssh-rsa': [[], [], [WARN_HASH_WEAK]],
 				'ssh-rsa-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY], []],
 				'ssh-dss-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
 				'ssh-rsa-cert-v01@openssh.com': [['5.6']],
@@ -432,8 +458,11 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'aes128-ctr': [['3.7,d0.52,l10.4.1']],
 				'aes192-ctr': [['3.7,l10.4.1']],
 				'aes256-ctr': [['3.7,d0.52,l10.4.1']],
+				'aes128-gcm': [[]],
+				'aes256-gcm': [[]],
 				'aes128-gcm@openssh.com': [['6.2']],
 				'aes256-gcm@openssh.com': [['6.2']],
+				'chacha20-poly1305': [[], [], [], [INFO_OPENSSH69_CHACHA]],
 				'chacha20-poly1305@openssh.com': [['6.5'], [], [], [INFO_OPENSSH69_CHACHA]],
 			},
 			'mac': {
@@ -475,6 +504,8 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'umac-64-etm@openssh.com': [['6.2'], [], [WARN_TAG_SIZE]],
 				'umac-96@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]], # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
 				'umac-128-etm@openssh.com': [['6.2']],
+				'aes128-gcm': [[]],
+				'aes256-gcm': [[]],
 			}
 		}  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
 	
