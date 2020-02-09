@@ -342,7 +342,6 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'gss-gex-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
 				'gss-gex-sha1-': [[], [], [WARN_HASH_WEAK]],
 				'gss-group1-sha1-': [[], [], [WARN_HASH_WEAK]],
-
 				'gss-group14-sha1-': [[], [], [WARN_HASH_WEAK]],
 				'gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
 				'gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==': [[]],
@@ -416,6 +415,10 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'rsa-sha2-512-cert-v01@openssh.com': [['7.8']],
 				'ssh-rsa-sha256@ssh.com': [[]],
 				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]], # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
+				'sk-ecdsa-sha2-nistp256-cert-v01@openssh.com': [['8.2'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
+				'sk-ecdsa-sha2-nistp256@openssh.com': [['8.2'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
+				'sk-ssh-ed25519-cert-v01@openssh.com': [['8.2']],
+				'sk-ssh-ed25519@openssh.com': [['8.2']],
 			},
 			'enc': {
 				'none': [['1.2.2,d2013.56,l10.2'], [FAIL_PLAINTEXT]],
