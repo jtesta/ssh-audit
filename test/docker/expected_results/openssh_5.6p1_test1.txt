@@ -32,7 +32,8 @@
                                             `- [info] available since OpenSSH 2.3.0, Dropbear SSH 0.28
 
 [0;36m# host-key algorithms[0m
-[0;31m(key) ssh-rsa (1024-bit)                    -- [fail] using small 1024-bit modulus[0m
+[0;31m(key) ssh-rsa (1024-bit)                    -- [fail] using weak hashing algorithm[0m
+[0;33m                                            `- [warn] using small 1024-bit modulus[0m
                                             `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28
 [0;31m(key) ssh-dss                               -- [fail] removed (in server) and disabled (in client) since OpenSSH 7.0, weak algorithm[0m
 [0;33m                                            `- [warn] using small 1024-bit modulus[0m
@@ -122,7 +123,6 @@
 
 [0;36m# algorithm recommendations (for OpenSSH 5.6)[0m
 [0;31m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 2048 bits or larger) [0m
-[0;31m(rec) !ssh-rsa                              -- key algorithm to change (increase modulus size to 2048 bits or larger) [0m
 [0;31m(rec) -3des-cbc                             -- enc algorithm to remove [0m
 [0;31m(rec) -aes128-cbc                           -- enc algorithm to remove [0m
 [0;31m(rec) -aes192-cbc                           -- enc algorithm to remove [0m

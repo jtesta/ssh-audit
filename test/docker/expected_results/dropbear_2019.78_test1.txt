@@ -22,7 +22,8 @@
 [0;31m(key) ecdsa-sha2-nistp256            -- [fail] using weak elliptic curves[0m
 [0;33m                                     `- [warn] using weak random number generator could reveal the key[0m
                                      `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
-[0;31m(key) ssh-rsa (1024-bit)             -- [fail] using small 1024-bit modulus[0m
+[0;31m(key) ssh-rsa (1024-bit)             -- [fail] using weak hashing algorithm[0m
+[0;33m                                     `- [warn] using small 1024-bit modulus[0m
                                      `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28
 [0;31m(key) ssh-dss                        -- [fail] removed (in server) and disabled (in client) since OpenSSH 7.0, weak algorithm[0m
 [0;33m                                     `- [warn] using small 1024-bit modulus[0m
@@ -63,7 +64,6 @@
 [0;32m(fin) ssh-rsa: SHA256:CDfAU12pjQS7/91kg7gYacza0U/6PDbE04Ic3IpYxkM[0m
 
 [0;36m# algorithm recommendations (for Dropbear SSH 2019.78)[0m
-[0;31m(rec) !ssh-rsa                       -- key algorithm to change (increase modulus size to 2048 bits or larger) [0m
 [0;31m(rec) -3des-cbc                      -- enc algorithm to remove [0m
 [0;31m(rec) -3des-ctr                      -- enc algorithm to remove [0m
 [0;31m(rec) -aes128-cbc                    -- enc algorithm to remove [0m
@@ -71,7 +71,6 @@
 [0;31m(rec) -ecdh-sha2-nistp256            -- kex algorithm to remove [0m
 [0;31m(rec) -ecdh-sha2-nistp384            -- kex algorithm to remove [0m
 [0;31m(rec) -ecdh-sha2-nistp521            -- kex algorithm to remove [0m
-[0;31m(rec) -ecdsa-sha2-nistp256           -- key algorithm to remove [0m
 [0;31m(rec) -hmac-sha1-96                  -- mac algorithm to remove [0m
 [0;31m(rec) -ssh-dss                       -- key algorithm to remove [0m
 [0;32m(rec) +diffie-hellman-group16-sha512 -- kex algorithm to append [0m

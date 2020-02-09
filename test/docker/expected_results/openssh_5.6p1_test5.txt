@@ -32,7 +32,8 @@
                                             `- [info] available since OpenSSH 2.3.0, Dropbear SSH 0.28
 
 [0;36m# host-key algorithms[0m
-[0;32m(key) ssh-rsa (3072-bit)                    -- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28[0m
+[0;31m(key) ssh-rsa (3072-bit)                    -- [fail] using weak hashing algorithm[0m
+                                            `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28
 [0;32m(key) ssh-rsa-cert-v01@openssh.com (3072-bit cert/3072-bit CA) -- [info] available since OpenSSH 5.6[0m
 
 [0;36m# encryption algorithms (ciphers)[0m
@@ -135,6 +136,7 @@
 [0;31m(rec) -hmac-ripemd160@openssh.com           -- mac algorithm to remove [0m
 [0;31m(rec) -hmac-sha1-96                         -- mac algorithm to remove [0m
 [0;31m(rec) -rijndael-cbc@lysator.liu.se          -- enc algorithm to remove [0m
+[0;31m(rec) -ssh-rsa                              -- key algorithm to remove [0m
 [0;33m(rec) -diffie-hellman-group14-sha1          -- kex algorithm to remove [0m
 
 [0;36m# additional info[0m

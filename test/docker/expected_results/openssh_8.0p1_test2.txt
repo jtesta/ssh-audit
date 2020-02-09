@@ -63,7 +63,6 @@
 [0;31m(rec) -ecdh-sha2-nistp521                   -- kex algorithm to remove [0m
 [0;32m(rec) +rsa-sha2-256                         -- key algorithm to append [0m
 [0;32m(rec) +rsa-sha2-512                         -- key algorithm to append [0m
-[0;32m(rec) +ssh-rsa                              -- key algorithm to append [0m
 [0;33m(rec) -diffie-hellman-group14-sha1          -- kex algorithm to remove [0m
 [0;33m(rec) -hmac-sha1                            -- mac algorithm to remove [0m
 [0;33m(rec) -hmac-sha1-etm@openssh.com            -- mac algorithm to remove [0m

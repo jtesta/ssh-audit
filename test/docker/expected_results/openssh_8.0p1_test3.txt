@@ -35,5 +35,4 @@
 [0;32m(rec) +diffie-hellman-group18-sha512        -- kex algorithm to append [0m
 [0;32m(rec) +rsa-sha2-256                         -- key algorithm to append [0m
 [0;32m(rec) +rsa-sha2-512                         -- key algorithm to append [0m
-[0;32m(rec) +ssh-rsa                              -- key algorithm to append [0m
 

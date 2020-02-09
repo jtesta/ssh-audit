@@ -393,7 +393,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'rsa-sha2-512': [['7.2']],
 				'ssh-ed25519': [['6.5,l10.7.0']],
 				'ssh-ed25519-cert-v01@openssh.com': [['6.5']],
-				'ssh-rsa': [['2.5.0,d0.28,l10.2']],
+				'ssh-rsa': [['2.5.0,d0.28,l10.2'], [WARN_HASH_WEAK]],
 				'ssh-dss': [['2.1.0,d0.28,l10.2', '6.9'], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp256': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp384': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
@@ -1828,7 +1828,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 						else:
 							if faults == 0:
 								continue
-							if n in ['diffie-hellman-group-exchange-sha256', 'ssh-rsa', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-rsa-cert-v01@openssh.com']:
+							if n in ['diffie-hellman-group-exchange-sha256', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-rsa-cert-v01@openssh.com']:
 								rec[sshv][alg_type]['chg'][n] = faults
 							else:
 								rec[sshv][alg_type]['del'][n] = faults
