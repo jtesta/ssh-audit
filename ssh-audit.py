@@ -152,7 +152,7 @@ class AuditConf(object):
 		aconf = cls()
 		try:
 			sopts = 'h1246p:bcnjvl:t:'
-			lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'port', 'json',
+			lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'port=', 'json',
 			         'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=']
 			opts, args = getopt.gnu_getopt(args, sopts, lopts)
 		except getopt.GetoptError as err:
