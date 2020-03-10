@@ -467,6 +467,12 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'aes256-gcm@openssh.com': [['6.2']],
 				'chacha20-poly1305': [[], [], [], [INFO_OPENSSH69_CHACHA]],
 				'chacha20-poly1305@openssh.com': [['6.5'], [], [], [INFO_OPENSSH69_CHACHA]],
+				'camellia128-cbc': [[], [], [WARN_CIPHER_MODE]],
+				'camellia128-ctr': [[]],
+				'camellia192-cbc': [[], [], [WARN_CIPHER_MODE]],
+				'camellia192-ctr': [[]],
+				'camellia256-cbc': [[], [], [WARN_CIPHER_MODE]],
+				'camellia256-ctr': [[]],
 			},
 			'mac': {
 				'none': [['d2013.56'], [FAIL_PLAINTEXT]],
@@ -1795,25 +1801,27 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 					rec[sshv][alg_type] = {'add': {}, 'del': {}, 'chg': {}}
 					for n, alg_desc in alg_db[alg_type].items():
 						versions = alg_desc[0]
+						empty_version = False
 						if len(versions) == 0 or versions[0] is None:
-							continue
-						matches = False
-						if unknown_software:
-							matches = True
-						for v in versions[0].split(','):
-							ssh_prefix, ssh_version, is_cli = SSH.Algorithm.get_ssh_version(v)
-							if not ssh_version:
+							empty_version = True
+						if not empty_version:
+							matches = False
+							if unknown_software:
+								matches = True
+							for v in versions[0].split(','):
+								ssh_prefix, ssh_version, is_cli = SSH.Algorithm.get_ssh_version(v)
+								if not ssh_version:
+									continue
+								if (software is not None) and (ssh_prefix != software.product):
+									continue
+								if is_cli and for_server:
+									continue
+								if (software is not None) and (software.compare_version(ssh_version) < 0):
+									continue
+								matches = True
+								break
+							if not matches:
 								continue
-							if (software is not None) and (ssh_prefix != software.product):
-								continue
-							if is_cli and for_server:
-								continue
-							if (software is not None) and (software.compare_version(ssh_version) < 0):
-								continue
-							matches = True
-							break
-						if not matches:
-							continue
 						adl, faults = len(alg_desc), 0
 						for i in range(1, 3):
 							if not adl > i:
@@ -1822,7 +1830,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 							if fc > 0:
 								faults += pow(10, 2 - i) * fc
 						if n not in alg_list:
-							if faults > 0 or (alg_type == 'key' and '-cert-' in n):
+							if faults > 0 or (alg_type == 'key' and '-cert-' in n) or empty_version:
 								continue
 							rec[sshv][alg_type]['add'][n] = 0
 						else:
