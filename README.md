@@ -56,7 +56,7 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
 ## ChangeLog
-### v2.1.2 (???)
+### v2.2.0 (2020-03-11)
  - Marked host key type `ssh-rsa` as weak due to [practical SHA-1 collisions](https://eprint.iacr.org/2020/014.pdf).
  - Added Windows builds.
  - Added 10 new host key types: `ecdsa-sha2-1.3.132.0.10`, `x509v3-sign-dss`, `x509v3-sign-rsa`, `x509v3-sign-rsa-sha256@ssh.com`, `x509v3-ssh-dss`, `x509v3-ssh-rsa`, `sk-ecdsa-sha2-nistp256-cert-v01@openssh.com`, `sk-ecdsa-sha2-nistp256@openssh.com`, `sk-ssh-ed25519-cert-v01@openssh.com`, and `sk-ssh-ed25519@openssh.com`.

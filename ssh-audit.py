@@ -28,7 +28,7 @@ from __future__ import print_function
 import base64, binascii, errno, hashlib, getopt, io, os, random, re, select, socket, struct, sys, json
 
 
-VERSION = 'v2.1.2-dev'
+VERSION = 'v2.2.0'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.0' # SSH software to impersonate
 
 if sys.version_info.major < 3:
