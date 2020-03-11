@@ -15,3 +15,17 @@ To download from test server and verify:
 $ virtualenv -p /usr/bin/python3 /tmp/pypi_test
 $ cd /tmp/pypi_test; source bin/activate
 $ pip3 install --index-url https://test.pypi.org/simple ssh-audit
+
+
+To upload to production server:
+
+$ cd /tmp/pypi_upload; source bin/activate
+$ cd ssh-audit/pypi
+$ make uploadprod
+
+
+To download from production server and verify:
+
+$ virtualenv -p /usr/bin/python3 /tmp/pypi_prod
+$ cd /tmp/pypi_prod; source bin/activate
+$ pip3 install ssh-audit
