@@ -8,6 +8,11 @@ venv*/
 .coverage*
 reports/
 .scannerwork/
-pypi/sshaudit/LICENSE
-pypi/sshaudit/README.md
-pypi/sshaudit/sshaudit.py
+packages/sshaudit/LICENSE
+packages/sshaudit/README.md
+packages/sshaudit/sshaudit.py
+packages/parts/
+packages/prime/
+packages/snap/
+packages/stage/
+packages/ssh-audit_*.snap

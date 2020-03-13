@@ -1,3 +1,5 @@
+= PyPI =
+
 To create package and upload to test server:
 
 # apt install virtualenv
@@ -6,8 +8,8 @@ $ cd /tmp/pypi_upload; source bin/activate
 $ pip3 install twine
 $ cp -R path/to/ssh-audit .
 $ cd ssh-audit/pypi
-$ make
-$ make uploadtest
+$ make -f Makefile.pypi
+$ make -f Makefile.pypi uploadtest
 
 
 To download from test server and verify:
@@ -21,7 +23,7 @@ To upload to production server:
 
 $ cd /tmp/pypi_upload; source bin/activate
 $ cd ssh-audit/pypi
-$ make uploadprod
+$ make -f Makefile.pypi uploadprod
 
 
 To download from production server and verify:
@@ -29,3 +31,11 @@ To download from production server and verify:
 $ virtualenv -p /usr/bin/python3 /tmp/pypi_prod
 $ cd /tmp/pypi_prod; source bin/activate
 $ pip3 install ssh-audit
+
+----
+
+= Snap =
+
+To create the snap package, simply run:
+
+$ make -f Makefile.snap

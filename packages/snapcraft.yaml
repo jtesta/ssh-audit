@@ -1,0 +1,21 @@
+name: ssh-audit
+version: '2.2.0-1'
+license: 'MIT'
+summary: ssh-audit
+description: |
+  SSH server and client security configuration auditor.  Official repository: <https://github.com/jtesta/ssh-audit>
+
+base: core18
+grade: stable
+confinement: strict
+
+apps:
+  ssh-audit:
+    command: bin/ssh-audit
+    plugs: [network,network-bind]
+
+parts:
+  ssh-audit:
+    plugin: python
+    python-version: python3
+    source: .
