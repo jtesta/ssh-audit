@@ -55,6 +55,19 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 ### Hardening Guides
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
+### Pre-Built Packages ###
+Pre-built packages are available for Windows (see the releases page), on PyPI, as well as the snap repository.
+
+To install from PyPI:
+```
+$ pip3 install ssh-audit
+```
+
+To install the snap package:
+```
+$ snap install ssh-audit
+```
+
 ## ChangeLog
 ### v2.2.0 (2020-03-11)
  - Marked host key type `ssh-rsa` as weak due to [practical SHA-1 collisions](https://eprint.iacr.org/2020/014.pdf).
