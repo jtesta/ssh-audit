@@ -69,6 +69,10 @@ $ snap install ssh-audit
 ```
 
 ## ChangeLog
+### v2.2.1-dev (???)
+ - Added 1 new host key types: `ssh-rsa1`.
+ - Added 1 new ciphers: `blowfish`.
+ 
 ### v2.2.0 (2020-03-11)
  - Marked host key type `ssh-rsa` as weak due to [practical SHA-1 collisions](https://eprint.iacr.org/2020/014.pdf).
  - Added Windows builds.

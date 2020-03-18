@@ -28,7 +28,7 @@ from __future__ import print_function
 import base64, binascii, errno, hashlib, getopt, io, os, random, re, select, socket, struct, sys, json
 
 
-VERSION = 'v2.2.0'
+VERSION = 'v2.2.1-dev'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.0' # SSH software to impersonate
 
 if sys.version_info.major < 3:
@@ -320,6 +320,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		FAIL_DBEAR53_DISABLED = 'disabled since Dropbear SSH 0.53'
 		FAIL_DEPRECATED_CIPHER = 'deprecated cipher'
 		FAIL_WEAK_CIPHER      = 'using weak cipher'
+		FAIL_WEAK_ALGORITHM   = 'using weak/obsolete algorithm'
 		FAIL_PLAINTEXT        = 'no encryption/integrity'
 		FAIL_DEPRECATED_MAC   = 'deprecated MAC'
 		WARN_CURVES_WEAK      = 'using weak elliptic curves'
@@ -389,6 +390,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
                                 'ext-info-s': [[]], # Extension negotiation (RFC 8308)
 			},
 			'key': {
+				'ssh-rsa1': [[], [FAIL_WEAK_ALGORITHM]],
 				'rsa-sha2-256': [['7.2']],
 				'rsa-sha2-512': [['7.2']],
 				'ssh-ed25519': [['6.5,l10.7.0']],
@@ -428,6 +430,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'3des': [[], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH74_UNSAFE, WARN_CIPHER_WEAK, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'3des-cbc': [['1.2.2,d0.28,l10.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH74_UNSAFE, WARN_CIPHER_WEAK, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'3des-ctr': [['d0.52'], [FAIL_WEAK_CIPHER]],
+				'blowfish': [[], [FAIL_WEAK_ALGORITHM], [WARN_BLOCK_SIZE]],
 				'blowfish-cbc': [['1.2.2,d0.28,l10.2', '6.6,d0.52', '7.1,d0.52'], [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'blowfish-ctr': [[], [FAIL_OPENSSH67_UNSAFE, FAIL_DBEAR53_DISABLED], [WARN_OPENSSH72_LEGACY, WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
 				'twofish-cbc': [['d0.28', 'd2014.66'], [FAIL_DBEAR67_DISABLED], [WARN_CIPHER_MODE]],
