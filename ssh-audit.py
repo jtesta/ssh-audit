@@ -488,6 +488,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'hmac-sha2-384': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha2-512': [['5.9,d2013.56,l10.7.0'], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha2-512-96': [['5.9', '6.0'], [FAIL_OPENSSH61_REMOVE], [WARN_ENCRYPT_AND_MAC]],
+				'hmac-sha3-224': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha3-256': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha3-384': [[], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha3-512': [[], [], [WARN_ENCRYPT_AND_MAC]],
