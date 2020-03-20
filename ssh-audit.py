@@ -518,6 +518,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'umac-128-etm@openssh.com': [['6.2']],
 				'aes128-gcm': [[]],
 				'aes256-gcm': [[]],
+				'chacha20-poly1305@openssh.com': [[]], # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
 			}
 		}  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
 	
