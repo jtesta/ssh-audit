@@ -466,6 +466,8 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'aes256-ctr': [['3.7,d0.52,l10.4.1']],
 				'aes128-gcm': [[]],
 				'aes256-gcm': [[]],
+				'AEAD_AES_128_GCM': [[]],
+				'AEAD_AES_256_GCM': [[]],
 				'aes128-gcm@openssh.com': [['6.2']],
 				'aes256-gcm@openssh.com': [['6.2']],
 				'chacha20-poly1305': [[], [], [], [INFO_OPENSSH69_CHACHA]],
