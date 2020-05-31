@@ -68,6 +68,11 @@ To install the snap package:
 $ snap install ssh-audit
 ```
 
+To install on Homebrew:
+```
+$ brew install ssh-audit
+```
+
 ## ChangeLog
 ### v2.2.1-dev (???)
  - Suppress recommendation of token host key types.
