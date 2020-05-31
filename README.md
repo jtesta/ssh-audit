@@ -70,6 +70,7 @@ $ snap install ssh-audit
 
 ## ChangeLog
 ### v2.2.1-dev (???)
+ - Suppress recommendation of token host key types.
  - Added 1 new host key types: `ssh-rsa1`.
  - Added 1 new ciphers: `blowfish`, `AEAD_AES_128_GCM`, `AEAD_AES_256_GCM`.
  - Added 2 new MACs: `chacha20-poly1305@openssh.com`, `hmac-sha3-224`.
