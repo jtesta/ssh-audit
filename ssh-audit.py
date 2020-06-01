@@ -2031,7 +2031,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		
 		SM_BANNER_SENT = 1
 		
-		def __init__(self, host, port, ipvo, timeout, timeout_set=False):
+		def __init__(self, host, port, ipvo=None, timeout=5, timeout_set=False):
 			# type: (Optional[str], int) -> None
 			super(SSH.Socket, self).__init__()
 			self.__sock = None  # type: Optional[socket.socket]
