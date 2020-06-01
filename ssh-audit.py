@@ -2040,8 +2040,8 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			self.__state = 0
 			self.__header = []  # type: List[text_type]
 			self.__banner = None  # type: Optional[SSH.Banner]
-#			if host is None:
-#				raise ValueError('undefined host')
+			if host is None:
+				raise ValueError('undefined host')
 			nport = utils.parse_int(port)
 			if nport < 1 or nport > 65535:
 				raise ValueError('invalid port: {0}'.format(port))
