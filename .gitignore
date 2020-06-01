@@ -4,6 +4,7 @@
 *.asc
 venv*/
 .cache/
+.mypy_cache/
 .tox
 .coverage*
 reports/
