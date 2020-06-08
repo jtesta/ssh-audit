@@ -291,10 +291,10 @@ class OutputBuffer(list):
 		return self
 	
 	def flush(self, sort_lines=False):
+		# type: () -> None
 		# Lines must be sorted in some cases to ensure consistent testing.
 		if sort_lines:
 			self.sort()
-		# type: () -> None
 		for line in self:
 			print(line)
 	
@@ -2032,7 +2032,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 		
 		SM_BANNER_SENT = 1
 		
-		def __init__(self, host, port, ipvo, timeout, timeout_set):
+		def __init__(self, host, port, ipvo=None, timeout=5, timeout_set=False):
 			# type: (Optional[str], int) -> None
 			super(SSH.Socket, self).__init__()
 			self.__sock = None  # type: Optional[socket.socket]
@@ -2041,8 +2041,8 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			self.__state = 0
 			self.__header = []  # type: List[text_type]
 			self.__banner = None  # type: Optional[SSH.Banner]
-#			if host is None:
-#				raise ValueError('undefined host')
+			if host is None:
+				raise ValueError('undefined host')
 			nport = utils.parse_int(port)
 			if nport < 1 or nport > 65535:
 				raise ValueError('invalid port: {0}'.format(port))
