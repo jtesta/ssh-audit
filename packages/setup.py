@@ -5,7 +5,7 @@ import re
 from setuptools import setup
 
 
-version = re.search('^VERSION\s*=\s*\'v(\d\.\d\.\d)\'', open('sshaudit/sshaudit.py').read(), re.M).group(1)
+version = re.search(r'^VERSION\s*=\s*\'v(\d\.\d\.\d)\'', open('sshaudit/sshaudit.py').read(), re.M).group(1)
 print("\n\nPackaging ssh-audit v%s...\n\n" % version)
 
 with open("sshaudit/README.md", "rb") as f:
