@@ -865,7 +865,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 						# got here, doesn't mean the server is vulnerable...
 						smallest_modulus = kex_group.get_dh_modulus_size()
 
-					except Exception as e: # pylint: disable=bare-except
+					except Exception: # pylint: disable=bare-except
 						pass
 					finally:
 						s.close()
@@ -887,7 +887,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 							kex_group.send_init_gex(s, bits, bits, bits)
 							kex_group.recv_reply(s, False)
 							smallest_modulus = kex_group.get_dh_modulus_size()
-						except Exception as e: # pylint: disable=bare-except
+						except Exception: # pylint: disable=bare-except
 							#import traceback
 							#print(traceback.format_exc())
 							pass
@@ -2093,7 +2093,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				s.bind(('0.0.0.0', self.__port))
 				s.listen()
 				self.__sock_map[s.fileno()] = s
-			except Exception as e:
+			except Exception:
 				print("Warning: failed to listen on any IPv4 interfaces.")
 				pass
 
@@ -2105,7 +2105,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				s.bind(('::', self.__port))
 				s.listen()
 				self.__sock_map[s.fileno()] = s
-			except Exception as e:
+			except Exception:
 				print("Warning: failed to listen on any IPv6 interfaces.")
 				pass
 
@@ -2403,7 +2403,6 @@ class KexDH(object):  # pragma: nocover
 
 		key_id = principles = None           # pylint: disable=unused-variable
 		critical_options = extensions = None # pylint: disable=unused-variable
-		valid_after = valid_before = None    # pylint: disable=unused-variable
 		nonce = ca_key = ca_key_type = None  # pylint: disable=unused-variable
 		ca_key_e = ca_key_n = None           # pylint: disable=unused-variable
 
@@ -2455,12 +2454,10 @@ class KexDH(object):  # pragma: nocover
 				# The principles, which are... I don't know what.
 				principles, principles_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
-				# The timestamp that this certificate is valid after.
-				valid_after = hostkey[ptr:ptr + 8]
+				# Skip over the timestamp that this certificate is valid after.
 				ptr += 8
 
-				# The timestamp that this certificate is valid before.
-				valid_before = hostkey[ptr:ptr + 8]
+				# Skip over the timestamp that this certificate is valid before.
 				ptr += 8
 
 				# TODO: validate the principles, and time range.
