@@ -798,7 +798,6 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 					else:
 						host_key_types[host_key_type]['parsed'] = True
 
-
 	# Performs DH group exchanges to find what moduli are supported, and checks
 	# their size.
 	class GEXTest(object):
@@ -896,7 +895,6 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 							# so there's nothing else to do with this open
 							# connection.
 							s.close()
-
 
 					if smallest_modulus > 0:
 						kex.set_dh_modulus_size(gex_alg, smallest_modulus)
@@ -2057,7 +2055,6 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			self.client_host = None
 			self.client_port = None
 
-		
 		def _resolve(self, ipvo):
 			# type: (Sequence[int]) -> Iterable[Tuple[int, Tuple[Any, ...]]]
 			ipvo = tuple([x for x in utils.unique_seq(ipvo) if x in (4, 6)])
@@ -2080,7 +2077,6 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			except socket.error as e:
 				out.fail('[exception] {0}'.format(e))
 				sys.exit(1)
-
 
 		# Listens on a server socket and accepts one connection (used for
 		# auditing client connections).
@@ -2138,7 +2134,6 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			self.client_port = addr[1]
 			c.settimeout(self.__timeout)
 			self.__sock = c
-
 
 		def connect(self):
 			# type: () -> None
@@ -2357,14 +2352,12 @@ class KexDH(object):  # pragma: nocover
 		self.__f = 0
 		self.__h_sig = 0
 
-
 	def set_params(self, g, p):
 		self.__g = g
 		self.__p = p
 		self.__q = (self.__p - 1) // 2
 		self.__x = 0
 		self.__e = 0
-
 
 	def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
 		# type: (SSH.Socket) -> None
@@ -3073,7 +3066,6 @@ def output(banner, header, client_host=None, kex=None, pkm=None):
 	output_fingerprints(algs, True)
 	perfect_config = output_recommendations(algs, software, maxlen)
 	output_info(algs, software, client_audit, not perfect_config)
-
 
 	# If we encountered any unknown algorithms, ask the user to report them.
 	if len(unknown_algorithms) > 0:
