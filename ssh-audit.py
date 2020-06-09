@@ -1609,7 +1609,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			
 			def __getitem__(self, product):
 				# type: (str) -> Sequence[Optional[str]]
-				return tuple(self.__storage.get(product, [None]*4))
+				return tuple(self.__storage.get(product, [None] * 4))
 			
 			def __str__(self):
 				# type: () -> str
@@ -1640,7 +1640,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 					ssh_versions[ssh_prod] = ssh_ver
 				for ssh_product, ssh_version in ssh_versions.items():
 					if ssh_product not in self.__storage:
-						self.__storage[ssh_product] = [None]*4
+						self.__storage[ssh_product] = [None] * 4
 					prev = self[ssh_product][pos]
 					if (prev is None or
 					   (prev < ssh_version and pos % 2 == 0) or
