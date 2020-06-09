@@ -29,7 +29,7 @@ import base64, binascii, errno, hashlib, getopt, io, os, random, re, select, soc
 
 
 VERSION = 'v2.2.1-dev'
-SSH_HEADER = 'SSH-{0}-OpenSSH_8.0' # SSH software to impersonate
+SSH_HEADER = 'SSH-{0}-OpenSSH_8.0'  # SSH software to impersonate
 
 if sys.version_info.major < 3:
         print("\n!!!! NOTE: Python 2 is being considered for deprecation.  If you have a good reason to need continued Python 2 support, please e-mail jtesta@positronsecurity.com with your rationale.\n\n")
@@ -99,7 +99,7 @@ class AuditConf(object):
 		self.ipv4 = False
 		self.ipv6 = False
 		self.timeout = 5.0
-		self.timeout_set = False # Set to True when the user explicitly sets it.
+		self.timeout_set = False  # Set to True when the user explicitly sets it.
 
 	def __setattr__(self, name, value):
 		# type: (str, Union[str, int, bool, Sequence[int]]) -> None
@@ -378,7 +378,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdh-sha2-nistp384': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistt571': [[], [WARN_CURVES_WEAK]],
-				'ecdh-sha2-1.3.132.0.10': [[]], # ECDH over secp256k1 (i.e.: the Bitcoin curve)
+				'ecdh-sha2-1.3.132.0.10': [[]],  # ECDH over secp256k1 (i.e.: the Bitcoin curve)
 				'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
 				'curve25519-sha256': [['7.4,d2018.76']],
 				'curve448-sha512': [[]],
@@ -386,8 +386,8 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'rsa1024-sha1': [[], [], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'rsa2048-sha256': [[]],
                                 'sntrup4591761x25519-sha512@tinyssh.org': [['8.0'], [], [WARN_EXPERIMENTAL]],
-                                'ext-info-c': [[]], # Extension negotiation (RFC 8308)
-                                'ext-info-s': [[]], # Extension negotiation (RFC 8308)
+                                'ext-info-c': [[]],  # Extension negotiation (RFC 8308)
+                                'ext-info-s': [[]],  # Extension negotiation (RFC 8308)
 			},
 			'key': {
 				'ssh-rsa1': [[], [FAIL_WEAK_ALGORITHM]],
@@ -400,7 +400,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdsa-sha2-nistp256': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp384': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp521': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
-				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]], # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
+				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]],  # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
 				'x509v3-sign-dss': [[], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
 				'x509v3-sign-rsa': [[], [], [WARN_HASH_WEAK]],
 				'x509v3-sign-rsa-sha256@ssh.com': [[]],
@@ -416,7 +416,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'rsa-sha2-256-cert-v01@openssh.com': [['7.8']],
 				'rsa-sha2-512-cert-v01@openssh.com': [['7.8']],
 				'ssh-rsa-sha256@ssh.com': [[]],
-				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]], # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
+				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]],  # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
 				'sk-ecdsa-sha2-nistp256-cert-v01@openssh.com': [['8.2'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'sk-ecdsa-sha2-nistp256@openssh.com': [['8.2'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'sk-ssh-ed25519-cert-v01@openssh.com': [['8.2']],
@@ -508,20 +508,20 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'umac-128@openssh.com': [['6.2'], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha1-etm@openssh.com': [['6.2'], [], [WARN_HASH_WEAK]],
 				'hmac-sha1-96-etm@openssh.com': [['6.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_HASH_WEAK]],
-				'hmac-sha2-256-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]], # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
-				'hmac-sha2-512-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]], # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
+				'hmac-sha2-256-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]],  # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
+				'hmac-sha2-512-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]],  # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
 				'hmac-sha2-256-etm@openssh.com': [['6.2']],
 				'hmac-sha2-512-etm@openssh.com': [['6.2']],
 				'hmac-md5-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_HASH_WEAK]],
 				'hmac-md5-96-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_HASH_WEAK]],
 				'hmac-ripemd160-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
-				'umac-32@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]], # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
+				'umac-32@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]],  # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
 				'umac-64-etm@openssh.com': [['6.2'], [], [WARN_TAG_SIZE]],
-				'umac-96@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]], # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
+				'umac-96@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],  # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
 				'umac-128-etm@openssh.com': [['6.2']],
 				'aes128-gcm': [[]],
 				'aes256-gcm': [[]],
-				'chacha20-poly1305@openssh.com': [[]], # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
+				'chacha20-poly1305@openssh.com': [[]],  # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
 			}
 		}  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
 	
@@ -735,14 +735,14 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 					# If the connection is closed, re-open it and get the kex again.
 					if not s.is_connected():
 						s.connect()
-						unused = None # pylint: disable=unused-variable
+						unused = None  # pylint: disable=unused-variable
 						unused, unused, err = s.get_banner()
 						if err is not None:
 							s.close()
 							return
 
 						# Parse the server's initial KEX.
-						packet_type = 0 # pylint: disable=unused-variable
+						packet_type = 0  # pylint: disable=unused-variable
 						packet_type, payload = s.read_packet()
 						SSH2.Kex.parse(payload)
 
@@ -810,14 +810,14 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				return
 
 			s.connect()
-			unused = None # pylint: disable=unused-variable
+			unused = None  # pylint: disable=unused-variable
 			unused, unused, err = s.get_banner()
 			if err is not None:
 				s.close()
 				return False
 
 			# Parse the server's initial KEX.
-			packet_type = 0 # pylint: disable=unused-variable
+			packet_type = 0  # pylint: disable=unused-variable
 			packet_type, payload = s.read_packet(2)
 			kex = SSH2.Kex.parse(payload)
 
@@ -864,7 +864,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 						# got here, doesn't mean the server is vulnerable...
 						smallest_modulus = kex_group.get_dh_modulus_size()
 
-					except Exception: # pylint: disable=bare-except
+					except Exception:  # pylint: disable=bare-except
 						pass
 					finally:
 						s.close()
@@ -886,7 +886,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 							kex_group.send_init_gex(s, bits, bits, bits)
 							kex_group.recv_reply(s, False)
 							smallest_modulus = kex_group.get_dh_modulus_size()
-						except Exception: # pylint: disable=bare-except
+						except Exception:  # pylint: disable=bare-except
 							# import traceback
 							# print(traceback.format_exc())
 							pass
@@ -2348,8 +2348,8 @@ class KexDH(object):  # pragma: nocover
 		self.__hostkey_type = None
 		self.__hostkey_e = 0
 		self.__hostkey_n = 0
-		self.__hostkey_n_len = 0 # Length of the host key modulus.
-		self.__ca_n_len = 0 # Length of the CA key modulus (if hostkey is a cert).
+		self.__hostkey_n_len = 0  # Length of the host key modulus.
+		self.__ca_n_len = 0  # Length of the CA key modulus (if hostkey is a cert).
 		self.__f = 0
 		self.__h_sig = 0
 
@@ -2389,16 +2389,16 @@ class KexDH(object):  # pragma: nocover
 			return None
 
 		hostkey_len = f_len = h_sig_len = 0  # pylint: disable=unused-variable
-		hostkey_type_len = hostkey_e_len = 0 # pylint: disable=unused-variable
-		key_id_len = principles_len = 0      # pylint: disable=unused-variable
-		critical_options_len = extensions_len = 0        # pylint: disable=unused-variable
-		nonce_len = ca_key_len = ca_key_type_len = 0     # pylint: disable=unused-variable
+		hostkey_type_len = hostkey_e_len = 0  # pylint: disable=unused-variable
+		key_id_len = principles_len = 0  # pylint: disable=unused-variable
+		critical_options_len = extensions_len = 0  # pylint: disable=unused-variable
+		nonce_len = ca_key_len = ca_key_type_len = 0  # pylint: disable=unused-variable
 		ca_key_len = ca_key_type_len = ca_key_e_len = 0  # pylint: disable=unused-variable
 
-		key_id = principles = None           # pylint: disable=unused-variable
-		critical_options = extensions = None # pylint: disable=unused-variable
+		key_id = principles = None  # pylint: disable=unused-variable
+		critical_options = extensions = None  # pylint: disable=unused-variable
 		nonce = ca_key = ca_key_type = None  # pylint: disable=unused-variable
-		ca_key_e = ca_key_n = None           # pylint: disable=unused-variable
+		ca_key_e = ca_key_n = None  # pylint: disable=unused-variable
 
 		# Get the host key blob, F, and signature.
 		ptr = 0
@@ -2985,7 +2985,7 @@ def output_recommendations(algs, software, padlen=0):
 		else:
 			title = ''
 		out.head('# algorithm recommendations {0}'.format(title))
-		obuf.flush(True) # Sort the output so that it is always stable (needed for repeatable testing).
+		obuf.flush(True)  # Sort the output so that it is always stable (needed for repeatable testing).
 		out.sep()
 	return ret
 
