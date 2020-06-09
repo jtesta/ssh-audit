@@ -935,13 +935,13 @@ class SSH1(object):
 		
 		def calc(self, v):
 			# type: (binary_type) -> int
-			crc, l = 0, len(v)
-			for i in range(l):
+			crc, length = 0, len(v)
+			for i in range(length):
 				n = ord(v[i:i + 1])
 				n = n ^ (crc & 0xff)
 				crc = (crc >> 8) ^ self._table[n]
 			return crc
-	
+
 	_crc32 = None  # type: Optional[SSH1.CRC32]
 	CIPHERS = ['none', 'idea', 'des', '3des', 'tss', 'rc4', 'blowfish']
 	AUTHS = ['none', 'rhosts', 'rsa', 'password', 'rhosts_rsa', 'tis', 'kerberos']
