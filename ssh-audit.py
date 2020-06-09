@@ -190,9 +190,9 @@ class AuditConf(object):
 			elif o in ('-t', '--timeout'):
 				aconf.timeout = float(a)
 				aconf.timeout_set = True
-		if len(args) == 0 and aconf.client_audit == False:
+		if len(args) == 0 and aconf.client_audit is False:
 			usage_cb()
-		if aconf.client_audit == False:
+		if aconf.client_audit is False:
 			if oport is not None:
 				host = args[0]
 			else:
