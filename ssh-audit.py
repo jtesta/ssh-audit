@@ -25,7 +25,20 @@
    THE SOFTWARE.
 """
 from __future__ import print_function
-import base64, binascii, errno, hashlib, getopt, io, os, random, re, select, socket, struct, sys, json
+import base64
+import binascii
+import errno
+import getopt
+import hashlib
+import io
+import json
+import os
+import random
+import re
+import select
+import socket
+import struct
+import sys
 
 
 VERSION = 'v2.2.1-dev'
