@@ -700,7 +700,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdh-sha2-nistp256': KexNISTP256,
 				'ecdh-sha2-nistp384': KexNISTP384,
 				'ecdh-sha2-nistp521': KexNISTP521,
-				#'kexguess2@matt.ucc.asn.au': ???
+				# 'kexguess2@matt.ucc.asn.au': ???
 			}
 
 			# Pick the first kex algorithm that the server supports, which we
@@ -887,8 +887,8 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 							kex_group.recv_reply(s, False)
 							smallest_modulus = kex_group.get_dh_modulus_size()
 						except Exception: # pylint: disable=bare-except
-							#import traceback
-							#print(traceback.format_exc())
+							# import traceback
+							# print(traceback.format_exc())
 							pass
 						finally:
 							# The server is in a state that is not re-testable,
@@ -1783,19 +1783,18 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if software is not None:
 				if software.product not in vproducts:
 					unknown_software = True
-#
-# The code below is commented out because it would try to guess what the server is,
-# usually resulting in wild & incorrect recommendations.
-#
-#			if software is None:
-#				ssh_timeframe = self.get_ssh_timeframe(for_server)
-#				for product in vproducts:
-#					if product not in ssh_timeframe:
-#						continue
-#					version = ssh_timeframe.get_from(product, for_server)
-#					if version is not None:
-#						software = SSH.Software(None, product, version, None, None)
-#						break
+
+			# The code below is commented out because it would try to guess what the server is,
+			# usually resulting in wild & incorrect recommendations.
+			# if software is None:
+			# 	ssh_timeframe = self.get_ssh_timeframe(for_server)
+			# 	for product in vproducts:
+			# 		if product not in ssh_timeframe:
+			# 			continue
+			# 		version = ssh_timeframe.get_from(product, for_server)
+			# 		if version is not None:
+			# 			software = SSH.Software(None, product, version, None, None)
+			# 			break
 			rec = {}  # type: Dict[int, Dict[str, Dict[str, Dict[str, int]]]]
 			if software is None:
 				unknown_software = True
@@ -2166,10 +2165,10 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			banner = SSH_HEADER.format('1.5' if sshv == 1 else '2.0')
 			if self.__state < self.SM_BANNER_SENT:
 				self.send_banner(banner)
-#			rto = self.__sock.gettimeout()
-#			self.__sock.settimeout(0.7)
+			# rto = self.__sock.gettimeout()
+			# self.__sock.settimeout(0.7)
 			s, e = self.recv()
-#			self.__sock.settimeout(rto)
+			# self.__sock.settimeout(rto)
 			if s < 0:
 				return self.__banner, self.__header, e
 			e = None
@@ -2887,7 +2886,7 @@ def output_fingerprints(algs, sha256=True):
 		if algs.ssh1kex is not None:
 			name = 'ssh-rsa1'
 			fp = SSH.Fingerprint(algs.ssh1kex.host_key_fingerprint_data)
-			#bits = algs.ssh1kex.host_key_bits
+			# bits = algs.ssh1kex.host_key_bits
 			fps.append((name, fp))
 		if algs.ssh2kex is not None:
 			host_keys = algs.ssh2kex.host_keys()
@@ -2909,8 +2908,8 @@ def output_fingerprints(algs, sha256=True):
 		for fpp in fps:
 			name, fp = fpp
 			fpo = fp.sha256 if sha256 else fp.md5
-			#p = '' if out.batch else ' ' * (padlen - len(name))
-			#out.good('(fin) {0}{1} -- {2} {3}'.format(name, p, bits, fpo))
+			# p = '' if out.batch else ' ' * (padlen - len(name))
+			# out.good('(fin) {0}{1} -- {2} {3}'.format(name, p, bits, fpo))
 			out.good('(fin) {0}: {1}'.format(name, fpo))
 	if len(obuf) > 0:
 		out.head('# fingerprints')
