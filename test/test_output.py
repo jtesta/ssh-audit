@@ -10,7 +10,7 @@ class TestOutput(object):
 	def init(self, ssh_audit):
 		self.Output = ssh_audit.Output
 		self.OutputBuffer = ssh_audit.OutputBuffer
-	
+
 	def test_output_buffer_no_lines(self, output_spy):
 		output_spy.begin()
 		with self.OutputBuffer() as obuf:
@@ -21,13 +21,13 @@ class TestOutput(object):
 			pass
 		obuf.flush()
 		assert output_spy.flush() == []
-	
+
 	def test_output_buffer_no_flush(self, output_spy):
 		output_spy.begin()
 		with self.OutputBuffer():
 			print(u'abc')
 		assert output_spy.flush() == []
-	
+
 	def test_output_buffer_flush(self, output_spy):
 		output_spy.begin()
 		with self.OutputBuffer() as obuf:
@@ -36,14 +36,14 @@ class TestOutput(object):
 			print(u'def')
 		obuf.flush()
 		assert output_spy.flush() == [u'abc', u'', u'def']
-	
+
 	def test_output_defaults(self):
 		out = self.Output()
 		# default: on
 		assert out.batch is False
 		assert out.use_colors is True
 		assert out.level == 'info'
-	
+
 	def test_output_colors(self, output_spy):
 		out = self.Output()
 		# test without colors
@@ -82,7 +82,7 @@ class TestOutput(object):
 		output_spy.begin()
 		out.fail('fail color')
 		assert output_spy.flush() == [u'\x1b[0;31mfail color\x1b[0m']
-	
+
 	def test_output_sep(self, output_spy):
 		out = self.Output()
 		output_spy.begin()
@@ -90,7 +90,7 @@ class TestOutput(object):
 		out.sep()
 		out.sep()
 		assert output_spy.flush() == [u'', u'', u'']
-	
+
 	def test_output_levels(self):
 		out = self.Output()
 		assert out.get_level('info') == 0
@@ -98,7 +98,7 @@ class TestOutput(object):
 		assert out.get_level('warn') == 1
 		assert out.get_level('fail') == 2
 		assert out.get_level('unknown') > 2
-	
+
 	def test_output_level_property(self):
 		out = self.Output()
 		out.level = 'info'
@@ -111,7 +111,7 @@ class TestOutput(object):
 		assert out.level == 'fail'
 		out.level = 'invalid level'
 		assert out.level == 'unknown'
-	
+
 	def test_output_level(self, output_spy):
 		out = self.Output()
 		# visible: all
@@ -150,7 +150,7 @@ class TestOutput(object):
 		out.warn('warn color')
 		out.fail('fail color')
 		assert len(output_spy.flush()) == 1
-	
+
 	def test_output_batch(self, output_spy):
 		out = self.Output()
 		# visible: all

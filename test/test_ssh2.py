@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import struct, os
+import os
+import struct
 import pytest
 
 
@@ -14,7 +15,7 @@ class TestSSH2(object):
 		self.wbuf = ssh_audit.WriteBuf
 		self.audit = ssh_audit.audit
 		self.AuditConf = ssh_audit.AuditConf
-	
+
 	def _conf(self):
 		conf = self.AuditConf('localhost', 22)
 		conf.colors = False
@@ -23,7 +24,7 @@ class TestSSH2(object):
 		conf.ssh1 = False
 		conf.ssh2 = True
 		return conf
-	
+
 	@classmethod
 	def _create_ssh2_packet(cls, payload):
 		padding = -(len(payload) + 5) % 8
@@ -33,7 +34,7 @@ class TestSSH2(object):
 		pad_bytes = b'\x00' * padding
 		data = struct.pack('>Ib', plen, padding) + payload + pad_bytes
 		return data
-	
+
 	def _kex_payload(self):
 		w = self.wbuf()
 		w.write(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff')
@@ -50,7 +51,7 @@ class TestSSH2(object):
 		w.write_byte(False)
 		w.write_int(0)
 		return w.write_flush()
-	
+
 	def test_kex_read(self):
 		kex = self.ssh2.Kex.parse(self._kex_payload())
 		assert kex is not None
@@ -69,7 +70,7 @@ class TestSSH2(object):
 		assert kex.server.languages == [u'']
 		assert kex.follows is False
 		assert kex.unused == 0
-	
+
 	def _get_empty_kex(self, cookie=None):
 		kex_algs, key_algs = [], []
 		enc, mac, compression, languages = [], [], ['none'], []
@@ -80,7 +81,7 @@ class TestSSH2(object):
 			cookie = os.urandom(16)
 		kex = self.ssh2.Kex(cookie, kex_algs, key_algs, cli, srv, 0)
 		return kex
-	
+
 	def _get_kex_variat1(self):
 		cookie = b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
 		kex = self._get_empty_kex(cookie)
@@ -123,12 +124,12 @@ class TestSSH2(object):
 				continue
 			kex.client.compression.append(a)
 		return kex
-	
+
 	def test_key_payload(self):
 		kex1 = self._get_kex_variat1()
 		kex2 = self.ssh2.Kex.parse(self._kex_payload())
 		assert kex1.payload == kex2.payload
-	
+
 	@pytest.mark.skip(reason="Temporarily skip this test to have a working test suite!")
 	def test_ssh2_server_simple(self, output_spy, virtual_socket):
 		vsocket = virtual_socket

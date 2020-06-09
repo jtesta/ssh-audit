@@ -11,13 +11,13 @@ class TestBuffer(object):
 		self.rbuf = ssh_audit.ReadBuf
 		self.wbuf = ssh_audit.WriteBuf
 		self.utf8rchar = b'\xef\xbf\xbd'
-	
+
 	@classmethod
 	def _b(cls, v):
 		v = re.sub(r'\s', '', v)
 		data = [int(v[i * 2:i * 2 + 2], 16) for i in range(len(v) // 2)]
 		return bytes(bytearray(data))
-	
+
 	def test_unread(self):
 		w = self.wbuf().write_byte(1).write_int(2).write_flush()
 		r = self.rbuf(w)
@@ -26,7 +26,7 @@ class TestBuffer(object):
 		assert r.unread_len == 4
 		r.read_int()
 		assert r.unread_len == 0
-	
+
 	def test_byte(self):
 		w = lambda x: self.wbuf().write_byte(x).write_flush()  # noqa
 		r = lambda x: self.rbuf(x).read_byte()  # noqa
@@ -37,7 +37,7 @@ class TestBuffer(object):
 		for p in tc:
 			assert w(p[0]) == self._b(p[1])
 			assert r(self._b(p[1])) == p[0]
-	
+
 	def test_bool(self):
 		w = lambda x: self.wbuf().write_bool(x).write_flush()  # noqa
 		r = lambda x: self.rbuf(x).read_bool()  # noqa
@@ -46,7 +46,7 @@ class TestBuffer(object):
 		for p in tc:
 			assert w(p[0]) == self._b(p[1])
 			assert r(self._b(p[1])) == p[0]
-	
+
 	def test_int(self):
 		w = lambda x: self.wbuf().write_int(x).write_flush()  # noqa
 		r = lambda x: self.rbuf(x).read_int()  # noqa
@@ -57,7 +57,7 @@ class TestBuffer(object):
 		for p in tc:
 			assert w(p[0]) == self._b(p[1])
 			assert r(self._b(p[1])) == p[0]
-	
+
 	def test_string(self):
 		w = lambda x: self.wbuf().write_string(x).write_flush()  # noqa
 		r = lambda x: self.rbuf(x).read_string()  # noqa
@@ -69,7 +69,7 @@ class TestBuffer(object):
 			if not isinstance(v, bytes):
 				v = bytes(bytearray(v, 'utf-8'))
 			assert r(self._b(p[1])) == v
-	
+
 	def test_list(self):
 		w = lambda x: self.wbuf().write_list(x).write_flush()  # noqa
 		r = lambda x: self.rbuf(x).read_list()  # noqa
@@ -77,13 +77,13 @@ class TestBuffer(object):
 		for p in tc:
 			assert w(p[0]) == self._b(p[1])
 			assert r(self._b(p[1])) == p[0]
-	
+
 	def test_list_nonutf8(self):
 		r = lambda x: self.rbuf(x).read_list()  # noqa
 		src = self._b('00 00 00 04 de ad be ef')
 		dst = [(b'\xde\xad' + self.utf8rchar + self.utf8rchar).decode('utf-8')]
 		assert r(src) == dst
-	
+
 	def test_line(self):
 		w = lambda x: self.wbuf().write_line(x).write_flush()  # noqa
 		r = lambda x: self.rbuf(x).read_line()  # noqa
@@ -91,13 +91,13 @@ class TestBuffer(object):
 		for p in tc:
 			assert w(p[0]) == self._b(p[1])
 			assert r(self._b(p[1])) == p[0]
-	
+
 	def test_line_nonutf8(self):
 		r = lambda x: self.rbuf(x).read_line()  # noqa
 		src = self._b('de ad be af')
 		dst = (b'\xde\xad' + self.utf8rchar + self.utf8rchar).decode('utf-8')
 		assert r(src) == dst
-	
+
 	def test_bitlen(self):
 		# pylint: disable=protected-access
 		class Py26Int(int):
@@ -105,7 +105,7 @@ class TestBuffer(object):
 				raise AttributeError
 		assert self.wbuf._bitlength(42) == 6
 		assert self.wbuf._bitlength(Py26Int(42)) == 6
-	
+
 	def test_mpint1(self):
 		mpint1w = lambda x: self.wbuf().write_mpint1(x).write_flush()  # noqa
 		mpint1r = lambda x: self.rbuf(x).read_mpint1()  # noqa
@@ -116,7 +116,7 @@ class TestBuffer(object):
 		for p in tc:
 			assert mpint1w(p[0]) == self._b(p[1])
 			assert mpint1r(self._b(p[1])) == p[0]
-	
+
 	def test_mpint2(self):
 		mpint2w = lambda x: self.wbuf().write_mpint2(x).write_flush()  # noqa
 		mpint2r = lambda x: self.rbuf(x).read_mpint2()  # noqa

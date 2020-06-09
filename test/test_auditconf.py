@@ -9,7 +9,7 @@ class TestAuditConf(object):
 	def init(self, ssh_audit):
 		self.AuditConf = ssh_audit.AuditConf
 		self.usage = ssh_audit.usage
-	
+
 	@staticmethod
 	def _test_conf(conf, **kwargs):
 		options = {
@@ -38,11 +38,11 @@ class TestAuditConf(object):
 		assert conf.ipv4 == options['ipv4']
 		assert conf.ipv6 == options['ipv6']
 		assert conf.ipvo == options['ipvo']
-	
+
 	def test_audit_conf_defaults(self):
 		conf = self.AuditConf()
 		self._test_conf(conf)
-	
+
 	def test_audit_conf_booleans(self):
 		conf = self.AuditConf()
 		for p in ['ssh1', 'ssh2', 'batch', 'colors', 'verbose']:
@@ -52,7 +52,7 @@ class TestAuditConf(object):
 			for v in [False, 0]:
 				setattr(conf, p, v)
 				assert getattr(conf, p) is False
-	
+
 	def test_audit_conf_port(self):
 		conf = self.AuditConf()
 		for port in [22, 2222]:
@@ -62,7 +62,7 @@ class TestAuditConf(object):
 			with pytest.raises(ValueError) as excinfo:
 				conf.port = port
 			excinfo.match(r'.*invalid port.*')
-	
+
 	def test_audit_conf_ipvo(self):
 		# ipv4-only
 		conf = self.AuditConf()
@@ -114,7 +114,7 @@ class TestAuditConf(object):
 		assert conf.ipvo == (4, 6)
 		conf.ipvo = (4, 4, 4, 6, 6)
 		assert conf.ipvo == (4, 6)
-	
+
 	def test_audit_conf_level(self):
 		conf = self.AuditConf()
 		for level in ['info', 'warn', 'fail']:
@@ -124,7 +124,7 @@ class TestAuditConf(object):
 			with pytest.raises(ValueError) as excinfo:
 				conf.level = level
 			excinfo.match(r'.*invalid level.*')
-	
+
 	def test_audit_conf_cmdline(self):
 		# pylint: disable=too-many-statements
 		c = lambda x: self.AuditConf.from_cmdline(x.split(), self.usage)  # noqa

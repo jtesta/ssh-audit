@@ -8,13 +8,13 @@ class TestSoftware(object):
 	@pytest.fixture(autouse=True)
 	def init(self, ssh_audit):
 		self.ssh = ssh_audit.SSH
-	
+
 	def test_unknown_software(self):
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
 		assert ps('SSH-1.5') is None
 		assert ps('SSH-1.99-AlfaMegaServer') is None
 		assert ps('SSH-2.0-BetaMegaServer 0.0.1') is None
-	
+
 	def test_openssh_software(self):
 		# pylint: disable=too-many-statements
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
@@ -102,7 +102,7 @@ class TestSoftware(object):
 		assert s.display(True) == str(s)
 		assert s.display(False) == 'OpenSSH 5.9'
 		assert repr(s) == '<Software(product=OpenSSH, version=5.9, patch=CASPUR)>'
-	
+
 	def test_dropbear_software(self):
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
 		# common
@@ -153,7 +153,7 @@ class TestSoftware(object):
 		assert s.display(True) == str(s)
 		assert s.display(False) == 'Dropbear SSH 2014.66'
 		assert repr(s) == '<Software(product=Dropbear SSH, version=2014.66, patch=agbn_1)>'
-	
+
 	def test_libssh_software(self):
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
 		# common
@@ -179,7 +179,7 @@ class TestSoftware(object):
 		assert s.display(True) == str(s)
 		assert s.display(False) == str(s)
 		assert repr(s) == '<Software(product=libssh, version=0.7.4)>'
-	
+
 	def test_romsshell_software(self):
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
 		# common
@@ -194,7 +194,7 @@ class TestSoftware(object):
 		assert s.display(True) == str(s)
 		assert s.display(False) == str(s)
 		assert repr(s) == '<Software(vendor=Allegro Software, product=RomSShell, version=5.40)>'
-	
+
 	def test_hp_ilo_software(self):
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
 		# common
@@ -209,7 +209,7 @@ class TestSoftware(object):
 		assert s.display(True) == str(s)
 		assert s.display(False) == str(s)
 		assert repr(s) == '<Software(vendor=HP, product=iLO (Integrated Lights-Out) sshd, version=0.2.1)>'
-	
+
 	def test_cisco_software(self):
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
 		# common
@@ -224,7 +224,7 @@ class TestSoftware(object):
 		assert s.display(True) == str(s)
 		assert s.display(False) == str(s)
 		assert repr(s) == '<Software(vendor=Cisco, product=IOS/PIX sshd, version=1.25)>'
-	
+
 	def test_software_os(self):
 		ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
 		# unknown

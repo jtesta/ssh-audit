@@ -2,20 +2,20 @@
 # -*- coding: utf-8 -*-
 """
    The MIT License (MIT)
-   
+
    Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
-   
+
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
    in the Software without restriction, including without limitation the rights
    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
    copies of the Software, and to permit persons to whom the Software is
    furnished to do so, subject to the following conditions:
-   
+
    The above copyright notice and this permission notice shall be included in
    all copies or substantial portions of the Software.
-   
+
    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -25,11 +25,24 @@
    THE SOFTWARE.
 """
 from __future__ import print_function
-import base64, binascii, errno, hashlib, getopt, io, os, random, re, select, socket, struct, sys, json
+import base64
+import binascii
+import errno
+import getopt
+import hashlib
+import io
+import json
+import os
+import random
+import re
+import select
+import socket
+import struct
+import sys
 
 
 VERSION = 'v2.2.1-dev'
-SSH_HEADER = 'SSH-{0}-OpenSSH_8.0' # SSH software to impersonate
+SSH_HEADER = 'SSH-{0}-OpenSSH_8.0'  # SSH software to impersonate
 
 if sys.version_info.major < 3:
         print("\n!!!! NOTE: Python 2 is being considered for deprecation.  If you have a good reason to need continued Python 2 support, please e-mail jtesta@positronsecurity.com with your rationale.\n\n")
@@ -41,7 +54,7 @@ if sys.version_info >= (3,):  # pragma: nocover
 else:  # pragma: nocover
 	import StringIO as _StringIO  # pylint: disable=import-error
 	StringIO = BytesIO = _StringIO.StringIO
-	text_type = unicode  # pylint: disable=undefined-variable
+	text_type = unicode  # pylint: disable=undefined-variable  # noqa: F821
 	binary_type = str
 try:  # pragma: nocover
 	# pylint: disable=unused-import
@@ -99,7 +112,7 @@ class AuditConf(object):
 		self.ipv4 = False
 		self.ipv6 = False
 		self.timeout = 5.0
-		self.timeout_set = False # Set to True when the user explicitly sets it.
+		self.timeout_set = False  # Set to True when the user explicitly sets it.
 
 	def __setattr__(self, name, value):
 		# type: (str, Union[str, int, bool, Sequence[int]]) -> None
@@ -144,7 +157,7 @@ class AuditConf(object):
 			valid = True
 		if valid:
 			object.__setattr__(self, name, value)
-	
+
 	@classmethod
 	def from_cmdline(cls, args, usage_cb):
 		# type: (List[str], Callable[..., None]) -> AuditConf
@@ -190,9 +203,9 @@ class AuditConf(object):
 			elif o in ('-t', '--timeout'):
 				aconf.timeout = float(a)
 				aconf.timeout_set = True
-		if len(args) == 0 and aconf.client_audit == False:
+		if len(args) == 0 and aconf.client_audit is False:
 			usage_cb()
-		if aconf.client_audit == False:
+		if aconf.client_audit is False:
 			if oport is not None:
 				host = args[0]
 			else:
@@ -224,7 +237,7 @@ class AuditConf(object):
 class Output(object):
 	LEVELS = ('info', 'warn', 'fail')  # type: Sequence[str]
 	COLORS = {'head': 36, 'good': 32, 'warn': 33, 'fail': 31}
-	
+
 	def __init__(self):
 		# type: () -> None
 		self.batch = False
@@ -233,41 +246,41 @@ class Output(object):
 		self.json = False
 		self.__level = 0
 		self.__colsupport = 'colorama' in sys.modules or os.name == 'posix'
-	
+
 	@property
 	def level(self):
 		# type: () -> str
 		if self.__level < len(self.LEVELS):
 			return self.LEVELS[self.__level]
 		return 'unknown'
-	
+
 	@level.setter
 	def level(self, name):
 		# type: (str) -> None
 		self.__level = self.get_level(name)
-	
+
 	def get_level(self, name):
 		# type: (str) -> int
 		cname = 'info' if name == 'good' else name
 		if cname not in self.LEVELS:
 			return sys.maxsize
 		return self.LEVELS.index(cname)
-	
+
 	def sep(self):
 		# type: () -> None
 		if not self.batch:
 			print()
-	
+
 	@property
 	def colors_supported(self):
 		# type: () -> bool
 		return self.__colsupport
-	
+
 	@staticmethod
 	def _colorized(color):
 		# type: (str) -> Callable[[text_type], None]
 		return lambda x: print(u'{0}{1}\033[0m'.format(color, x))
-	
+
 	def __getattr__(self, name):
 		# type: (str) -> Callable[[text_type], None]
 		if name == 'head' and self.batch:
@@ -289,7 +302,7 @@ class OutputBuffer(list):
 		self.__stdout = sys.stdout
 		sys.stdout = self.__buf
 		return self
-	
+
 	def flush(self, sort_lines=False):
 		# type: () -> None
 		# Lines must be sorted in some cases to ensure consistent testing.
@@ -297,7 +310,7 @@ class OutputBuffer(list):
 			self.sort()
 		for line in self:
 			print(line)
-	
+
 	def __exit__(self, *args):
 		# type: (*Any) -> None
 		self.extend(self.__buf.getvalue().splitlines())
@@ -310,7 +323,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		WARN_OPENSSH74_UNSAFE = 'disabled (in client) since OpenSSH 7.4, unsafe algorithm'
 		WARN_OPENSSH72_LEGACY = 'disabled (in client) since OpenSSH 7.2, legacy algorithm'
 		FAIL_OPENSSH70_LEGACY = 'removed since OpenSSH 7.0, legacy algorithm'
-		FAIL_OPENSSH70_WEAK   = 'removed (in server) and disabled (in client) since OpenSSH 7.0, weak algorithm'
+		FAIL_OPENSSH70_WEAK = 'removed (in server) and disabled (in client) since OpenSSH 7.0, weak algorithm'
 		FAIL_OPENSSH70_LOGJAM = 'disabled (in client) since OpenSSH 7.0, logjam attack'
 		INFO_OPENSSH69_CHACHA = 'default cipher since OpenSSH 6.9.'
 		FAIL_OPENSSH67_UNSAFE = 'removed (in server) since OpenSSH 6.7, unsafe algorithm'
@@ -319,22 +332,22 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		FAIL_DBEAR67_DISABLED = 'disabled since Dropbear SSH 2015.67'
 		FAIL_DBEAR53_DISABLED = 'disabled since Dropbear SSH 0.53'
 		FAIL_DEPRECATED_CIPHER = 'deprecated cipher'
-		FAIL_WEAK_CIPHER      = 'using weak cipher'
-		FAIL_WEAK_ALGORITHM   = 'using weak/obsolete algorithm'
-		FAIL_PLAINTEXT        = 'no encryption/integrity'
-		FAIL_DEPRECATED_MAC   = 'deprecated MAC'
-		WARN_CURVES_WEAK      = 'using weak elliptic curves'
-		WARN_RNDSIG_KEY       = 'using weak random number generator could reveal the key'
-		WARN_MODULUS_SIZE     = 'using small 1024-bit modulus'
-		WARN_HASH_WEAK        = 'using weak hashing algorithm'
-		WARN_CIPHER_MODE      = 'using weak cipher mode'
-		WARN_BLOCK_SIZE       = 'using small 64-bit block size'
-		WARN_CIPHER_WEAK      = 'using weak cipher'
-		WARN_ENCRYPT_AND_MAC  = 'using encrypt-and-MAC mode'
-		WARN_TAG_SIZE         = 'using small 64-bit tag size'
-		WARN_TAG_SIZE_96      = 'using small 96-bit tag size'
-		WARN_EXPERIMENTAL     = 'using experimental algorithm'
-		
+		FAIL_WEAK_CIPHER = 'using weak cipher'
+		FAIL_WEAK_ALGORITHM = 'using weak/obsolete algorithm'
+		FAIL_PLAINTEXT = 'no encryption/integrity'
+		FAIL_DEPRECATED_MAC = 'deprecated MAC'
+		WARN_CURVES_WEAK = 'using weak elliptic curves'
+		WARN_RNDSIG_KEY = 'using weak random number generator could reveal the key'
+		WARN_MODULUS_SIZE = 'using small 1024-bit modulus'
+		WARN_HASH_WEAK = 'using weak hashing algorithm'
+		WARN_CIPHER_MODE = 'using weak cipher mode'
+		WARN_BLOCK_SIZE = 'using small 64-bit block size'
+		WARN_CIPHER_WEAK = 'using weak cipher'
+		WARN_ENCRYPT_AND_MAC = 'using encrypt-and-MAC mode'
+		WARN_TAG_SIZE = 'using small 64-bit tag size'
+		WARN_TAG_SIZE_96 = 'using small 96-bit tag size'
+		WARN_EXPERIMENTAL = 'using experimental algorithm'
+
 		ALGORITHMS = {
                         # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
 			'kex': {
@@ -378,7 +391,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdh-sha2-nistp384': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
 				'ecdh-sha2-nistt571': [[], [WARN_CURVES_WEAK]],
-				'ecdh-sha2-1.3.132.0.10': [[]], # ECDH over secp256k1 (i.e.: the Bitcoin curve)
+				'ecdh-sha2-1.3.132.0.10': [[]],  # ECDH over secp256k1 (i.e.: the Bitcoin curve)
 				'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
 				'curve25519-sha256': [['7.4,d2018.76']],
 				'curve448-sha512': [[]],
@@ -386,8 +399,8 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'rsa1024-sha1': [[], [], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
 				'rsa2048-sha256': [[]],
                                 'sntrup4591761x25519-sha512@tinyssh.org': [['8.0'], [], [WARN_EXPERIMENTAL]],
-                                'ext-info-c': [[]], # Extension negotiation (RFC 8308)
-                                'ext-info-s': [[]], # Extension negotiation (RFC 8308)
+                                'ext-info-c': [[]],  # Extension negotiation (RFC 8308)
+                                'ext-info-s': [[]],  # Extension negotiation (RFC 8308)
 			},
 			'key': {
 				'ssh-rsa1': [[], [FAIL_WEAK_ALGORITHM]],
@@ -400,7 +413,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdsa-sha2-nistp256': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp384': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'ecdsa-sha2-nistp521': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
-				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]], # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
+				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]],  # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
 				'x509v3-sign-dss': [[], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
 				'x509v3-sign-rsa': [[], [], [WARN_HASH_WEAK]],
 				'x509v3-sign-rsa-sha256@ssh.com': [[]],
@@ -416,7 +429,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'rsa-sha2-256-cert-v01@openssh.com': [['7.8']],
 				'rsa-sha2-512-cert-v01@openssh.com': [['7.8']],
 				'ssh-rsa-sha256@ssh.com': [[]],
-				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]], # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
+				'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]],  # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
 				'sk-ecdsa-sha2-nistp256-cert-v01@openssh.com': [['8.2'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'sk-ecdsa-sha2-nistp256@openssh.com': [['8.2'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
 				'sk-ssh-ed25519-cert-v01@openssh.com': [['8.2']],
@@ -508,23 +521,23 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'umac-128@openssh.com': [['6.2'], [], [WARN_ENCRYPT_AND_MAC]],
 				'hmac-sha1-etm@openssh.com': [['6.2'], [], [WARN_HASH_WEAK]],
 				'hmac-sha1-96-etm@openssh.com': [['6.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_HASH_WEAK]],
-				'hmac-sha2-256-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]], # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
-				'hmac-sha2-512-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]], # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
+				'hmac-sha2-256-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]],  # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
+				'hmac-sha2-512-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]],  # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
 				'hmac-sha2-256-etm@openssh.com': [['6.2']],
 				'hmac-sha2-512-etm@openssh.com': [['6.2']],
 				'hmac-md5-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_HASH_WEAK]],
 				'hmac-md5-96-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_HASH_WEAK]],
 				'hmac-ripemd160-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
-				'umac-32@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]], # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
+				'umac-32@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]],  # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
 				'umac-64-etm@openssh.com': [['6.2'], [], [WARN_TAG_SIZE]],
-				'umac-96@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]], # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
+				'umac-96@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],  # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
 				'umac-128-etm@openssh.com': [['6.2']],
 				'aes128-gcm': [[]],
 				'aes256-gcm': [[]],
-				'chacha20-poly1305@openssh.com': [[]], # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
+				'chacha20-poly1305@openssh.com': [[]],  # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
 			}
 		}  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
-	
+
 	class KexParty(object):
 		def __init__(self, enc, mac, compression, languages):
 			# type: (List[text_type], List[text_type], List[text_type], List[text_type]) -> None
@@ -532,27 +545,27 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 			self.__mac = mac
 			self.__compression = compression
 			self.__languages = languages
-		
+
 		@property
 		def encryption(self):
 			# type: () -> List[text_type]
 			return self.__enc
-		
+
 		@property
 		def mac(self):
 			# type: () -> List[text_type]
 			return self.__mac
-		
+
 		@property
 		def compression(self):
 			# type: () -> List[text_type]
 			return self.__compression
-		
+
 		@property
 		def languages(self):
 			# type: () -> List[text_type]
 			return self.__languages
-	
+
 	class Kex(object):
 		def __init__(self, cookie, kex_algs, key_algs, cli, srv, follows, unused=0):
 			# type: (binary_type, List[text_type], List[text_type], SSH2.KexParty, SSH2.KexParty, bool, int) -> None
@@ -572,34 +585,34 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 		def cookie(self):
 			# type: () -> binary_type
 			return self.__cookie
-		
+
 		@property
 		def kex_algorithms(self):
 			# type: () -> List[text_type]
 			return self.__kex_algs
-		
+
 		@property
 		def key_algorithms(self):
 			# type: () -> List[text_type]
 			return self.__key_algs
-		
+
 		# client_to_server
 		@property
 		def client(self):
 			# type: () -> SSH2.KexParty
 			return self.__client
-		
+
 		# server_to_client
 		@property
 		def server(self):
 			# type: () -> SSH2.KexParty
 			return self.__server
-		
+
 		@property
 		def follows(self):
 			# type: () -> bool
 			return self.__follows
-		
+
 		@property
 		def unused(self):
 			# type: () -> int
@@ -638,14 +651,14 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 			wbuf.write_list(self.server.languages)
 			wbuf.write_bool(self.follows)
 			wbuf.write_int(self.__unused)
-		
+
 		@property
 		def payload(self):
 			# type: () -> binary_type
 			wbuf = WriteBuf()
 			self.write(wbuf)
 			return wbuf.write_flush()
-		
+
 		@classmethod
 		def parse(cls, payload):
 			# type: (binary_type) -> SSH2.Kex
@@ -700,7 +713,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				'ecdh-sha2-nistp256': KexNISTP256,
 				'ecdh-sha2-nistp384': KexNISTP384,
 				'ecdh-sha2-nistp521': KexNISTP521,
-				#'kexguess2@matt.ucc.asn.au': ???
+				# 'kexguess2@matt.ucc.asn.au': ???
 			}
 
 			# Pick the first kex algorithm that the server supports, which we
@@ -735,14 +748,14 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 					# If the connection is closed, re-open it and get the kex again.
 					if not s.is_connected():
 						s.connect()
-						unused = None # pylint: disable=unused-variable
+						unused = None  # pylint: disable=unused-variable
 						unused, unused, err = s.get_banner()
 						if err is not None:
 							s.close()
 							return
 
 						# Parse the server's initial KEX.
-						packet_type = 0 # pylint: disable=unused-variable
+						packet_type = 0  # pylint: disable=unused-variable
 						packet_type, payload = s.read_packet()
 						SSH2.Kex.parse(payload)
 
@@ -798,7 +811,6 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 					else:
 						host_key_types[host_key_type]['parsed'] = True
 
-
 	# Performs DH group exchanges to find what moduli are supported, and checks
 	# their size.
 	class GEXTest(object):
@@ -811,14 +823,14 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 				return
 
 			s.connect()
-			unused = None # pylint: disable=unused-variable
+			unused = None  # pylint: disable=unused-variable
 			unused, unused, err = s.get_banner()
 			if err is not None:
 				s.close()
 				return False
 
 			# Parse the server's initial KEX.
-			packet_type = 0 # pylint: disable=unused-variable
+			packet_type = 0  # pylint: disable=unused-variable
 			packet_type, payload = s.read_packet(2)
 			kex = SSH2.Kex.parse(payload)
 
@@ -865,7 +877,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 						# got here, doesn't mean the server is vulnerable...
 						smallest_modulus = kex_group.get_dh_modulus_size()
 
-					except Exception as e: # pylint: disable=bare-except
+					except Exception:  # pylint: disable=bare-except
 						pass
 					finally:
 						s.close()
@@ -887,16 +899,15 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 							kex_group.send_init_gex(s, bits, bits, bits)
 							kex_group.recv_reply(s, False)
 							smallest_modulus = kex_group.get_dh_modulus_size()
-						except Exception as e: # pylint: disable=bare-except
-							#import traceback
-							#print(traceback.format_exc())
+						except Exception:  # pylint: disable=bare-except
+							# import traceback
+							# print(traceback.format_exc())
 							pass
 						finally:
 							# The server is in a state that is not re-testable,
 							# so there's nothing else to do with this open
 							# connection.
 							s.close()
-
 
 					if smallest_modulus > 0:
 						kex.set_dh_modulus_size(gex_alg, smallest_modulus)
@@ -919,6 +930,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 					if reconnect_failed:
 						break
 
+
 class SSH1(object):
 	class CRC32(object):
 		def __init__(self):
@@ -932,35 +944,35 @@ class SSH1(object):
 					crc = (crc >> 1) ^ (x * 0xedb88320)
 					n = n >> 1
 				self._table[i] = crc
-		
+
 		def calc(self, v):
 			# type: (binary_type) -> int
-			crc, l = 0, len(v)
-			for i in range(l):
+			crc, length = 0, len(v)
+			for i in range(length):
 				n = ord(v[i:i + 1])
 				n = n ^ (crc & 0xff)
 				crc = (crc >> 8) ^ self._table[n]
 			return crc
-	
+
 	_crc32 = None  # type: Optional[SSH1.CRC32]
 	CIPHERS = ['none', 'idea', 'des', '3des', 'tss', 'rc4', 'blowfish']
 	AUTHS = ['none', 'rhosts', 'rsa', 'password', 'rhosts_rsa', 'tis', 'kerberos']
-	
+
 	@classmethod
 	def crc32(cls, v):
 		# type: (binary_type) -> int
 		if cls._crc32 is None:
 			cls._crc32 = cls.CRC32()
 		return cls._crc32.calc(v)
-	
+
 	class KexDB(object):  # pylint: disable=too-few-public-methods
 		# pylint: disable=bad-whitespace
-		FAIL_PLAINTEXT        = 'no encryption/integrity'
+		FAIL_PLAINTEXT = 'no encryption/integrity'
 		FAIL_OPENSSH37_REMOVE = 'removed since OpenSSH 3.7'
-		FAIL_NA_BROKEN        = 'not implemented in OpenSSH, broken algorithm'
-		FAIL_NA_UNSAFE        = 'not implemented in OpenSSH (server), unsafe algorithm'
-		TEXT_CIPHER_IDEA      = 'cipher used by commercial SSH'
-		
+		FAIL_NA_BROKEN = 'not implemented in OpenSSH, broken algorithm'
+		FAIL_NA_UNSAFE = 'not implemented in OpenSSH (server), unsafe algorithm'
+		TEXT_CIPHER_IDEA = 'cipher used by commercial SSH'
+
 		ALGORITHMS = {
 			'key': {
 				'ssh-rsa1': [['1.2.2']],
@@ -983,7 +995,7 @@ class SSH1(object):
 				'kerberos': [['1.2.2', '3.6'], [FAIL_OPENSSH37_REMOVE]],
 			}
 		}  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
-	
+
 	class PublicKeyMessage(object):
 		def __init__(self, cookie, skey, hkey, pflags, cmask, amask):
 			# type: (binary_type, Tuple[int, int, int], Tuple[int, int, int], int, int, int) -> None
@@ -997,42 +1009,42 @@ class SSH1(object):
 			self.__protocol_flags = pflags
 			self.__supported_ciphers_mask = cmask
 			self.__supported_authentications_mask = amask
-		
+
 		@property
 		def cookie(self):
 			# type: () -> binary_type
 			return self.__cookie
-		
+
 		@property
 		def server_key_bits(self):
 			# type: () -> int
 			return self.__server_key[0]
-		
+
 		@property
 		def server_key_public_exponent(self):
 			# type: () -> int
 			return self.__server_key[1]
-		
+
 		@property
 		def server_key_public_modulus(self):
 			# type: () -> int
 			return self.__server_key[2]
-		
+
 		@property
 		def host_key_bits(self):
 			# type: () -> int
 			return self.__host_key[0]
-		
+
 		@property
 		def host_key_public_exponent(self):
 			# type: () -> int
 			return self.__host_key[1]
-		
+
 		@property
 		def host_key_public_modulus(self):
 			# type: () -> int
 			return self.__host_key[2]
-		
+
 		@property
 		def host_key_fingerprint_data(self):
 			# type: () -> binary_type
@@ -1040,17 +1052,17 @@ class SSH1(object):
 			mod = WriteBuf._create_mpint(self.host_key_public_modulus, False)
 			e = WriteBuf._create_mpint(self.host_key_public_exponent, False)
 			return mod + e
-		
+
 		@property
 		def protocol_flags(self):
 			# type: () -> int
 			return self.__protocol_flags
-		
+
 		@property
 		def supported_ciphers_mask(self):
 			# type: () -> int
 			return self.__supported_ciphers_mask
-		
+
 		@property
 		def supported_ciphers(self):
 			# type: () -> List[text_type]
@@ -1059,12 +1071,12 @@ class SSH1(object):
 				if self.__supported_ciphers_mask & (1 << i) != 0:
 					ciphers.append(utils.to_utext(SSH1.CIPHERS[i]))
 			return ciphers
-		
+
 		@property
 		def supported_authentications_mask(self):
 			# type: () -> int
 			return self.__supported_authentications_mask
-		
+
 		@property
 		def supported_authentications(self):
 			# type: () -> List[text_type]
@@ -1073,7 +1085,7 @@ class SSH1(object):
 				if self.__supported_authentications_mask & (1 << i) != 0:
 					auths.append(utils.to_utext(SSH1.AUTHS[i]))
 			return auths
-		
+
 		def write(self, wbuf):
 			# type: (WriteBuf) -> None
 			wbuf.write(self.cookie)
@@ -1086,14 +1098,14 @@ class SSH1(object):
 			wbuf.write_int(self.protocol_flags)
 			wbuf.write_int(self.supported_ciphers_mask)
 			wbuf.write_int(self.supported_authentications_mask)
-		
+
 		@property
 		def payload(self):
 			# type: () -> binary_type
 			wbuf = WriteBuf()
 			self.write(wbuf)
 			return wbuf.write_flush()
-		
+
 		@classmethod
 		def parse(cls, payload):
 			# type: (binary_type) -> SSH1.PublicKeyMessage
@@ -1120,40 +1132,40 @@ class ReadBuf(object):
 		super(ReadBuf, self).__init__()
 		self._buf = BytesIO(data) if data is not None else BytesIO()
 		self._len = len(data) if data is not None else 0
-	
+
 	@property
 	def unread_len(self):
 		# type: () -> int
 		return self._len - self._buf.tell()
-	
+
 	def read(self, size):
 		# type: (int) -> binary_type
 		return self._buf.read(size)
-	
+
 	def read_byte(self):
 		# type: () -> int
 		v = struct.unpack('B', self.read(1))[0]  # type: int
 		return v
-	
+
 	def read_bool(self):
 		# type: () -> bool
 		return self.read_byte() != 0
-	
+
 	def read_int(self):
 		# type: () -> int
 		v = struct.unpack('>I', self.read(4))[0]  # type: int
 		return v
-	
+
 	def read_list(self):
 		# type: () -> List[text_type]
 		list_size = self.read_int()
 		return self.read(list_size).decode('utf-8', 'replace').split(',')
-	
+
 	def read_string(self):
 		# type: () -> binary_type
 		n = self.read_int()
 		return self.read(n)
-	
+
 	@classmethod
 	def _parse_mpint(cls, v, pad, f):
 		# type: (binary_type, binary_type, str) -> int
@@ -1163,14 +1175,14 @@ class ReadBuf(object):
 		for i in range(0, len(v), 4):
 			r = (r << 32) | struct.unpack(f, v[i:i + 4])[0]
 		return r
-		
+
 	def read_mpint1(self):
 		# type: () -> int
 		# NOTE: Data Type Enc @ http://www.snailbook.com/docs/protocol-1.5.txt
 		bits = struct.unpack('>H', self.read(2))[0]
 		n = (bits + 7) // 8
 		return self._parse_mpint(self.read(n), b'\x00', '>I')
-	
+
 	def read_mpint2(self):
 		# type: () -> int
 		# NOTE: Section 5 @ https://www.ietf.org/rfc/rfc4251.txt
@@ -1179,7 +1191,7 @@ class ReadBuf(object):
 			return 0
 		pad, f = (b'\xff', '>i') if ord(v[0:1]) & 0x80 != 0 else (b'\x00', '>I')
 		return self._parse_mpint(v, pad, f)
-	
+
 	def read_line(self):
 		# type: () -> text_type
 		return self._buf.readline().rstrip().decode('utf-8', 'replace')
@@ -1189,40 +1201,41 @@ class ReadBuf(object):
 		self._len = 0
 		super(ReadBuf, self).reset()
 
+
 class WriteBuf(object):
 	def __init__(self, data=None):
 		# type: (Optional[binary_type]) -> None
 		super(WriteBuf, self).__init__()
 		self._wbuf = BytesIO(data) if data is not None else BytesIO()
-	
+
 	def write(self, data):
 		# type: (binary_type) -> WriteBuf
 		self._wbuf.write(data)
 		return self
-	
+
 	def write_byte(self, v):
 		# type: (int) -> WriteBuf
 		return self.write(struct.pack('B', v))
-	
+
 	def write_bool(self, v):
 		# type: (bool) -> WriteBuf
 		return self.write_byte(1 if v else 0)
-	
+
 	def write_int(self, v):
 		# type: (int) -> WriteBuf
 		return self.write(struct.pack('>I', v))
-	
+
 	def write_string(self, v):
 		# type: (Union[binary_type, text_type]) -> WriteBuf
 		if not isinstance(v, bytes):
 			v = bytes(bytearray(v, 'utf-8'))
 		self.write_int(len(v))
 		return self.write(v)
-	
+
 	def write_list(self, v):
 		# type: (List[text_type]) -> WriteBuf
 		return self.write_string(u','.join(v))
-	
+
 	@classmethod
 	def _bitlength(cls, n):
 		# type: (int) -> int
@@ -1230,7 +1243,7 @@ class WriteBuf(object):
 			return n.bit_length()
 		except AttributeError:
 			return len(bin(n)) - (2 if n > 0 else 3)
-		
+
 	@classmethod
 	def _create_mpint(cls, n, signed=True, bits=None):
 		# type: (int, bool, Optional[int]) -> binary_type
@@ -1248,7 +1261,7 @@ class WriteBuf(object):
 		elif data.startswith(b'\xff\x80'):
 			data = data[1:]
 		return data
-	
+
 	def write_mpint1(self, n):
 		# type: (int) -> WriteBuf
 		# NOTE: Data Type Enc @ http://www.snailbook.com/docs/protocol-1.5.txt
@@ -1256,20 +1269,20 @@ class WriteBuf(object):
 		data = self._create_mpint(n, False, bits)
 		self.write(struct.pack('>H', bits))
 		return self.write(data)
-	
+
 	def write_mpint2(self, n):
 		# type: (int) -> WriteBuf
 		# NOTE: Section 5 @ https://www.ietf.org/rfc/rfc4251.txt
 		data = self._create_mpint(n)
 		return self.write_string(data)
-	
+
 	def write_line(self, v):
 		# type: (Union[binary_type, str]) -> WriteBuf
 		if not isinstance(v, bytes):
 			v = bytes(bytearray(v, 'utf-8'))
 		v += b'\r\n'
 		return self.write(v)
-	
+
 	def write_flush(self):
 		# type: () -> binary_type
 		payload = self._wbuf.getvalue()
@@ -1285,23 +1298,23 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 	class Protocol(object):  # pylint: disable=too-few-public-methods
 		# pylint: disable=bad-whitespace
 		SMSG_PUBLIC_KEY = 2
-		MSG_DEBUG       = 4
-		MSG_KEXINIT     = 20
-		MSG_NEWKEYS     = 21
-		MSG_KEXDH_INIT  = 30
+		MSG_DEBUG = 4
+		MSG_KEXINIT = 20
+		MSG_NEWKEYS = 21
+		MSG_KEXDH_INIT = 30
 		MSG_KEXDH_REPLY = 31
 		MSG_KEXDH_GEX_REQUEST = 34
-		MSG_KEXDH_GEX_GROUP   = 31
-		MSG_KEXDH_GEX_INIT    = 32
-		MSG_KEXDH_GEX_REPLY   = 33
-	
+		MSG_KEXDH_GEX_GROUP = 31
+		MSG_KEXDH_GEX_INIT = 32
+		MSG_KEXDH_GEX_REPLY = 33
+
 	class Product(object):  # pylint: disable=too-few-public-methods
 		OpenSSH = 'OpenSSH'
 		DropbearSSH = 'Dropbear SSH'
 		LibSSH = 'libssh'
 		TinySSH = 'TinySSH'
 		PuTTY = 'PuTTY'
-	
+
 	class Software(object):
 		def __init__(self, vendor, product, version, patch, os_version):
 			# type: (Optional[str], str, str, Optional[str], Optional[str]) -> None
@@ -1310,32 +1323,32 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			self.__version = version
 			self.__patch = patch
 			self.__os = os_version
-		
+
 		@property
 		def vendor(self):
 			# type: () -> Optional[str]
 			return self.__vendor
-		
+
 		@property
 		def product(self):
 			# type: () -> str
 			return self.__product
-		
+
 		@property
 		def version(self):
 			# type: () -> str
 			return self.__version
-		
+
 		@property
 		def patch(self):
 			# type: () -> Optional[str]
 			return self.__patch
-		
+
 		@property
 		def os(self):
 			# type: () -> Optional[str]
 			return self.__os
-		
+
 		def compare_version(self, other):
 			# type: (Union[None, SSH.Software, text_type]) -> int
 			# pylint: disable=too-many-branches
@@ -1373,7 +1386,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			elif spatch > opatch:
 				return 1
 			return 0
-		
+
 		def between_versions(self, vfrom, vtill):
 			# type: (str, str) -> bool
 			if bool(vfrom) and self.compare_version(vfrom) < 0:
@@ -1381,7 +1394,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if bool(vtill) and self.compare_version(vtill) > 0:
 				return False
 			return True
-		
+
 		def display(self, full=True):
 			# type: (bool) -> str
 			r = '{0} '.format(self.vendor) if bool(self.vendor) else ''
@@ -1400,11 +1413,11 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				if bool(self.os):
 					r += ' running on {0}'.format(self.os)
 			return r
-		
+
 		def __str__(self):
 			# type: () -> str
 			return self.display()
-		
+
 		def __repr__(self):
 			# type: () -> str
 			r = 'vendor={0}, '.format(self.vendor) if bool(self.vendor) else ''
@@ -1416,12 +1429,12 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if bool(self.os):
 				r += ', os={0}'.format(self.os)
 			return '<{0}({1})>'.format(self.__class__.__name__, r)
-		
+
 		@staticmethod
 		def _fix_patch(patch):
 			# type: (str) -> Optional[str]
 			return re.sub(r'^[-_\.]+', '', patch) or None
-		
+
 		@staticmethod
 		def _fix_date(d):
 			# type: (str) -> Optional[str]
@@ -1429,7 +1442,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				return '{0}-{1}-{2}'.format(d[:4], d[4:6], d[6:8])
 			else:
 				return None
-		
+
 		@classmethod
 		def _extract_os_version(cls, c):
 			# type: (Optional[str]) -> Optional[str]
@@ -1456,7 +1469,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				if c.startswith(g) or c.endswith(g):
 					return g
 			return None
-		
+
 		@classmethod
 		def parse(cls, banner):
 			# type: (SSH.Banner) -> Optional[SSH.Software]
@@ -1508,39 +1521,39 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if bool(mx):
 				return cls(None, SSH.Product.PuTTY, mx.group(1), None, None)
 			return None
-	
+
 	class Banner(object):
 		_RXP, _RXR = r'SSH-\d\.\s*?\d+', r'(-\s*([^\s]*)(?:\s+(.*))?)?'
 		RX_PROTOCOL = re.compile(re.sub(r'\\d(\+?)', r'(\\d\g<1>)', _RXP))
 		RX_BANNER = re.compile(r'^({0}(?:(?:-{0})*)){1}$'.format(_RXP, _RXR))
-		
+
 		def __init__(self, protocol, software, comments, valid_ascii):
 			# type: (Tuple[int, int], Optional[str], Optional[str], bool) -> None
 			self.__protocol = protocol
 			self.__software = software
 			self.__comments = comments
 			self.__valid_ascii = valid_ascii
-		
+
 		@property
 		def protocol(self):
 			# type: () -> Tuple[int, int]
 			return self.__protocol
-		
+
 		@property
 		def software(self):
 			# type: () -> Optional[str]
 			return self.__software
-		
+
 		@property
 		def comments(self):
 			# type: () -> Optional[str]
 			return self.__comments
-		
+
 		@property
 		def valid_ascii(self):
 			# type: () -> bool
 			return self.__valid_ascii
-		
+
 		def __str__(self):
 			# type: () -> str
 			r = 'SSH-{0}.{1}'.format(self.protocol[0], self.protocol[1])
@@ -1549,7 +1562,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if bool(self.comments):
 				r += ' {0}'.format(self.comments)
 			return r
-		
+
 		def __repr__(self):
 			# type: () -> str
 			p = '{0}.{1}'.format(self.protocol[0], self.protocol[1])
@@ -1559,7 +1572,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if bool(self.comments):
 				r += ', comments={0}'.format(self.comments)
 			return '<{0}({1})>'.format(self.__class__.__name__, r)
-		
+
 		@classmethod
 		def parse(cls, banner):
 			# type: (text_type) -> Optional[SSH.Banner]
@@ -1577,56 +1590,56 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if comments is not None:
 				comments = re.sub(r'\s+', ' ', comments)
 			return cls(protocol, software, comments, valid_ascii)
-	
+
 	class Fingerprint(object):
 		def __init__(self, fpd):
 			# type: (binary_type) -> None
 			self.__fpd = fpd
-		
+
 		@property
 		def md5(self):
 			# type: () -> text_type
 			h = hashlib.md5(self.__fpd).hexdigest()
 			r = u':'.join(h[i:i + 2] for i in range(0, len(h), 2))
 			return u'MD5:{0}'.format(r)
-		
+
 		@property
 		def sha256(self):
 			# type: () -> text_type
 			h = base64.b64encode(hashlib.sha256(self.__fpd).digest())
 			r = h.decode('ascii').rstrip('=')
 			return u'SHA256:{0}'.format(r)
-	
+
 	class Algorithm(object):
 		class Timeframe(object):
 			def __init__(self):
 				# type: () -> None
 				self.__storage = {}  # type: Dict[str, List[Optional[str]]]
-			
+
 			def __contains__(self, product):
 				# type: (str) -> bool
 				return product in self.__storage
-			
+
 			def __getitem__(self, product):
 				# type: (str) -> Sequence[Optional[str]]
-				return tuple(self.__storage.get(product, [None]*4))
-			
+				return tuple(self.__storage.get(product, [None] * 4))
+
 			def __str__(self):
 				# type: () -> str
 				return self.__storage.__str__()
-			
+
 			def __repr__(self):
 				# type: () -> str
 				return self.__str__()
-			
+
 			def get_from(self, product, for_server=True):
 				# type: (str, bool) -> Optional[str]
 				return self[product][0 if bool(for_server) else 2]
-			
+
 			def get_till(self, product, for_server=True):
 				# type: (str, bool) -> Optional[str]
 				return self[product][1 if bool(for_server) else 3]
-			
+
 			def _update(self, versions, pos):
 				# type: (Optional[str], int) -> None
 				ssh_versions = {}  # type: Dict[str, str]
@@ -1640,13 +1653,13 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 					ssh_versions[ssh_prod] = ssh_ver
 				for ssh_product, ssh_version in ssh_versions.items():
 					if ssh_product not in self.__storage:
-						self.__storage[ssh_product] = [None]*4
+						self.__storage[ssh_product] = [None] * 4
 					prev = self[ssh_product][pos]
 					if (prev is None or
 					   (prev < ssh_version and pos % 2 == 0) or
 					   (prev > ssh_version and pos % 2 == 1)):
 						self.__storage[ssh_product][pos] = ssh_version
-			
+
 			def update(self, versions, for_server=None):
 				# type: (List[Optional[str]], Optional[bool]) -> SSH.Algorithm.Timeframe
 				for_cli = for_server is None or for_server is False
@@ -1658,7 +1671,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 					if for_cli and (i % 2 == 0 or vlen == 2):
 						self._update(versions[i], 3 - 0**i)
 				return self
-		
+
 		@staticmethod
 		def get_ssh_version(version_desc):
 			# type: (str) -> Tuple[str, str, bool]
@@ -1671,7 +1684,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				return SSH.Product.LibSSH, version_desc[2:], is_client
 			else:
 				return SSH.Product.OpenSSH, version_desc, is_client
-		
+
 		@classmethod
 		def get_since_text(cls, versions):
 			# type: (List[Optional[str]]) -> Optional[text_type]
@@ -1690,23 +1703,23 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if len(tv) == 0:
 				return None
 			return 'available since ' + ', '.join(tv).rstrip(', ')
-	
+
 	class Algorithms(object):
 		def __init__(self, pkm, kex):
 			# type: (Optional[SSH1.PublicKeyMessage], Optional[SSH2.Kex]) -> None
 			self.__ssh1kex = pkm
 			self.__ssh2kex = kex
-		
+
 		@property
 		def ssh1kex(self):
 			# type: () -> Optional[SSH1.PublicKeyMessage]
 			return self.__ssh1kex
-		
+
 		@property
 		def ssh2kex(self):
 			# type: () -> Optional[SSH2.Kex]
 			return self.__ssh2kex
-		
+
 		@property
 		def ssh1(self):
 			# type: () -> Optional[SSH.Algorithms.Item]
@@ -1717,7 +1730,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			item.add('enc', self.ssh1kex.supported_ciphers)
 			item.add('aut', self.ssh1kex.supported_authentications)
 			return item
-		
+
 		@property
 		def ssh2(self):
 			# type: () -> Optional[SSH.Algorithms.Item]
@@ -1729,14 +1742,14 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			item.add('enc', self.ssh2kex.server.encryption)
 			item.add('mac', self.ssh2kex.server.mac)
 			return item
-		
+
 		@property
 		def values(self):
 			# type: () -> Iterable[SSH.Algorithms.Item]
 			for item in [self.ssh1, self.ssh2]:
 				if item is not None:
 					yield item
-		
+
 		@property
 		def maxlen(self):
 			# type: () -> int
@@ -1755,7 +1768,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				             _ml(self.ssh2kex.server.mac),
 				             maxlen)
 			return maxlen
-		
+
 		def get_ssh_timeframe(self, for_server=None):
 			# type: (Optional[bool]) -> SSH.Algorithm.Timeframe
 			timeframe = SSH.Algorithm.Timeframe()
@@ -1770,7 +1783,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 						versions = alg_desc[0]
 						timeframe.update(versions, for_server)
 			return timeframe
-		
+
 		def get_recommendations(self, software, for_server=True):
 			# type: (Optional[SSH.Software], bool) -> Tuple[Optional[SSH.Software], Dict[int, Dict[str, Dict[str, Dict[str, int]]]]]
 			# pylint: disable=too-many-locals,too-many-statements
@@ -1783,19 +1796,18 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			if software is not None:
 				if software.product not in vproducts:
 					unknown_software = True
-#
-# The code below is commented out because it would try to guess what the server is,
-# usually resulting in wild & incorrect recommendations.
-#
-#			if software is None:
-#				ssh_timeframe = self.get_ssh_timeframe(for_server)
-#				for product in vproducts:
-#					if product not in ssh_timeframe:
-#						continue
-#					version = ssh_timeframe.get_from(product, for_server)
-#					if version is not None:
-#						software = SSH.Software(None, product, version, None, None)
-#						break
+
+			# The code below is commented out because it would try to guess what the server is,
+			# usually resulting in wild & incorrect recommendations.
+			# if software is None:
+			# 	ssh_timeframe = self.get_ssh_timeframe(for_server)
+			# 	for product in vproducts:
+			# 		if product not in ssh_timeframe:
+			# 			continue
+			# 		version = ssh_timeframe.get_from(product, for_server)
+			# 		if version is not None:
+			# 			software = SSH.Software(None, product, version, None, None)
+			# 			break
 			rec = {}  # type: Dict[int, Dict[str, Dict[str, Dict[str, int]]]]
 			if software is None:
 				unknown_software = True
@@ -1878,32 +1890,32 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				if len(rec[sshv]) == 0:
 					del rec[sshv]
 			return software, rec
-		
+
 		class Item(object):
 			def __init__(self, sshv, db):
 				# type: (int, Dict[str, Dict[str, List[List[Optional[str]]]]]) -> None
 				self.__sshv = sshv
 				self.__db = db
 				self.__storage = {}  # type: Dict[str, List[text_type]]
-			
+
 			@property
 			def sshv(self):
 				# type: () -> int
 				return self.__sshv
-			
+
 			@property
 			def db(self):
 				# type: () -> Dict[str, Dict[str, List[List[Optional[str]]]]]
 				return self.__db
-			
+
 			def add(self, key, value):
 				# type: (str, List[text_type]) -> None
 				self.__storage[key] = value
-			
+
 			def items(self):
 				# type: () -> Iterable[Tuple[str, List[text_type]]]
 				return self.__storage.items()
-	
+
 	class Security(object):  # pylint: disable=too-few-public-methods
                 # Format: [starting_vuln_version, last_vuln_version, affected, CVE_ID, CVSSv2, description]
                 #   affected: 1 = server, 2 = client, 4 = local
@@ -2025,13 +2037,13 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				['0.3.3', '0.3.3', 1, 'integer overflow',   'integer overflow in "buffer_get_data"'],
 				['0.3.3', '0.3.3', 3, 'heap overflow',      'heap overflow in "packet_decrypt"']]
 		}  # type: Dict[str, List[List[Any]]]
-	
+
 	class Socket(ReadBuf, WriteBuf):
 		class InsufficientReadException(Exception):
 			pass
-		
+
 		SM_BANNER_SENT = 1
-		
+
 		def __init__(self, host, port, ipvo=None, timeout=5, timeout_set=False):
 			# type: (Optional[str], int) -> None
 			super(SSH.Socket, self).__init__()
@@ -2057,7 +2069,6 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			self.client_host = None
 			self.client_port = None
 
-		
 		def _resolve(self, ipvo):
 			# type: (Sequence[int]) -> Iterable[Tuple[int, Tuple[Any, ...]]]
 			ipvo = tuple([x for x in utils.unique_seq(ipvo) if x in (4, 6)])
@@ -2081,7 +2092,6 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				out.fail('[exception] {0}'.format(e))
 				sys.exit(1)
 
-
 		# Listens on a server socket and accepts one connection (used for
 		# auditing client connections).
 		def listen_and_accept(self):
@@ -2093,7 +2103,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				s.bind(('0.0.0.0', self.__port))
 				s.listen()
 				self.__sock_map[s.fileno()] = s
-			except Exception as e:
+			except Exception:
 				print("Warning: failed to listen on any IPv4 interfaces.")
 				pass
 
@@ -2105,7 +2115,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				s.bind(('::', self.__port))
 				s.listen()
 				self.__sock_map[s.fileno()] = s
-			except Exception as e:
+			except Exception:
 				print("Warning: failed to listen on any IPv6 interfaces.")
 				pass
 
@@ -2139,7 +2149,6 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			c.settimeout(self.__timeout)
 			self.__sock = c
 
-
 		def connect(self):
 			# type: () -> None
 			err = None
@@ -2161,7 +2170,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				errm = 'cannot connect to {0} port {1}: {2}'.format(*errt)
 			out.fail('[exception] {0}'.format(errm))
 			sys.exit(1)
-		
+
 		def get_banner(self, sshv=2):
 			# type: (int) -> Tuple[Optional[SSH.Banner], List[text_type], Optional[str]]
 			if self.__sock is None:
@@ -2169,10 +2178,10 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			banner = SSH_HEADER.format('1.5' if sshv == 1 else '2.0')
 			if self.__state < self.SM_BANNER_SENT:
 				self.send_banner(banner)
-#			rto = self.__sock.gettimeout()
-#			self.__sock.settimeout(0.7)
+			# rto = self.__sock.gettimeout()
+			# self.__sock.settimeout(0.7)
 			s, e = self.recv()
-#			self.__sock.settimeout(rto)
+			# self.__sock.settimeout(rto)
 			if s < 0:
 				return self.__banner, self.__header, e
 			e = None
@@ -2192,7 +2201,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 					self.__header.append(line)
 				s = 0
 			return self.__banner, self.__header, e
-		
+
 		def recv(self, size=2048):
 			# type: (int) -> Tuple[int, Optional[str]]
 			if self.__sock is None:
@@ -2213,7 +2222,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			self._len += len(data)
 			self._buf.seek(pos, 0)
 			return len(data), None
-		
+
 		def send(self, data):
 			# type: (binary_type) -> Tuple[int, Optional[str]]
 			if self.__sock is None:
@@ -2224,20 +2233,20 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 			except socket.error as e:
 				return -1, str(e.args[-1])
 			self.__sock.send(data)
-		
+
 		def send_banner(self, banner):
 			# type: (str) -> None
 			self.send(banner.encode() + b'\r\n')
 			if self.__state < self.SM_BANNER_SENT:
 				self.__state = self.SM_BANNER_SENT
-		
+
 		def ensure_read(self, size):
 			# type: (int) -> None
 			while self.unread_len < size:
 				s, e = self.recv()
 				if s < 0:
 					raise SSH.Socket.InsufficientReadException(e)
-		
+
 		def read_packet(self, sshv=2):
 			# type: (int) -> Tuple[int, binary_type]
 			try:
@@ -2289,7 +2298,7 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 				else:
 					e = ex.args[0].encode('utf-8')
 				return -1, e
-		
+
 		def send_packet(self):
 			# type: () -> Tuple[int, Optional[str]]
 			payload = self.write_flush()
@@ -2323,11 +2332,11 @@ class SSH(object):  # pylint: disable=too-few-public-methods
 					s.close()  # pragma: nocover
 			except:  # pylint: disable=bare-except
 				pass
-		
+
 		def __del__(self):
 			# type: () -> None
 			self.__cleanup()
-		
+
 		def __cleanup(self):
 			# type: () -> None
 			self._close_socket(self.__sock)
@@ -2352,11 +2361,10 @@ class KexDH(object):  # pragma: nocover
 		self.__hostkey_type = None
 		self.__hostkey_e = 0
 		self.__hostkey_n = 0
-		self.__hostkey_n_len = 0 # Length of the host key modulus.
-		self.__ca_n_len = 0 # Length of the CA key modulus (if hostkey is a cert).
+		self.__hostkey_n_len = 0  # Length of the host key modulus.
+		self.__ca_n_len = 0  # Length of the CA key modulus (if hostkey is a cert).
 		self.__f = 0
 		self.__h_sig = 0
-
 
 	def set_params(self, g, p):
 		self.__g = g
@@ -2364,7 +2372,6 @@ class KexDH(object):  # pragma: nocover
 		self.__q = (self.__p - 1) // 2
 		self.__x = 0
 		self.__e = 0
-
 
 	def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
 		# type: (SSH.Socket) -> None
@@ -2395,17 +2402,16 @@ class KexDH(object):  # pragma: nocover
 			return None
 
 		hostkey_len = f_len = h_sig_len = 0  # pylint: disable=unused-variable
-		hostkey_type_len = hostkey_e_len = 0 # pylint: disable=unused-variable
-		key_id_len = principles_len = 0      # pylint: disable=unused-variable
-		critical_options_len = extensions_len = 0        # pylint: disable=unused-variable
-		nonce_len = ca_key_len = ca_key_type_len = 0     # pylint: disable=unused-variable
+		hostkey_type_len = hostkey_e_len = 0  # pylint: disable=unused-variable
+		key_id_len = principles_len = 0  # pylint: disable=unused-variable
+		critical_options_len = extensions_len = 0  # pylint: disable=unused-variable
+		nonce_len = ca_key_len = ca_key_type_len = 0  # pylint: disable=unused-variable
 		ca_key_len = ca_key_type_len = ca_key_e_len = 0  # pylint: disable=unused-variable
 
-		key_id = principles = None           # pylint: disable=unused-variable
-		critical_options = extensions = None # pylint: disable=unused-variable
-		valid_after = valid_before = None    # pylint: disable=unused-variable
+		key_id = principles = None  # pylint: disable=unused-variable
+		critical_options = extensions = None  # pylint: disable=unused-variable
 		nonce = ca_key = ca_key_type = None  # pylint: disable=unused-variable
-		ca_key_e = ca_key_n = None           # pylint: disable=unused-variable
+		ca_key_e = ca_key_n = None  # pylint: disable=unused-variable
 
 		# Get the host key blob, F, and signature.
 		ptr = 0
@@ -2455,12 +2461,10 @@ class KexDH(object):  # pragma: nocover
 				# The principles, which are... I don't know what.
 				principles, principles_len, ptr = KexDH.__get_bytes(hostkey, ptr)
 
-				# The timestamp that this certificate is valid after.
-				valid_after = hostkey[ptr:ptr + 8]
+				# Skip over the timestamp that this certificate is valid after.
 				ptr += 8
 
-				# The timestamp that this certificate is valid before.
-				valid_before = hostkey[ptr:ptr + 8]
+				# Skip over the timestamp that this certificate is valid before.
 				ptr += 8
 
 				# TODO: validate the principles, and time range.
@@ -2895,7 +2899,7 @@ def output_fingerprints(algs, sha256=True):
 		if algs.ssh1kex is not None:
 			name = 'ssh-rsa1'
 			fp = SSH.Fingerprint(algs.ssh1kex.host_key_fingerprint_data)
-			#bits = algs.ssh1kex.host_key_bits
+			# bits = algs.ssh1kex.host_key_bits
 			fps.append((name, fp))
 		if algs.ssh2kex is not None:
 			host_keys = algs.ssh2kex.host_keys()
@@ -2917,8 +2921,8 @@ def output_fingerprints(algs, sha256=True):
 		for fpp in fps:
 			name, fp = fpp
 			fpo = fp.sha256 if sha256 else fp.md5
-			#p = '' if out.batch else ' ' * (padlen - len(name))
-			#out.good('(fin) {0}{1} -- {2} {3}'.format(name, p, bits, fpo))
+			# p = '' if out.batch else ' ' * (padlen - len(name))
+			# out.good('(fin) {0}{1} -- {2} {3}'.format(name, p, bits, fpo))
 			out.good('(fin) {0}: {1}'.format(name, fpo))
 	if len(obuf) > 0:
 		out.head('# fingerprints')
@@ -2994,7 +2998,7 @@ def output_recommendations(algs, software, padlen=0):
 		else:
 			title = ''
 		out.head('# algorithm recommendations {0}'.format(title))
-		obuf.flush(True) # Sort the output so that it is always stable (needed for repeatable testing).
+		obuf.flush(True)  # Sort the output so that it is always stable (needed for repeatable testing).
 		out.sep()
 	return ret
 
@@ -3018,7 +3022,7 @@ def output_info(algs, software, client_audit, any_problems, padlen=0):
 
 def output(banner, header, client_host=None, kex=None, pkm=None):
 	# type: (Optional[SSH.Banner], List[text_type], Optional[SSH2.Kex], Optional[SSH1.PublicKeyMessage]) -> None
-	client_audit = (client_host != None) # If set, this is a client audit.
+	client_audit = client_host is not None  # If set, this is a client audit.
 	sshv = 1 if pkm is not None else 2
 	algs = SSH.Algorithms(pkm, kex)
 	with OutputBuffer() as obuf:
@@ -3077,17 +3081,17 @@ def output(banner, header, client_host=None, kex=None, pkm=None):
 	perfect_config = output_recommendations(algs, software, maxlen)
 	output_info(algs, software, client_audit, not perfect_config)
 
-
 	# If we encountered any unknown algorithms, ask the user to report them.
 	if len(unknown_algorithms) > 0:
 		out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at <https://github.com/jtesta/ssh-audit/issues>.\n" % ','.join(unknown_algorithms))
+
 
 class Utils(object):
 	@classmethod
 	def _type_err(cls, v, target):
 		# type: (Any, text_type) -> TypeError
 		return TypeError('cannot convert {0} to {1}'.format(type(v), target))
-	
+
 	@classmethod
 	def to_bytes(cls, v, enc='utf-8'):
 		# type: (Union[binary_type, text_type], str) -> binary_type
@@ -3096,7 +3100,7 @@ class Utils(object):
 		elif isinstance(v, text_type):
 			return v.encode(enc)
 		raise cls._type_err(v, 'bytes')
-	
+
 	@classmethod
 	def to_utext(cls, v, enc='utf-8'):
 		# type: (Union[text_type, binary_type], str) -> text_type
@@ -3105,7 +3109,7 @@ class Utils(object):
 		elif isinstance(v, binary_type):
 			return v.decode(enc)
 		raise cls._type_err(v, 'unicode text')
-	
+
 	@classmethod
 	def to_ntext(cls, v, enc='utf-8'):
 		# type: (Union[text_type, binary_type], str) -> str
@@ -3116,7 +3120,7 @@ class Utils(object):
 		elif isinstance(v, binary_type):
 			return v.decode(enc)  # PY3 only
 		raise cls._type_err(v, 'native text')
-	
+
 	@classmethod
 	def _is_ascii(cls, v, char_filter=lambda x: x <= 127):
 		# type: (Union[text_type, str], Callable[[int], bool]) -> bool
@@ -3128,7 +3132,7 @@ class Utils(object):
 					return r
 			r = True
 		return r
-	
+
 	@classmethod
 	def _to_ascii(cls, v, char_filter=lambda x: x <= 127, errors='replace'):
 		# type: (Union[text_type, str], Callable[[int], bool], str) -> str
@@ -3144,42 +3148,42 @@ class Utils(object):
 					r.append(63)
 			return cls.to_ntext(r.decode('ascii'))
 		raise cls._type_err(v, 'ascii')
-	
+
 	@classmethod
 	def is_ascii(cls, v):
 		# type: (Union[text_type, str]) -> bool
 		return cls._is_ascii(v)
-	
+
 	@classmethod
 	def to_ascii(cls, v, errors='replace'):
 		# type: (Union[text_type, str], str) -> str
 		return cls._to_ascii(v, errors=errors)
-	
+
 	@classmethod
 	def is_print_ascii(cls, v):
 		# type: (Union[text_type, str]) -> bool
 		return cls._is_ascii(v, lambda x: x >= 32 and x <= 126)
-	
+
 	@classmethod
 	def to_print_ascii(cls, v, errors='replace'):
 		# type: (Union[text_type, str], str) -> str
 		return cls._to_ascii(v, lambda x: x >= 32 and x <= 126, errors)
-	
+
 	@classmethod
 	def unique_seq(cls, seq):
 		# type: (Sequence[Any]) -> Sequence[Any]
 		seen = set()  # type: Set[Any]
-		
+
 		def _seen_add(x):
 			# type: (Any) -> bool
 			seen.add(x)
 			return False
-		
+
 		if isinstance(seq, tuple):
 			return tuple(x for x in seq if x not in seen and not _seen_add(x))
 		else:
 			return [x for x in seq if x not in seen and not _seen_add(x)]
-	
+
 	@classmethod
 	def ctoi(cls, c):
 		# type: (Union[text_type, str, int]) -> int
@@ -3187,7 +3191,7 @@ class Utils(object):
 			return ord(c[0])
 		else:
 			return c
-	
+
 	@staticmethod
 	def parse_int(v):
 		# type: (Any) -> int
@@ -3203,6 +3207,7 @@ class Utils(object):
 			return float(v)
 		except:  # pylint: disable=bare-except
 			return -1.0
+
 
 def build_struct(banner, kex=None, pkm=None, client_host=None):
 	res = {
@@ -3281,6 +3286,7 @@ def build_struct(banner, kex=None, pkm=None, client_host=None):
 
 	return res
 
+
 def audit(aconf, sshv=None):
 	# type: (AuditConf, Optional[int]) -> None
 	out.batch = aconf.batch
@@ -3350,9 +3356,11 @@ def audit(aconf, sshv=None):
 utils = Utils()
 out = Output()
 
+
 def main():
 	conf = AuditConf.from_cmdline(sys.argv[1:], usage)
 	audit(conf)
+
 
 if __name__ == '__main__':  # pragma: nocover
 	main()

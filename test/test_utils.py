@@ -10,7 +10,7 @@ class TestUtils(object):
 	def init(self, ssh_audit):
 		self.utils = ssh_audit.Utils
 		self.PY3 = sys.version_info >= (3,)
-	
+
 	def test_to_bytes_py2(self):
 		if self.PY3:
 			return
@@ -22,7 +22,7 @@ class TestUtils(object):
 		# other
 		with pytest.raises(TypeError):
 			self.utils.to_bytes(123)
-	
+
 	def test_to_bytes_py3(self):
 		if not self.PY3:
 			return
@@ -34,7 +34,7 @@ class TestUtils(object):
 		# other
 		with pytest.raises(TypeError):
 			self.utils.to_bytes(123)
-	
+
 	def test_to_utext_py2(self):
 		if self.PY3:
 			return
@@ -46,7 +46,7 @@ class TestUtils(object):
 		# other
 		with pytest.raises(TypeError):
 			self.utils.to_utext(123)
-	
+
 	def test_to_utext_py3(self):
 		if not self.PY3:
 			return
@@ -58,7 +58,7 @@ class TestUtils(object):
 		# other
 		with pytest.raises(TypeError):
 			self.utils.to_utext(123)
-	
+
 	def test_to_ntext_py2(self):
 		if self.PY3:
 			return
@@ -70,7 +70,7 @@ class TestUtils(object):
 		# other
 		with pytest.raises(TypeError):
 			self.utils.to_ntext(123)
-	
+
 	def test_to_ntext_py3(self):
 		if not self.PY3:
 			return
@@ -82,7 +82,7 @@ class TestUtils(object):
 		# other
 		with pytest.raises(TypeError):
 			self.utils.to_ntext(123)
-	
+
 	def test_is_ascii_py2(self):
 		if self.PY3:
 			return
@@ -94,7 +94,7 @@ class TestUtils(object):
 		assert self.utils.is_ascii('fran\xc3\xa7ais') is False
 		# other
 		assert self.utils.is_ascii(123) is False
-	
+
 	def test_is_ascii_py3(self):
 		if not self.PY3:
 			return
@@ -105,7 +105,7 @@ class TestUtils(object):
 		assert self.utils.is_ascii(u'fran\xe7ais') is False
 		# other
 		assert self.utils.is_ascii(123) is False
-	
+
 	def test_to_ascii_py2(self):
 		if self.PY3:
 			return
@@ -119,7 +119,7 @@ class TestUtils(object):
 		assert self.utils.to_ascii('fran\xc3\xa7ais', 'ignore') == 'franais'
 		with pytest.raises(TypeError):
 			self.utils.to_ascii(123)
-	
+
 	def test_to_ascii_py3(self):
 		if not self.PY3:
 			return
@@ -132,7 +132,7 @@ class TestUtils(object):
 		assert self.utils.to_ascii(u'fran\xe7ais', 'ignore') == 'franais'
 		with pytest.raises(TypeError):
 			self.utils.to_ascii(123)
-	
+
 	def test_is_print_ascii_py2(self):
 		if self.PY3:
 			return
@@ -147,7 +147,7 @@ class TestUtils(object):
 		assert self.utils.is_print_ascii('fran\xc3\xa7ais') is False
 		# other
 		assert self.utils.is_print_ascii(123) is False
-	
+
 	def test_is_print_ascii_py3(self):
 		if not self.PY3:
 			return
@@ -160,7 +160,7 @@ class TestUtils(object):
 		assert self.utils.is_print_ascii(u'fran\xe7ais') is False
 		# other
 		assert self.utils.is_print_ascii(123) is False
-	
+
 	def test_to_print_ascii_py2(self):
 		if self.PY3:
 			return
@@ -180,7 +180,7 @@ class TestUtils(object):
 		assert self.utils.to_print_ascii('fran\xc3\xa7ais\n', 'ignore') == 'franais'
 		with pytest.raises(TypeError):
 			self.utils.to_print_ascii(123)
-	
+
 	def test_to_print_ascii_py3(self):
 		if not self.PY3:
 			return
@@ -199,18 +199,18 @@ class TestUtils(object):
 		assert self.utils.to_print_ascii(u'fran\xe7ais\n', 'ignore') == 'franais'
 		with pytest.raises(TypeError):
 			self.utils.to_print_ascii(123)
-	
+
 	def test_ctoi(self):
 		assert self.utils.ctoi(123) == 123
 		assert self.utils.ctoi('ABC') == 65
-	
+
 	def test_parse_int(self):
 		assert self.utils.parse_int(123) == 123
 		assert self.utils.parse_int('123') == 123
 		assert self.utils.parse_int(-123) == -123
 		assert self.utils.parse_int('-123') == -123
 		assert self.utils.parse_int('abc') == 0
-	
+
 	def test_unique_seq(self):
 		assert self.utils.unique_seq((1, 2, 2, 3, 3, 3)) == (1, 2, 3)
 		assert self.utils.unique_seq((3, 3, 3, 2, 2, 1)) == (3, 2, 1)
