@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import socket
 import pytest
 
 
@@ -9,21 +8,21 @@ class TestSocket(object):
 	@pytest.fixture(autouse=True)
 	def init(self, ssh_audit):
 		self.ssh = ssh_audit.SSH
-	
+
 	def test_invalid_host(self, virtual_socket):
 		with pytest.raises(ValueError):
-			s = self.ssh.Socket(None, 22)
-	
+			self.ssh.Socket(None, 22)
+
 	def test_invalid_port(self, virtual_socket):
 		with pytest.raises(ValueError):
-			s = self.ssh.Socket('localhost', 'abc')
+			self.ssh.Socket('localhost', 'abc')
 		with pytest.raises(ValueError):
-			s = self.ssh.Socket('localhost', -1)
+			self.ssh.Socket('localhost', -1)
 		with pytest.raises(ValueError):
-			s = self.ssh.Socket('localhost', 0)
+			self.ssh.Socket('localhost', 0)
 		with pytest.raises(ValueError):
-			s = self.ssh.Socket('localhost', 65536)
-	
+			self.ssh.Socket('localhost', 65536)
+
 	def test_not_connected_socket(self, virtual_socket):
 		sock = self.ssh.Socket('localhost', 22)
 		banner, header, err = sock.get_banner()

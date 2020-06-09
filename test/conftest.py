@@ -27,7 +27,7 @@ class _OutputSpy(list):
 		self.__out = StringIO()
 		self.__old_stdout = sys.stdout
 		sys.stdout = self.__out
-		
+
 	def flush(self):
 		lines = self.__out.getvalue().splitlines()
 		sys.stdout = self.__old_stdout
@@ -44,12 +44,12 @@ class _VirtualGlobalSocket(object):
 	def __init__(self, vsocket):
 		self.vsocket = vsocket
 		self.addrinfodata = {}
-	
+
 	# pylint: disable=unused-argument
 	def create_connection(self, address, timeout=0, source_address=None):
 		# pylint: disable=protected-access
 		return self.vsocket._connect(address, True)
-	
+
 	# pylint: disable=unused-argument
 	def socket(self,
 	           family=socket.AF_INET,
@@ -57,7 +57,7 @@ class _VirtualGlobalSocket(object):
 	           proto=0,
 	           fileno=None):
 		return self.vsocket
-	
+
 	def getaddrinfo(self, host, port, family=0, socktype=0, proto=0, flags=0):
 		key = '{0}#{1}'.format(host, port)
 		if key in self.addrinfodata:
@@ -85,41 +85,41 @@ class _VirtualSocket(object):
 		self.sdata = []
 		self.errors = {}
 		self.gsock = _VirtualGlobalSocket(self)
-	
+
 	def _check_err(self, method):
 		method_error = self.errors.get(method)
 		if method_error:
 			raise method_error
-	
+
 	def connect(self, address):
 		return self._connect(address, False)
-	
+
 	def _connect(self, address, ret=True):
 		self.peer_address = address
 		self._connected = True
 		self._check_err('connect')
 		return self if ret else None
-	
+
 	def settimeout(self, timeout):
 		self.timeout = timeout
-	
+
 	def gettimeout(self):
 		return self.timeout
-	
+
 	def getpeername(self):
 		if self.peer_address is None or not self._connected:
 			raise socket.error(57, 'Socket is not connected')
 		return self.peer_address
-	
+
 	def getsockname(self):
 		return self.sock_address
-	
+
 	def bind(self, address):
 		self.sock_address = address
-	
+
 	def listen(self, backlog):
 		pass
-	
+
 	def accept(self):
 		# pylint: disable=protected-access
 		conn = _VirtualSocket()
@@ -127,7 +127,7 @@ class _VirtualSocket(object):
 		conn.peer_address = ('127.0.0.1', 0)
 		conn._connected = True
 		return conn, conn.peer_address
-	
+
 	def recv(self, bufsize, flags=0):
 		# pylint: disable=unused-argument
 		if not self._connected:
@@ -138,7 +138,7 @@ class _VirtualSocket(object):
 		if isinstance(data, Exception):
 			raise data
 		return data
-	
+
 	def send(self, data):
 		if self.peer_address is None or not self._connected:
 			raise socket.error(32, 'Broken pipe')
