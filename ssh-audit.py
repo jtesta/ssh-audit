@@ -917,6 +917,7 @@ class SSH2(object):  # pylint: disable=too-few-public-methods
 					if reconnect_failed:
 						break
 
+
 class SSH1(object):
 	class CRC32(object):
 		def __init__(self):
@@ -1186,6 +1187,7 @@ class ReadBuf(object):
 		self._buf = BytesIO()
 		self._len = 0
 		super(ReadBuf, self).reset()
+
 
 class WriteBuf(object):
 	def __init__(self, data=None):
@@ -3071,6 +3073,7 @@ def output(banner, header, client_host=None, kex=None, pkm=None):
 	if len(unknown_algorithms) > 0:
 		out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at <https://github.com/jtesta/ssh-audit/issues>.\n" % ','.join(unknown_algorithms))
 
+
 class Utils(object):
 	@classmethod
 	def _type_err(cls, v, target):
@@ -3193,6 +3196,7 @@ class Utils(object):
 		except:  # pylint: disable=bare-except
 			return -1.0
 
+
 def build_struct(banner, kex=None, pkm=None, client_host=None):
 	res = {
 		"banner": {
@@ -3270,6 +3274,7 @@ def build_struct(banner, kex=None, pkm=None, client_host=None):
 
 	return res
 
+
 def audit(aconf, sshv=None):
 	# type: (AuditConf, Optional[int]) -> None
 	out.batch = aconf.batch
@@ -3338,6 +3343,7 @@ def audit(aconf, sshv=None):
 
 utils = Utils()
 out = Output()
+
 
 def main():
 	conf = AuditConf.from_cmdline(sys.argv[1:], usage)
