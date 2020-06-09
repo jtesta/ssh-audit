@@ -54,7 +54,7 @@ if sys.version_info >= (3,):  # pragma: nocover
 else:  # pragma: nocover
 	import StringIO as _StringIO  # pylint: disable=import-error
 	StringIO = BytesIO = _StringIO.StringIO
-	text_type = unicode  # pylint: disable=undefined-variable
+	text_type = unicode  # pylint: disable=undefined-variable  # noqa: F821
 	binary_type = str
 try:  # pragma: nocover
 	# pylint: disable=unused-import
