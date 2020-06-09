@@ -3351,5 +3351,6 @@ def main():
 	conf = AuditConf.from_cmdline(sys.argv[1:], usage)
 	audit(conf)
 
+
 if __name__ == '__main__':  # pragma: nocover
 	main()
