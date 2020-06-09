@@ -13,20 +13,20 @@ with open("sshaudit/README.md", "rb") as f:
 
 
 setup(
-    name = "ssh-audit",
-    packages = ["sshaudit"],
-    license = 'MIT',
-    entry_points = {
+    name="ssh-audit",
+    packages=["sshaudit"],
+    license='MIT',
+    entry_points={
         "console_scripts": ['ssh-audit = sshaudit.sshaudit:main']
     },
-    version = version,
-    description = "An SSH server & client configuration security auditing tool",
-    long_description = long_descr,
-    long_description_content_type = "text/markdown",
-    author = "Joe Testa",
-    author_email = "jtesta@positronsecurity.com",
-    url = "https://github.com/jtesta/ssh-audit",
-    classifiers = [
+    version=version,
+    description="An SSH server & client configuration security auditing tool",
+    long_description=long_descr,
+    long_description_content_type="text/markdown",
+    author="Joe Testa",
+    author_email="jtesta@positronsecurity.com",
+    url="https://github.com/jtesta/ssh-audit",
+    classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Information Technology",
         "Intended Audience :: System Administrators",
