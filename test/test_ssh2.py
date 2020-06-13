@@ -38,7 +38,7 @@ class TestSSH2(object):
     def _kex_payload(self):
         w = self.wbuf()
         w.write(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff')
-        w.write_list([u'curve25519-sha256@libssh.org', u'ecdh-sha2-nistp256', u'ecdh-sha2-nistp384', u'ecdh-sha2-nistp521', u'diffie-hellman-group-exchange-sha256', u'diffie-hellman-group14-sha1'])
+        w.write_list([u'bogus_kex1', u'bogus_kex2'])  # We use a bogus kex, otherwise the host key tests will kick off and fail.
         w.write_list([u'ssh-rsa', u'rsa-sha2-512', u'rsa-sha2-256', u'ssh-ed25519'])
         w.write_list([u'chacha20-poly1305@openssh.com', u'aes128-ctr', u'aes192-ctr', u'aes256-ctr', u'aes128-gcm@openssh.com', u'aes256-gcm@openssh.com', u'aes128-cbc', u'aes192-cbc', u'aes256-cbc'])
         w.write_list([u'chacha20-poly1305@openssh.com', u'aes128-ctr', u'aes192-ctr', u'aes256-ctr', u'aes128-gcm@openssh.com', u'aes256-gcm@openssh.com', u'aes128-cbc', u'aes192-cbc', u'aes256-cbc'])
@@ -56,7 +56,7 @@ class TestSSH2(object):
         kex = self.ssh2.Kex.parse(self._kex_payload())
         assert kex is not None
         assert kex.cookie == b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
-        assert kex.kex_algorithms == [u'curve25519-sha256@libssh.org', u'ecdh-sha2-nistp256', u'ecdh-sha2-nistp384', u'ecdh-sha2-nistp521', u'diffie-hellman-group-exchange-sha256', u'diffie-hellman-group14-sha1']
+        assert kex.kex_algorithms == [u'bogus_kex1', u'bogus_kex2']
         assert kex.key_algorithms == [u'ssh-rsa', u'rsa-sha2-512', u'rsa-sha2-256', u'ssh-ed25519']
         assert kex.client is not None
         assert kex.server is not None
@@ -85,12 +85,8 @@ class TestSSH2(object):
     def _get_kex_variat1(self):
         cookie = b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
         kex = self._get_empty_kex(cookie)
-        kex.kex_algorithms.append('curve25519-sha256@libssh.org')
-        kex.kex_algorithms.append('ecdh-sha2-nistp256')
-        kex.kex_algorithms.append('ecdh-sha2-nistp384')
-        kex.kex_algorithms.append('ecdh-sha2-nistp521')
-        kex.kex_algorithms.append('diffie-hellman-group-exchange-sha256')
-        kex.kex_algorithms.append('diffie-hellman-group14-sha1')
+        kex.kex_algorithms.append('bogus_kex1')
+        kex.kex_algorithms.append('bogus_kex2')
         kex.key_algorithms.append('ssh-rsa')
         kex.key_algorithms.append('rsa-sha2-512')
         kex.key_algorithms.append('rsa-sha2-256')
@@ -130,7 +126,6 @@ class TestSSH2(object):
         kex2 = self.ssh2.Kex.parse(self._kex_payload())
         assert kex1.payload == kex2.payload
 
-    @pytest.mark.skip(reason="Temporarily skip this test to have a working test suite!")
     def test_ssh2_server_simple(self, output_spy, virtual_socket):
         vsocket = virtual_socket
         w = self.wbuf()
@@ -141,7 +136,7 @@ class TestSSH2(object):
         output_spy.begin()
         self.audit(self._conf())
         lines = output_spy.flush()
-        assert len(lines) == 72
+        assert len(lines) == 67
 
     def test_ssh2_server_invalid_first_packet(self, output_spy, virtual_socket):
         vsocket = virtual_socket
