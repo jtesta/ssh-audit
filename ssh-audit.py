@@ -44,10 +44,8 @@ VERSION = 'v2.2.1-dev'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.0'  # SSH software to impersonate
 
 if sys.version_info >= (3,):  # pragma: nocover
-    text_type = str
     binary_type = bytes
 else:  # pragma: nocover
-    text_type = unicode  # pylint: disable=undefined-variable  # noqa: F821
     binary_type = str
 try:  # pragma: nocover
     # pylint: disable=unused-import
@@ -271,11 +269,11 @@ class Output:
 
     @staticmethod
     def _colorized(color):
-        # type: (str) -> Callable[[text_type], None]
+        # type: (str) -> Callable[[str], None]
         return lambda x: print(u'{0}{1}\033[0m'.format(color, x))
 
     def __getattr__(self, name):
-        # type: (str) -> Callable[[text_type], None]
+        # type: (str) -> Callable[[str], None]
         if name == 'head' and self.batch:
             return lambda x: None
         if not self.get_level(name) >= self.__level:
@@ -532,7 +530,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
 
     class KexParty:
         def __init__(self, enc, mac, compression, languages):
-            # type: (List[text_type], List[text_type], List[text_type], List[text_type]) -> None
+            # type: (List[str], List[str], List[str], List[str]) -> None
             self.__enc = enc
             self.__mac = mac
             self.__compression = compression
@@ -540,27 +538,27 @@ class SSH2:  # pylint: disable=too-few-public-methods
 
         @property
         def encryption(self):
-            # type: () -> List[text_type]
+            # type: () -> List[str]
             return self.__enc
 
         @property
         def mac(self):
-            # type: () -> List[text_type]
+            # type: () -> List[str]
             return self.__mac
 
         @property
         def compression(self):
-            # type: () -> List[text_type]
+            # type: () -> List[str]
             return self.__compression
 
         @property
         def languages(self):
-            # type: () -> List[text_type]
+            # type: () -> List[str]
             return self.__languages
 
     class Kex:
         def __init__(self, cookie, kex_algs, key_algs, cli, srv, follows, unused=0):
-            # type: (binary_type, List[text_type], List[text_type], SSH2.KexParty, SSH2.KexParty, bool, int) -> None
+            # type: (binary_type, List[str], List[str], SSH2.KexParty, SSH2.KexParty, bool, int) -> None
             self.__cookie = cookie
             self.__kex_algs = kex_algs
             self.__key_algs = key_algs
@@ -580,12 +578,12 @@ class SSH2:  # pylint: disable=too-few-public-methods
 
         @property
         def kex_algorithms(self):
-            # type: () -> List[text_type]
+            # type: () -> List[str]
             return self.__kex_algs
 
         @property
         def key_algorithms(self):
-            # type: () -> List[text_type]
+            # type: () -> List[str]
             return self.__key_algs
 
         # client_to_server
@@ -1058,7 +1056,7 @@ class SSH1:
 
         @property
         def supported_ciphers(self):
-            # type: () -> List[text_type]
+            # type: () -> List[str]
             ciphers = []
             for i in range(len(SSH1.CIPHERS)):
                 if self.__supported_ciphers_mask & (1 << i) != 0:
@@ -1072,7 +1070,7 @@ class SSH1:
 
         @property
         def supported_authentications(self):
-            # type: () -> List[text_type]
+            # type: () -> List[str]
             auths = []
             for i in range(1, len(SSH1.AUTHS)):
                 if self.__supported_authentications_mask & (1 << i) != 0:
@@ -1150,7 +1148,7 @@ class ReadBuf:
         return v
 
     def read_list(self):
-        # type: () -> List[text_type]
+        # type: () -> List[str]
         list_size = self.read_int()
         return self.read(list_size).decode('utf-8', 'replace').split(',')
 
@@ -1186,7 +1184,7 @@ class ReadBuf:
         return self._parse_mpint(v, pad, f)
 
     def read_line(self):
-        # type: () -> text_type
+        # type: () -> str
         return self._buf.readline().rstrip().decode('utf-8', 'replace')
 
     def reset(self):
@@ -1218,14 +1216,14 @@ class WriteBuf:
         return self.write(struct.pack('>I', v))
 
     def write_string(self, v):
-        # type: (Union[binary_type, text_type]) -> WriteBuf
+        # type: (Union[binary_type, str]) -> WriteBuf
         if not isinstance(v, bytes):
             v = bytes(bytearray(v, 'utf-8'))
         self.write_int(len(v))
         return self.write(v)
 
     def write_list(self, v):
-        # type: (List[text_type]) -> WriteBuf
+        # type: (List[str]) -> WriteBuf
         return self.write_string(u','.join(v))
 
     @classmethod
@@ -1342,7 +1340,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             return self.__os
 
         def compare_version(self, other):
-            # type: (Union[None, SSH.Software, text_type]) -> int
+            # type: (Union[None, SSH.Software, str]) -> int
             # pylint: disable=too-many-branches
             if other is None:
                 return 1
@@ -1567,7 +1565,7 @@ class SSH:  # pylint: disable=too-few-public-methods
 
         @classmethod
         def parse(cls, banner):
-            # type: (text_type) -> Optional[SSH.Banner]
+            # type: (str) -> Optional[SSH.Banner]
             valid_ascii = utils.is_print_ascii(banner)
             ascii_banner = utils.to_print_ascii(banner)
             mx = cls.RX_BANNER.match(ascii_banner)
@@ -1590,14 +1588,14 @@ class SSH:  # pylint: disable=too-few-public-methods
 
         @property
         def md5(self):
-            # type: () -> text_type
+            # type: () -> str
             h = hashlib.md5(self.__fpd).hexdigest()
             r = u':'.join(h[i:i + 2] for i in range(0, len(h), 2))
             return u'MD5:{0}'.format(r)
 
         @property
         def sha256(self):
-            # type: () -> text_type
+            # type: () -> str
             h = base64.b64encode(hashlib.sha256(self.__fpd).digest())
             r = h.decode('ascii').rstrip('=')
             return u'SHA256:{0}'.format(r)
@@ -1675,7 +1673,7 @@ class SSH:  # pylint: disable=too-few-public-methods
 
         @classmethod
         def get_since_text(cls, versions):
-            # type: (List[Optional[str]]) -> Optional[text_type]
+            # type: (List[Optional[str]]) -> Optional[str]
             tv = []
             if len(versions) == 0 or versions[0] is None:
                 return None
@@ -1742,7 +1740,7 @@ class SSH:  # pylint: disable=too-few-public-methods
         def maxlen(self):
             # type: () -> int
             def _ml(items):
-                # type: (Sequence[text_type]) -> int
+                # type: (Sequence[str]) -> int
                 return max(len(i) for i in items)
             maxlen = 0
             if self.ssh1kex is not None:
@@ -1884,7 +1882,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 # type: (int, Dict[str, Dict[str, List[List[Optional[str]]]]]) -> None
                 self.__sshv = sshv
                 self.__db = db
-                self.__storage = {}  # type: Dict[str, List[text_type]]
+                self.__storage = {}  # type: Dict[str, List[str]]
 
             @property
             def sshv(self):
@@ -1897,11 +1895,11 @@ class SSH:  # pylint: disable=too-few-public-methods
                 return self.__db
 
             def add(self, key, value):
-                # type: (str, List[text_type]) -> None
+                # type: (str, List[str]) -> None
                 self.__storage[key] = value
 
             def items(self):
-                # type: () -> Iterable[Tuple[str, List[text_type]]]
+                # type: () -> Iterable[Tuple[str, List[str]]]
                 return self.__storage.items()
 
     class Security:  # pylint: disable=too-few-public-methods
@@ -2039,7 +2037,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             self.__sock_map = {}
             self.__block_size = 8
             self.__state = 0
-            self.__header = []  # type: List[text_type]
+            self.__header = []  # type: List[str]
             self.__banner = None  # type: Optional[SSH.Banner]
             if host is None:
                 raise ValueError('undefined host')
@@ -2158,7 +2156,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             sys.exit(1)
 
         def get_banner(self, sshv=2):
-            # type: (int) -> Tuple[Optional[SSH.Banner], List[text_type], Optional[str]]
+            # type: (int) -> Tuple[Optional[SSH.Banner], List[str], Optional[str]]
             if self.__sock is None:
                 return self.__banner, self.__header, 'not connected'
             banner = SSH_HEADER.format('1.5' if sshv == 1 else '2.0')
@@ -2665,7 +2663,7 @@ class KexGroupExchange_SHA256(KexGroupExchange):
 
 
 def output_algorithms(title, alg_db, alg_type, algorithms, unknown_algs, maxlen=0, alg_sizes=None):
-    # type: (str, Dict[str, Dict[str, List[List[Optional[str]]]]], str, List[text_type], int) -> None
+    # type: (str, Dict[str, Dict[str, List[List[Optional[str]]]]], str, List[str], int) -> None
     with OutputBuffer() as obuf:
         for algorithm in algorithms:
             output_algorithm(alg_db, alg_type, algorithm, unknown_algs, maxlen, alg_sizes)
@@ -2676,7 +2674,7 @@ def output_algorithms(title, alg_db, alg_type, algorithms, unknown_algs, maxlen=
 
 
 def output_algorithm(alg_db, alg_type, alg_name, unknown_algs, alg_max_len=0, alg_sizes=None):
-    # type: (Dict[str, Dict[str, List[List[Optional[str]]]]], str, text_type, int) -> None
+    # type: (Dict[str, Dict[str, List[List[Optional[str]]]]], str, str, int) -> None
     prefix = '(' + alg_type + ') '
     if alg_max_len == 0:
         alg_max_len = len(alg_name)
@@ -2941,7 +2939,7 @@ def output_info(software, client_audit, any_problems):
 
 
 def output(banner, header, client_host=None, kex=None, pkm=None):
-    # type: (Optional[SSH.Banner], List[text_type], Optional[SSH2.Kex], Optional[SSH1.PublicKeyMessage]) -> None
+    # type: (Optional[SSH.Banner], List[str], Optional[SSH2.Kex], Optional[SSH1.PublicKeyMessage]) -> None
     client_audit = client_host is not None  # If set, this is a client audit.
     sshv = 1 if pkm is not None else 2
     algs = SSH.Algorithms(pkm, kex)
@@ -3009,22 +3007,22 @@ def output(banner, header, client_host=None, kex=None, pkm=None):
 class Utils:
     @classmethod
     def _type_err(cls, v, target):
-        # type: (Any, text_type) -> TypeError
+        # type: (Any, str) -> TypeError
         return TypeError('cannot convert {0} to {1}'.format(type(v), target))
 
     @classmethod
     def to_bytes(cls, v, enc='utf-8'):
-        # type: (Union[binary_type, text_type], str) -> binary_type
+        # type: (Union[binary_type, str], str) -> binary_type
         if isinstance(v, binary_type):
             return v
-        elif isinstance(v, text_type):
+        elif isinstance(v, str):
             return v.encode(enc)
         raise cls._type_err(v, 'bytes')
 
     @classmethod
     def to_utext(cls, v, enc='utf-8'):
-        # type: (Union[text_type, binary_type], str) -> text_type
-        if isinstance(v, text_type):
+        # type: (Union[str, binary_type], str) -> str
+        if isinstance(v, str):
             return v
         elif isinstance(v, binary_type):
             return v.decode(enc)
@@ -3032,20 +3030,18 @@ class Utils:
 
     @classmethod
     def to_ntext(cls, v, enc='utf-8'):
-        # type: (Union[text_type, binary_type], str) -> str
+        # type: (Union[str, binary_type], str) -> str
         if isinstance(v, str):
             return v
-        elif isinstance(v, text_type):
-            return v.encode(enc)  # PY2 only
         elif isinstance(v, binary_type):
-            return v.decode(enc)  # PY3 only
+            return v.decode(enc)
         raise cls._type_err(v, 'native text')
 
     @classmethod
     def _is_ascii(cls, v, char_filter=lambda x: x <= 127):
-        # type: (Union[text_type, str], Callable[[int], bool]) -> bool
+        # type: (str, Callable[[int], bool]) -> bool
         r = False
-        if isinstance(v, (text_type, str)):
+        if isinstance(v, str):
             for c in v:
                 i = cls.ctoi(c)
                 if not char_filter(i):
@@ -3055,8 +3051,8 @@ class Utils:
 
     @classmethod
     def _to_ascii(cls, v, char_filter=lambda x: x <= 127, errors='replace'):
-        # type: (Union[text_type, str], Callable[[int], bool], str) -> str
-        if isinstance(v, (text_type, str)):
+        # type: (str, Callable[[int], bool], str) -> str
+        if isinstance(v, str):
             r = bytearray()
             for c in v:
                 i = cls.ctoi(c)
@@ -3071,22 +3067,22 @@ class Utils:
 
     @classmethod
     def is_ascii(cls, v):
-        # type: (Union[text_type, str]) -> bool
+        # type: (str) -> bool
         return cls._is_ascii(v)
 
     @classmethod
     def to_ascii(cls, v, errors='replace'):
-        # type: (Union[text_type, str], str) -> str
+        # type: (str, str) -> str
         return cls._to_ascii(v, errors=errors)
 
     @classmethod
     def is_print_ascii(cls, v):
-        # type: (Union[text_type, str]) -> bool
+        # type: (str) -> bool
         return cls._is_ascii(v, lambda x: 126 >= x >= 32)
 
     @classmethod
     def to_print_ascii(cls, v, errors='replace'):
-        # type: (Union[text_type, str], str) -> str
+        # type: (str, str) -> str
         return cls._to_ascii(v, lambda x: 126 >= x >= 32, errors)
 
     @classmethod
@@ -3106,8 +3102,8 @@ class Utils:
 
     @classmethod
     def ctoi(cls, c):
-        # type: (Union[text_type, str, int]) -> int
-        if isinstance(c, (text_type, str)):
+        # type: (Union[str, int]) -> int
+        if isinstance(c, str):
             return ord(c[0])
         else:
             return c
