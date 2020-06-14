@@ -43,10 +43,6 @@ import sys
 VERSION = 'v2.2.1-dev'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.0'  # SSH software to impersonate
 
-if sys.version_info >= (3,):  # pragma: nocover
-    binary_type = bytes
-else:  # pragma: nocover
-    binary_type = str
 try:  # pragma: nocover
     # pylint: disable=unused-import
     from typing import Dict, List, Set, Sequence, Tuple, Iterable
@@ -558,7 +554,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
 
     class Kex:
         def __init__(self, cookie, kex_algs, key_algs, cli, srv, follows, unused=0):
-            # type: (binary_type, List[str], List[str], SSH2.KexParty, SSH2.KexParty, bool, int) -> None
+            # type: (bytes, List[str], List[str], SSH2.KexParty, SSH2.KexParty, bool, int) -> None
             self.__cookie = cookie
             self.__kex_algs = kex_algs
             self.__key_algs = key_algs
@@ -573,7 +569,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
 
         @property
         def cookie(self):
-            # type: () -> binary_type
+            # type: () -> bytes
             return self.__cookie
 
         @property
@@ -644,14 +640,14 @@ class SSH2:  # pylint: disable=too-few-public-methods
 
         @property
         def payload(self):
-            # type: () -> binary_type
+            # type: () -> bytes
             wbuf = WriteBuf()
             self.write(wbuf)
             return wbuf.write_flush()
 
         @classmethod
         def parse(cls, payload):
-            # type: (binary_type) -> SSH2.Kex
+            # type: (bytes) -> SSH2.Kex
             buf = ReadBuf(payload)
             cookie = buf.read(16)
             kex_algs = buf.read_list()
@@ -937,7 +933,7 @@ class SSH1:
                 self._table[i] = crc
 
         def calc(self, v):
-            # type: (binary_type) -> int
+            # type: (bytes) -> int
             crc, length = 0, len(v)
             for i in range(length):
                 n = ord(v[i:i + 1])
@@ -951,7 +947,7 @@ class SSH1:
 
     @classmethod
     def crc32(cls, v):
-        # type: (binary_type) -> int
+        # type: (bytes) -> int
         if cls._crc32 is None:
             cls._crc32 = cls.CRC32()
         return cls._crc32.calc(v)
@@ -989,7 +985,7 @@ class SSH1:
 
     class PublicKeyMessage:
         def __init__(self, cookie, skey, hkey, pflags, cmask, amask):
-            # type: (binary_type, Tuple[int, int, int], Tuple[int, int, int], int, int, int) -> None
+            # type: (bytes, Tuple[int, int, int], Tuple[int, int, int], int, int, int) -> None
             if len(skey) != 3:
                 raise ValueError('invalid server key pair: {0}'.format(skey))
             if len(hkey) != 3:
@@ -1003,7 +999,7 @@ class SSH1:
 
         @property
         def cookie(self):
-            # type: () -> binary_type
+            # type: () -> bytes
             return self.__cookie
 
         @property
@@ -1038,7 +1034,7 @@ class SSH1:
 
         @property
         def host_key_fingerprint_data(self):
-            # type: () -> binary_type
+            # type: () -> bytes
             # pylint: disable=protected-access
             mod = WriteBuf._create_mpint(self.host_key_public_modulus, False)
             e = WriteBuf._create_mpint(self.host_key_public_exponent, False)
@@ -1092,14 +1088,14 @@ class SSH1:
 
         @property
         def payload(self):
-            # type: () -> binary_type
+            # type: () -> bytes
             wbuf = WriteBuf()
             self.write(wbuf)
             return wbuf.write_flush()
 
         @classmethod
         def parse(cls, payload):
-            # type: (binary_type) -> SSH1.PublicKeyMessage
+            # type: (bytes) -> SSH1.PublicKeyMessage
             buf = ReadBuf(payload)
             cookie = buf.read(8)
             server_key_bits = buf.read_int()
@@ -1119,7 +1115,7 @@ class SSH1:
 
 class ReadBuf:
     def __init__(self, data=None):
-        # type: (Optional[binary_type]) -> None
+        # type: (Optional[bytes]) -> None
         super(ReadBuf, self).__init__()
         self._buf = io.BytesIO(data) if data is not None else io.BytesIO()
         self._len = len(data) if data is not None else 0
@@ -1130,7 +1126,7 @@ class ReadBuf:
         return self._len - self._buf.tell()
 
     def read(self, size):
-        # type: (int) -> binary_type
+        # type: (int) -> bytes
         return self._buf.read(size)
 
     def read_byte(self):
@@ -1153,13 +1149,13 @@ class ReadBuf:
         return self.read(list_size).decode('utf-8', 'replace').split(',')
 
     def read_string(self):
-        # type: () -> binary_type
+        # type: () -> bytes
         n = self.read_int()
         return self.read(n)
 
     @classmethod
     def _parse_mpint(cls, v, pad, f):
-        # type: (binary_type, binary_type, str) -> int
+        # type: (bytes, bytes, str) -> int
         r = 0
         if len(v) % 4 != 0:
             v = pad * (4 - (len(v) % 4)) + v
@@ -1194,12 +1190,12 @@ class ReadBuf:
 
 class WriteBuf:
     def __init__(self, data=None):
-        # type: (Optional[binary_type]) -> None
+        # type: (Optional[bytes]) -> None
         super(WriteBuf, self).__init__()
         self._wbuf = io.BytesIO(data) if data is not None else io.BytesIO()
 
     def write(self, data):
-        # type: (binary_type) -> WriteBuf
+        # type: (bytes) -> WriteBuf
         self._wbuf.write(data)
         return self
 
@@ -1216,7 +1212,7 @@ class WriteBuf:
         return self.write(struct.pack('>I', v))
 
     def write_string(self, v):
-        # type: (Union[binary_type, str]) -> WriteBuf
+        # type: (Union[bytes, str]) -> WriteBuf
         if not isinstance(v, bytes):
             v = bytes(bytearray(v, 'utf-8'))
         self.write_int(len(v))
@@ -1236,7 +1232,7 @@ class WriteBuf:
 
     @classmethod
     def _create_mpint(cls, n, signed=True, bits=None):
-        # type: (int, bool, Optional[int]) -> binary_type
+        # type: (int, bool, Optional[int]) -> bytes
         if bits is None:
             bits = cls._bitlength(n)
         length = bits // 8 + (1 if n != 0 else 0)
@@ -1267,14 +1263,14 @@ class WriteBuf:
         return self.write_string(data)
 
     def write_line(self, v):
-        # type: (Union[binary_type, str]) -> WriteBuf
+        # type: (Union[bytes, str]) -> WriteBuf
         if not isinstance(v, bytes):
             v = bytes(bytearray(v, 'utf-8'))
         v += b'\r\n'
         return self.write(v)
 
     def write_flush(self):
-        # type: () -> binary_type
+        # type: () -> bytes
         payload = self._wbuf.getvalue()
         self._wbuf.truncate(0)
         self._wbuf.seek(0)
@@ -1583,7 +1579,7 @@ class SSH:  # pylint: disable=too-few-public-methods
 
     class Fingerprint:
         def __init__(self, fpd):
-            # type: (binary_type) -> None
+            # type: (bytes) -> None
             self.__fpd = fpd
 
         @property
@@ -2208,7 +2204,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             return len(data), None
 
         def send(self, data):
-            # type: (binary_type) -> Tuple[int, Optional[str]]
+            # type: (bytes) -> Tuple[int, Optional[str]]
             if self.__sock is None:
                 return -1, 'not connected'
             try:
@@ -2232,7 +2228,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                     raise SSH.Socket.InsufficientReadException(e)
 
         def read_packet(self, sshv=2):
-            # type: (int) -> Tuple[int, binary_type]
+            # type: (int) -> Tuple[int, bytes]
             try:
                 header = WriteBuf()
                 self.ensure_read(4)
@@ -3012,8 +3008,8 @@ class Utils:
 
     @classmethod
     def to_bytes(cls, v, enc='utf-8'):
-        # type: (Union[binary_type, str], str) -> binary_type
-        if isinstance(v, binary_type):
+        # type: (Union[bytes, str], str) -> bytes
+        if isinstance(v, bytes):
             return v
         elif isinstance(v, str):
             return v.encode(enc)
@@ -3021,19 +3017,19 @@ class Utils:
 
     @classmethod
     def to_utext(cls, v, enc='utf-8'):
-        # type: (Union[str, binary_type], str) -> str
+        # type: (Union[str, bytes], str) -> str
         if isinstance(v, str):
             return v
-        elif isinstance(v, binary_type):
+        elif isinstance(v, bytes):
             return v.decode(enc)
         raise cls._type_err(v, 'unicode text')
 
     @classmethod
     def to_ntext(cls, v, enc='utf-8'):
-        # type: (Union[str, binary_type], str) -> str
+        # type: (Union[str, bytes], str) -> str
         if isinstance(v, str):
             return v
-        elif isinstance(v, binary_type):
+        elif isinstance(v, bytes):
             return v.decode(enc)
         raise cls._type_err(v, 'native text')
 
