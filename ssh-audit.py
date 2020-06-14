@@ -38,14 +38,12 @@ import select
 import socket
 import struct
 import sys
-
-
-VERSION = 'v2.2.1-dev'
-SSH_HEADER = 'SSH-{0}-OpenSSH_8.0'  # SSH software to impersonate
-
 # pylint: disable=unused-import
 from typing import Dict, List, Set, Sequence, Tuple, Iterable
 from typing import Callable, Optional, Union, Any
+
+VERSION = 'v2.2.1-dev'
+SSH_HEADER = 'SSH-{0}-OpenSSH_8.0'  # SSH software to impersonate
 
 try:  # pragma: nocover
     from colorama import init as colorama_init
