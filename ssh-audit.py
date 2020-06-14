@@ -43,12 +43,10 @@ import sys
 VERSION = 'v2.2.1-dev'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.0'  # SSH software to impersonate
 
-try:  # pragma: nocover
-    # pylint: disable=unused-import
-    from typing import Dict, List, Set, Sequence, Tuple, Iterable
-    from typing import Callable, Optional, Union, Any
-except ImportError:  # pragma: nocover
-    pass
+# pylint: disable=unused-import
+from typing import Dict, List, Set, Sequence, Tuple, Iterable
+from typing import Callable, Optional, Union, Any
+
 try:  # pragma: nocover
     from colorama import init as colorama_init
     colorama_init(strip=False)  # pragma: nocover
