@@ -44,12 +44,9 @@ VERSION = 'v2.2.1-dev'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.0'  # SSH software to impersonate
 
 if sys.version_info >= (3,):  # pragma: nocover
-    StringIO, BytesIO = io.StringIO, io.BytesIO
     text_type = str
     binary_type = bytes
 else:  # pragma: nocover
-    import StringIO as _StringIO  # pylint: disable=import-error
-    StringIO = BytesIO = _StringIO.StringIO
     text_type = unicode  # pylint: disable=undefined-variable  # noqa: F821
     binary_type = str
 try:  # pragma: nocover
@@ -294,7 +291,7 @@ class OutputBuffer(list):
     def __enter__(self):
         # type: () -> OutputBuffer
         # pylint: disable=attribute-defined-outside-init
-        self.__buf = StringIO()
+        self.__buf = io.StringIO()
         self.__stdout = sys.stdout
         sys.stdout = self.__buf
         return self
@@ -1126,7 +1123,7 @@ class ReadBuf:
     def __init__(self, data=None):
         # type: (Optional[binary_type]) -> None
         super(ReadBuf, self).__init__()
-        self._buf = BytesIO(data) if data is not None else BytesIO()
+        self._buf = io.BytesIO(data) if data is not None else io.BytesIO()
         self._len = len(data) if data is not None else 0
 
     @property
@@ -1193,7 +1190,7 @@ class ReadBuf:
         return self._buf.readline().rstrip().decode('utf-8', 'replace')
 
     def reset(self):
-        self._buf = BytesIO()
+        self._buf = io.BytesIO()
         self._len = 0
 
 
@@ -1201,7 +1198,7 @@ class WriteBuf:
     def __init__(self, data=None):
         # type: (Optional[binary_type]) -> None
         super(WriteBuf, self).__init__()
-        self._wbuf = BytesIO(data) if data is not None else BytesIO()
+        self._wbuf = io.BytesIO(data) if data is not None else io.BytesIO()
 
     def write(self, data):
         # type: (binary_type) -> WriteBuf
@@ -1286,7 +1283,7 @@ class WriteBuf:
         return payload
 
     def reset(self):
-        self._wbuf = BytesIO()
+        self._wbuf = io.BytesIO()
 
 
 class SSH:  # pylint: disable=too-few-public-methods
