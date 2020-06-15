@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import socket
 import pytest
 
 
 # pylint: disable=attribute-defined-outside-init,protected-access
-class TestResolve(object):
+class TestResolve:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.AuditConf = ssh_audit.AuditConf
