@@ -1,11 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import print_function
 import pytest
 
 
 # pylint: disable=attribute-defined-outside-init
-class TestOutput(object):
+class TestOutput:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.Output = ssh_audit.Output
@@ -25,17 +22,17 @@ class TestOutput(object):
     def test_output_buffer_no_flush(self, output_spy):
         output_spy.begin()
         with self.OutputBuffer():
-            print(u'abc')
+            print('abc')
         assert output_spy.flush() == []
 
     def test_output_buffer_flush(self, output_spy):
         output_spy.begin()
         with self.OutputBuffer() as obuf:
-            print(u'abc')
+            print('abc')
             print()
-            print(u'def')
+            print('def')
         obuf.flush()
-        assert output_spy.flush() == [u'abc', u'', u'def']
+        assert output_spy.flush() == ['abc', '', 'def']
 
     def test_output_defaults(self):
         out = self.Output()
@@ -50,38 +47,38 @@ class TestOutput(object):
         out.use_colors = False
         output_spy.begin()
         out.info('info color')
-        assert output_spy.flush() == [u'info color']
+        assert output_spy.flush() == ['info color']
         output_spy.begin()
         out.head('head color')
-        assert output_spy.flush() == [u'head color']
+        assert output_spy.flush() == ['head color']
         output_spy.begin()
         out.good('good color')
-        assert output_spy.flush() == [u'good color']
+        assert output_spy.flush() == ['good color']
         output_spy.begin()
         out.warn('warn color')
-        assert output_spy.flush() == [u'warn color']
+        assert output_spy.flush() == ['warn color']
         output_spy.begin()
         out.fail('fail color')
-        assert output_spy.flush() == [u'fail color']
+        assert output_spy.flush() == ['fail color']
         if not out.colors_supported:
             return
         # test with colors
         out.use_colors = True
         output_spy.begin()
         out.info('info color')
-        assert output_spy.flush() == [u'info color']
+        assert output_spy.flush() == ['info color']
         output_spy.begin()
         out.head('head color')
-        assert output_spy.flush() == [u'\x1b[0;36mhead color\x1b[0m']
+        assert output_spy.flush() == ['\x1b[0;36mhead color\x1b[0m']
         output_spy.begin()
         out.good('good color')
-        assert output_spy.flush() == [u'\x1b[0;32mgood color\x1b[0m']
+        assert output_spy.flush() == ['\x1b[0;32mgood color\x1b[0m']
         output_spy.begin()
         out.warn('warn color')
-        assert output_spy.flush() == [u'\x1b[0;33mwarn color\x1b[0m']
+        assert output_spy.flush() == ['\x1b[0;33mwarn color\x1b[0m']
         output_spy.begin()
         out.fail('fail color')
-        assert output_spy.flush() == [u'\x1b[0;31mfail color\x1b[0m']
+        assert output_spy.flush() == ['\x1b[0;31mfail color\x1b[0m']
 
     def test_output_sep(self, output_spy):
         out = self.Output()
@@ -89,7 +86,7 @@ class TestOutput(object):
         out.sep()
         out.sep()
         out.sep()
-        assert output_spy.flush() == [u'', u'', u'']
+        assert output_spy.flush() == ['', '', '']
 
     def test_output_levels(self):
         out = self.Output()
