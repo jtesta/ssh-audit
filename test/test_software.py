@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import pytest
 
 
 # pylint: disable=line-too-long,attribute-defined-outside-init
-class TestSoftware(object):
+class TestSoftware:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.ssh = ssh_audit.SSH
