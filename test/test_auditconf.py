@@ -1,10 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import pytest
 
 
 # pylint: disable=attribute-defined-outside-init
-class TestAuditConf(object):
+class TestAuditConf:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.AuditConf = ssh_audit.AuditConf
