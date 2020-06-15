@@ -1,24 +1,22 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import pytest
 
 
 # pylint: disable=attribute-defined-outside-init
-class TestVersionCompare(object):
+class TestVersionCompare:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.ssh = ssh_audit.SSH
 
     def get_dropbear_software(self, v):
-        b = self.ssh.Banner.parse('SSH-2.0-dropbear_{0}'.format(v))
+        b = self.ssh.Banner.parse('SSH-2.0-dropbear_{}'.format(v))
         return self.ssh.Software.parse(b)
 
     def get_openssh_software(self, v):
-        b = self.ssh.Banner.parse('SSH-2.0-OpenSSH_{0}'.format(v))
+        b = self.ssh.Banner.parse('SSH-2.0-OpenSSH_{}'.format(v))
         return self.ssh.Software.parse(b)
 
     def get_libssh_software(self, v):
-        b = self.ssh.Banner.parse('SSH-2.0-libssh-{0}'.format(v))
+        b = self.ssh.Banner.parse('SSH-2.0-libssh-{}'.format(v))
         return self.ssh.Software.parse(b)
 
     def test_dropbear_compare_version_pre_years(self):
@@ -84,27 +82,27 @@ class TestVersionCompare(object):
     def test_dropbear_compare_version_sequential(self):
         versions = []
         for i in range(28, 44):
-            versions.append('0.{0}'.format(i))
+            versions.append('0.{}'.format(i))
         for i in range(1, 5):
-            versions.append('0.44test{0}'.format(i))
+            versions.append('0.44test{}'.format(i))
         for i in range(44, 49):
-            versions.append('0.{0}'.format(i))
+            versions.append('0.{}'.format(i))
         versions.append('0.48.1')
         for i in range(49, 54):
-            versions.append('0.{0}'.format(i))
+            versions.append('0.{}'.format(i))
         versions.append('0.53.1')
         for v in ['2011.54', '2012.55']:
             versions.append(v)
         for i in range(56, 61):
-            versions.append('2013.{0}'.format(i))
+            versions.append('2013.{}'.format(i))
         for v in ['2013.61test', '2013.62']:
             versions.append(v)
         for i in range(63, 67):
-            versions.append('2014.{0}'.format(i))
+            versions.append('2014.{}'.format(i))
         for i in range(67, 72):
-            versions.append('2015.{0}'.format(i))
+            versions.append('2015.{}'.format(i))
         for i in range(72, 75):
-            versions.append('2016.{0}'.format(i))
+            versions.append('2016.{}'.format(i))
         length = len(versions)
         for i in range(length):
             v = versions[i]
@@ -151,19 +149,19 @@ class TestVersionCompare(object):
         for v in ['3.0', '3.0.1', '3.0.2', '3.1', '3.2.2', '3.2.3']:
             versions.append(v)
         for i in range(3, 7):
-            versions.append('3.{0}'.format(i))
+            versions.append('3.{}'.format(i))
         for v in ['3.6.1', '3.7.0', '3.7.1']:
             versions.append(v)
         for i in range(8, 10):
-            versions.append('3.{0}'.format(i))
+            versions.append('3.{}'.format(i))
         for i in range(0, 10):
-            versions.append('4.{0}'.format(i))
+            versions.append('4.{}'.format(i))
         for i in range(0, 10):
-            versions.append('5.{0}'.format(i))
+            versions.append('5.{}'.format(i))
         for i in range(0, 10):
-            versions.append('6.{0}'.format(i))
+            versions.append('6.{}'.format(i))
         for i in range(0, 4):
-            versions.append('7.{0}'.format(i))
+            versions.append('7.{}'.format(i))
         length = len(versions)
         for i in range(length):
             v = versions[i]
@@ -193,15 +191,15 @@ class TestVersionCompare(object):
         for v in ['0.2', '0.3']:
             versions.append(v)
         for i in range(1, 5):
-            versions.append('0.3.{0}'.format(i))
+            versions.append('0.3.{}'.format(i))
         for i in range(0, 9):
-            versions.append('0.4.{0}'.format(i))
+            versions.append('0.4.{}'.format(i))
         for i in range(0, 6):
-            versions.append('0.5.{0}'.format(i))
+            versions.append('0.5.{}'.format(i))
         for i in range(0, 6):
-            versions.append('0.6.{0}'.format(i))
+            versions.append('0.6.{}'.format(i))
         for i in range(0, 5):
-            versions.append('0.7.{0}'.format(i))
+            versions.append('0.7.{}'.format(i))
         length = len(versions)
         for i in range(length):
             v = versions[i]

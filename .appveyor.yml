@@ -8,8 +8,6 @@ branches:
 
 environment:
   matrix:
-    - PYTHON: "C:\\Python27"
-    - PYTHON: "C:\\Python27-x64"
     - PYTHON: "C:\\Python35"
     - PYTHON: "C:\\Python35-x64"
     - PYTHON: "C:\\Python36"

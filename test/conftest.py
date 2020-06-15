@@ -1,17 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import os
 import io
 import sys
 import socket
 import pytest
-
-
-if sys.version_info[0] == 2:
-    import StringIO  # pylint: disable=import-error
-    StringIO = StringIO.StringIO
-else:
-    StringIO = io.StringIO
 
 
 @pytest.fixture(scope='module')
@@ -24,7 +15,7 @@ def ssh_audit():
 # pylint: disable=attribute-defined-outside-init
 class _OutputSpy(list):
     def begin(self):
-        self.__out = StringIO()
+        self.__out = io.StringIO()
         self.__old_stdout = sys.stdout
         sys.stdout = self.__out
 
@@ -40,7 +31,7 @@ def output_spy():
     return _OutputSpy()
 
 
-class _VirtualGlobalSocket(object):
+class _VirtualGlobalSocket:
     def __init__(self, vsocket):
         self.vsocket = vsocket
         self.addrinfodata = {}
@@ -59,7 +50,7 @@ class _VirtualGlobalSocket(object):
         return self.vsocket
 
     def getaddrinfo(self, host, port, family=0, socktype=0, proto=0, flags=0):
-        key = '{0}#{1}'.format(host, port)
+        key = '{}#{}'.format(host, port)
         if key in self.addrinfodata:
             data = self.addrinfodata[key]
             if isinstance(data, Exception):
@@ -75,7 +66,7 @@ class _VirtualGlobalSocket(object):
         return []
 
 
-class _VirtualSocket(object):
+class _VirtualSocket:
     def __init__(self):
         self.sock_address = ('127.0.0.1', 0)
         self.peer_address = None
@@ -108,7 +99,7 @@ class _VirtualSocket(object):
 
     def getpeername(self):
         if self.peer_address is None or not self._connected:
-            raise socket.error(57, 'Socket is not connected')
+            raise OSError(57, 'Socket is not connected')
         return self.peer_address
 
     def getsockname(self):
@@ -131,7 +122,7 @@ class _VirtualSocket(object):
     def recv(self, bufsize, flags=0):
         # pylint: disable=unused-argument
         if not self._connected:
-            raise socket.error(54, 'Connection reset by peer')
+            raise OSError(54, 'Connection reset by peer')
         if not len(self.rdata) > 0:
             return b''
         data = self.rdata.pop(0)
@@ -141,7 +132,7 @@ class _VirtualSocket(object):
 
     def send(self, data):
         if self.peer_address is None or not self._connected:
-            raise socket.error(32, 'Broken pipe')
+            raise OSError(32, 'Broken pipe')
         self._check_err('send')
         self.sdata.append(data)
 

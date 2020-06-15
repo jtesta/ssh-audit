@@ -1,12 +1,10 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import socket
 import errno
 import pytest
 
 
 # pylint: disable=attribute-defined-outside-init
-class TestErrors(object):
+class TestErrors:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.AuditConf = ssh_audit.AuditConf
