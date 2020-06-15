@@ -1,11 +1,9 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import re
 import pytest
 
 
 # pylint: disable=attribute-defined-outside-init,bad-whitespace
-class TestBuffer(object):
+class TestBuffer:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.rbuf = ssh_audit.ReadBuf
@@ -61,7 +59,7 @@ class TestBuffer(object):
     def test_string(self):
         w = lambda x: self.wbuf().write_string(x).write_flush()  # noqa
         r = lambda x: self.rbuf(x).read_string()  # noqa
-        tc = [(u'abc1',  '00 00 00 04 61 62 63 31'),
+        tc = [('abc1',  '00 00 00 04 61 62 63 31'),
               (b'abc2',  '00 00 00 04 61 62 63 32')]
         for p in tc:
             v = p[0]
@@ -87,7 +85,7 @@ class TestBuffer(object):
     def test_line(self):
         w = lambda x: self.wbuf().write_line(x).write_flush()  # noqa
         r = lambda x: self.rbuf(x).read_line()  # noqa
-        tc = [(u'example line', '65 78 61 6d 70 6c 65 20 6c 69 6e 65 0d 0a')]
+        tc = [('example line', '65 78 61 6d 70 6c 65 20 6c 69 6e 65 0d 0a')]
         for p in tc:
             assert w(p[0]) == self._b(p[1])
             assert r(self._b(p[1])) == p[0]
