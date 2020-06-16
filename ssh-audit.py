@@ -1442,7 +1442,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             w = ['RemotelyAnywhere', 'DesktopAuthority', 'RemoteSupportManager']
             for win_soft in w:
                 mx = re.match(r'^in ' + win_soft + r' ([\d\.]+\d)$', c)
-                if bool(mx):
+                if mx is not None:
                     ver = mx.group(1)
                     return 'Microsoft Windows ({} {})'.format(win_soft, ver)
             generic = ['NetBSD', 'FreeBSD']
