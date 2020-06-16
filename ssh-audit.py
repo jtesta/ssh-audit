@@ -2346,7 +2346,7 @@ class KexDH:  # pragma: nocover
         self.__e = 0
 
     def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
-        # type: (SSH.Socket) -> None
+        # type: (SSH.Socket, int) -> None
         r = random.SystemRandom()
         self.__x = r.randrange(2, self.__q)
         self.__e = pow(self.__g, self.__x, self.__p)
