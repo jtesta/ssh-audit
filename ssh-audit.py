@@ -2780,7 +2780,9 @@ def output_security_sub(sub, software, client_audit, padlen):
             continue
         p = '' if out.batch else ' ' * (padlen - len(name))
         if sub == 'cve':
-            cvss, descr = line[4:6]  # type: float, str
+            cvss = 0.0  # type: float
+            descr = ''  # type: str
+            cvss, descr = line[4:6]
 
             # Critical CVSS scores (>= 8.0) are printed as a fail, otherwise they are printed as a warning.
             out_func = out.warn
