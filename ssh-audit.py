@@ -1488,7 +1488,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 v, p = 'Allegro Software', 'RomSShell'
                 return cls(v, p, mx.group(1), patch, None)
             mx = re.match(r'^mpSSH_([\d\.]+\d+)', software)
-            if bool(mx):
+            if mx is not None:
                 v, p = 'HP', 'iLO (Integrated Lights-Out) sshd'
                 return cls(v, p, mx.group(1), None, None)
             mx = re.match(r'^Cisco-([\d\.]+\d+)', software)
