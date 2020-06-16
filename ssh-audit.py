@@ -1496,7 +1496,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 v, p = 'Cisco', 'IOS/PIX sshd'
                 return cls(v, p, mx.group(1), None, None)
             mx = re.match(r'^tinyssh_(.*)', software)
-            if bool(mx):
+            if mx is not None:
                 return cls(None, SSH.Product.TinySSH, mx.group(1), None, None)
             mx = re.match(r'^PuTTY_Release_(.*)', software)
             if bool(mx):
