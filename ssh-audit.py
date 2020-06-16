@@ -2841,7 +2841,7 @@ def output_fingerprints(algs, sha256=True):
 
 # Returns True if no warnings or failures encountered in configuration.
 def output_recommendations(algs, software, padlen=0):
-    # type: (SSH.Algorithms, Optional[SSH.Software], int) -> None
+    # type: (SSH.Algorithms, Optional[SSH.Software], int) -> bool
 
     ret = True
     # PuTTY's algorithms cannot be modified, so there's no point in issuing recommendations.
