@@ -2789,7 +2789,7 @@ def output_security_sub(sub, software, client_audit, padlen):
 
 
 def output_security(banner, client_audit, padlen):
-    # type: (Optional[SSH.Banner], int) -> None
+    # type: (Optional[SSH.Banner], bool, int) -> None
     with OutputBuffer() as obuf:
         if banner is not None:
             software = SSH.Software.parse(banner)
