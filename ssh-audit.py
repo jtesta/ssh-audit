@@ -2763,10 +2763,14 @@ def output_security_sub(sub, software, client_audit, padlen):
     if software is None or software.product not in secdb:
         return
     for line in secdb[software.product]:
-        vfrom, vtill = line[0:2]  # type: str, str
+        vfrom  = ''  # type: str
+        vtill  = ''  # type: str
+        vfrom, vtill = line[0:2]
         if not software.between_versions(vfrom, vtill):
             continue
-        target, name = line[2:4]  # type: int, str
+        target = 0  # type: int
+        name = ''  # type: str
+        target, name = line[2:4]
         is_server = target & 1 == 1
         is_client = target & 2 == 2
         # is_local = target & 4 == 4
