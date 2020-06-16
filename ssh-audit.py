@@ -1477,7 +1477,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 os_version = cls._extract_os_version(banner.comments)
                 return cls(v, p, mx.group(1), patch, os_version)
             mx = re.match(r'^libssh_([\d\.]+\d+)(.*)', software)
-            if bool(mx):
+            if mx is not None:
                 patch = cls._fix_patch(mx.group(2))
                 v, p = None, SSH.Product.LibSSH
                 os_version = cls._extract_os_version(banner.comments)
