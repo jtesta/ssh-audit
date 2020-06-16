@@ -2025,7 +2025,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             # type: (Optional[str], int, Optional[Sequence[int]], Union[int,float], bool) -> None
             super(SSH.Socket, self).__init__()
             self.__sock = None  # type: Optional[socket.socket]
-            self.__sock_map = {}
+            self.__sock_map = {}  # type: Dict[int, socket.socket]
             self.__block_size = 8
             self.__state = 0
             self.__header = []  # type: List[str]
