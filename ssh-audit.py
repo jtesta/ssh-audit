@@ -192,7 +192,7 @@ class AuditConf:
                 host = args[0]
             else:
                 mx = re.match(r'^\[([^\]]+)\](?::(.*))?$', args[0])
-                if bool(mx):
+                if mx is not None:
                     host, oport = mx.group(1), mx.group(2)
                 else:
                     s = args[0].split(':')
