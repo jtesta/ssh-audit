@@ -189,7 +189,7 @@ class AuditConf:
             usage_cb()
         if aconf.client_audit is False:
             if oport is not None:
-                host = args[0]
+                host = args[0]  # type: Optional[str]
             else:
                 mx = re.match(r'^\[([^\]]+)\](?::(.*))?$', args[0])
                 if mx is not None:
