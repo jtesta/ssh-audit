@@ -558,7 +558,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
             self.__follows = follows
             self.__unused = unused
 
-            self.__rsa_key_sizes = {}
+            self.__rsa_key_sizes = {}  # type: Dict[str, Tuple[int, int]]
             self.__dh_modulus_sizes = {}  # type: Dict[str, Tuple[int, int]]
             self.__host_keys = {}  # type: Dict[str, bytes]
 
