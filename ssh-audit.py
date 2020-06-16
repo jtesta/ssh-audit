@@ -1458,7 +1458,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             software = str(banner.software)
             mx = re.match(r'^dropbear_([\d\.]+\d+)(.*)', software)
             v = None  # type: Optional[str]
-            if bool(mx):
+            if mx is not None:
                 patch = cls._fix_patch(mx.group(2))
                 v, p = 'Matt Johnston', SSH.Product.DropbearSSH
                 v = None
