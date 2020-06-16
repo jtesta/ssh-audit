@@ -14,12 +14,12 @@ class TestUtils:
         with pytest.raises(TypeError):
             self.utils.to_bytes(123)
 
-    def test_to_utext(self):
-        assert self.utils.to_utext(b'fran\xc3\xa7ais') == 'fran\xe7ais'
-        assert self.utils.to_utext('fran\xe7ais') == 'fran\xe7ais'
+    def test_to_text(self):
+        assert self.utils.to_text(b'fran\xc3\xa7ais') == 'fran\xe7ais'
+        assert self.utils.to_text('fran\xe7ais') == 'fran\xe7ais'
         # other
         with pytest.raises(TypeError):
-            self.utils.to_utext(123)
+            self.utils.to_text(123)
 
     def test_is_ascii(self):
         assert self.utils.is_ascii('francais') is True
