@@ -560,7 +560,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
 
             self.__rsa_key_sizes = {}
             self.__dh_modulus_sizes = {}
-            self.__host_keys = {}
+            self.__host_keys = {}  # type: Dict[str, bytes]
 
         @property
         def cookie(self):
