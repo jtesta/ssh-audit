@@ -1340,7 +1340,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             else:
                 other = str(other)
             mx = re.match(r'^([\d\.]+\d+)(.*)$', other)
-            if bool(mx):
+            if mx is not None:
                 oversion, opatch = mx.group(1), mx.group(2).strip()
             else:
                 oversion, opatch = other, ''
