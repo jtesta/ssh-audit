@@ -1436,7 +1436,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             mx = re.match(r'^FreeBSD(?:\slocalisations)?[\s-]+(\d{8})(.*)$', c)
             if not bool(mx):
                 mx = re.match(r'^[^@]+@FreeBSD\.org[\s-]+(\d{8})(.*)$', c)
-            if bool(mx):
+            if mx is not None:
                 d = cls._fix_date(mx.group(1))
                 return 'FreeBSD' if d is None else 'FreeBSD ({})'.format(d)
             w = ['RemotelyAnywhere', 'DesktopAuthority', 'RemoteSupportManager']
