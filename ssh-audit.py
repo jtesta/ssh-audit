@@ -2654,7 +2654,7 @@ class KexGroupExchange_SHA256(KexGroupExchange):
 
 
 def output_algorithms(title, alg_db, alg_type, algorithms, unknown_algs, maxlen=0, alg_sizes=None):
-    # type: (str, Dict[str, Dict[str, List[List[Optional[str]]]]], str, List[str], int) -> None
+    # type: (str, Dict[str, Dict[str, List[List[Optional[str]]]]], str, List[str], List[str], int, Optional[Dict[str, Iterable[int]]]) -> None
     with OutputBuffer() as obuf:
         for algorithm in algorithms:
             output_algorithm(alg_db, alg_type, algorithm, unknown_algs, maxlen, alg_sizes)
