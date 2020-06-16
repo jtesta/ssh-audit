@@ -2319,7 +2319,7 @@ class SSH:  # pylint: disable=too-few-public-methods
 
 class KexDH:  # pragma: nocover
     def __init__(self, kex_name, hash_alg, g, p):
-        # type: (str, int, int) -> None
+        # type: (str, str, int, int) -> None
         self.__kex_name = kex_name
         self.__hash_alg = hash_alg
         self.__g = 0
