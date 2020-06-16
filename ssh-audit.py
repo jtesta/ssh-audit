@@ -286,7 +286,7 @@ class OutputBuffer(list):
         return self
 
     def flush(self, sort_lines=False):
-        # type: () -> None
+        # type: (bool) -> None
         # Lines must be sorted in some cases to ensure consistent testing.
         if sort_lines:
             self.sort()
