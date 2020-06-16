@@ -2965,7 +2965,8 @@ def output(banner, header, client_host=None, kex=None, pkm=None):
         out.sep()
     maxlen = algs.maxlen + 1
     output_security(banner, client_audit, maxlen)
-    unknown_algorithms = []  # Filled in by output_algorithms() with unidentified algs.
+    # Filled in by output_algorithms() with unidentified algs.
+    unknown_algorithms = []  # type: List[str]
     if pkm is not None:
         adb = SSH1.KexDB.ALGORITHMS
         ciphers = pkm.supported_ciphers
