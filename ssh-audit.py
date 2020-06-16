@@ -1753,7 +1753,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 alg_db = alg_pair.db
                 for alg_type, alg_list in alg_pair.items():
                     for alg_name in alg_list:
-                        alg_name_native = utils.to_ntext(alg_name)
+                        alg_name_native = utils.to_utext(alg_name)
                         alg_desc = alg_db[alg_type].get(alg_name_native)
                         if alg_desc is None:
                             continue
@@ -2686,7 +2686,7 @@ def output_algorithm(alg_db, alg_type, alg_name, unknown_algs, alg_max_len=0, al
     texts = []
     if len(alg_name.strip()) == 0:
         return
-    alg_name_native = utils.to_ntext(alg_name)
+    alg_name_native = utils.to_utext(alg_name)
     if alg_name_native in alg_db[alg_type]:
         alg_desc = alg_db[alg_type][alg_name_native]
         ldesc = len(alg_desc)
@@ -3020,15 +3020,6 @@ class Utils:
         raise cls._type_err(v, 'unicode text')
 
     @classmethod
-    def to_ntext(cls, v, enc='utf-8'):
-        # type: (Union[str, bytes], str) -> str
-        if isinstance(v, str):
-            return v
-        elif isinstance(v, bytes):
-            return v.decode(enc)
-        raise cls._type_err(v, 'native text')
-
-    @classmethod
     def _is_ascii(cls, v, char_filter=lambda x: x <= 127):
         # type: (str, Callable[[int], bool]) -> bool
         r = False
@@ -3053,7 +3044,7 @@ class Utils:
                     if errors == 'ignore':
                         continue
                     r.append(63)
-            return cls.to_ntext(r.decode('ascii'))
+            return cls.to_utext(r.decode('ascii'))
         raise cls._type_err(v, 'ascii')
 
     @classmethod

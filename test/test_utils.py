@@ -21,13 +21,6 @@ class TestUtils:
         with pytest.raises(TypeError):
             self.utils.to_utext(123)
 
-    def test_to_ntext(self):
-        assert self.utils.to_ntext('fran\xc3\xa7ais') == 'fran\xc3\xa7ais'
-        assert self.utils.to_ntext(b'fran\xc3\xa7ais') == 'fran\xe7ais'
-        # other
-        with pytest.raises(TypeError):
-            self.utils.to_ntext(123)
-
     def test_is_ascii(self):
         assert self.utils.is_ascii('francais') is True
         assert self.utils.is_ascii('fran\xe7ais') is False
