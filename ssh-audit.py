@@ -1499,7 +1499,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             if mx is not None:
                 return cls(None, SSH.Product.TinySSH, mx.group(1), None, None)
             mx = re.match(r'^PuTTY_Release_(.*)', software)
-            if bool(mx):
+            if mx:
                 return cls(None, SSH.Product.PuTTY, mx.group(1), None, None)
             return None
 
