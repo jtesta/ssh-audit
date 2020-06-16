@@ -1800,7 +1800,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                         empty_version = False
                         if len(versions) == 0 or versions[0] is None:
                             empty_version = True
-                        if not empty_version:
+                        else:
                             matches = False
                             if unknown_software:
                                 matches = True
