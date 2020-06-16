@@ -2930,7 +2930,7 @@ def output_info(software, client_audit, any_problems):
 
 
 def output(banner, header, client_host=None, kex=None, pkm=None):
-    # type: (Optional[SSH.Banner], List[str], Optional[SSH2.Kex], Optional[SSH1.PublicKeyMessage]) -> None
+    # type: (Optional[SSH.Banner], List[str], Optional[str], Optional[SSH2.Kex], Optional[SSH1.PublicKeyMessage]) -> None
     client_audit = client_host is not None  # If set, this is a client audit.
     sshv = 1 if pkm is not None else 2
     algs = SSH.Algorithms(pkm, kex)
