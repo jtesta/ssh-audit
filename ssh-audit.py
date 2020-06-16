@@ -2727,7 +2727,7 @@ def output_algorithm(alg_db, alg_type, alg_name, unknown_algs, alg_max_len=0, al
 
 
 def output_compatibility(algs, client_audit, for_server=True):
-    # type: (SSH.Algorithms, bool) -> None
+    # type: (SSH.Algorithms, bool, bool) -> None
 
     # Don't output any compatibility info if we're doing a client audit.
     if client_audit:
