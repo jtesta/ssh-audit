@@ -2763,8 +2763,8 @@ def output_security_sub(sub, software, client_audit, padlen):
     if software is None or software.product not in secdb:
         return
     for line in secdb[software.product]:
-        vfrom  = ''  # type: str
-        vtill  = ''  # type: str
+        vfrom = ''  # type: str
+        vtill = ''  # type: str
         vfrom, vtill = line[0:2]
         if not software.between_versions(vfrom, vtill):
             continue
