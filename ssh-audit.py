@@ -1560,8 +1560,8 @@ class SSH:  # pylint: disable=too-few-public-methods
             valid_ascii = utils.is_print_ascii(banner)
             ascii_banner = utils.to_print_ascii(banner)
             mx = cls.RX_BANNER.match(ascii_banner)
-            if not bool(mx):
-                return None
+            if mx is None:
+                return
             protocol = min(re.findall(cls.RX_PROTOCOL, mx.group(1)))
             protocol = (int(protocol[0]), int(protocol[1]))
             software = (mx.group(3) or '').strip() or None
