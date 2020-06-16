@@ -2665,7 +2665,7 @@ def output_algorithms(title, alg_db, alg_type, algorithms, unknown_algs, maxlen=
 
 
 def output_algorithm(alg_db, alg_type, alg_name, unknown_algs, alg_max_len=0, alg_sizes=None):
-    # type: (Dict[str, Dict[str, List[List[Optional[str]]]]], str, str, int) -> None
+    # type: (Dict[str, Dict[str, List[List[Optional[str]]]]], str, str, List[str], int, Optional[Dict[str, Iterable[int]]]) -> None
     prefix = '(' + alg_type + ') '
     if alg_max_len == 0:
         alg_max_len = len(alg_name)
