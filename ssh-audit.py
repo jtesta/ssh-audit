@@ -1430,7 +1430,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             if c is None:
                 return None
             mx = re.match(r'^NetBSD(?:_Secure_Shell)?(?:[\s-]+(\d{8})(.*))?$', c)
-            if bool(mx):
+            if mx is not None:
                 d = cls._fix_date(mx.group(1))
                 return 'NetBSD' if d is None else 'NetBSD ({})'.format(d)
             mx = re.match(r'^FreeBSD(?:\slocalisations)?[\s-]+(\d{8})(.*)$', c)
