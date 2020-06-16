@@ -2758,7 +2758,7 @@ def output_compatibility(algs, client_audit, for_server=True):
 
 
 def output_security_sub(sub, software, client_audit, padlen):
-    # type: (str, Optional[SSH.Software], int) -> None
+    # type: (str, Optional[SSH.Software], bool, int) -> None
     secdb = SSH.Security.CVE if sub == 'cve' else SSH.Security.TXT
     if software is None or software.product not in secdb:
         return
