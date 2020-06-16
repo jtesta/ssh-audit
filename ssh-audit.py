@@ -1386,7 +1386,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 patch = self.patch or ''
                 if self.product == SSH.Product.OpenSSH:
                     mx = re.match(r'^(p\d)(.*)$', patch)
-                    if bool(mx):
+                    if mx is not None:
                         r += mx.group(1)
                         patch = mx.group(2).strip()
                 if bool(patch):
