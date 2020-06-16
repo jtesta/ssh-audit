@@ -1358,9 +1358,9 @@ class SSH:  # pylint: disable=too-few-public-methods
                 mx1 = re.match(r'^p\d(.*)', opatch)
                 mx2 = re.match(r'^p\d(.*)', spatch)
                 if not (bool(mx1) and bool(mx2)):
-                    if bool(mx1):
+                    if mx1 is not None:
                         opatch = mx1.group(1)
-                    if bool(mx2):
+                    if mx2 is not None:
                         spatch = mx2.group(1)
             if spatch < opatch:
                 return -1
