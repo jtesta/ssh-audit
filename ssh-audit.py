@@ -2802,7 +2802,7 @@ def output_security(banner, client_audit, padlen):
 
 
 def output_fingerprints(algs, sha256=True):
-    # type: (SSH.Algorithms, bool, int) -> None
+    # type: (SSH.Algorithms, bool) -> None
     with OutputBuffer() as obuf:
         fps = []
         if algs.ssh1kex is not None:
