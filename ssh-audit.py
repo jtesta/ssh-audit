@@ -1464,7 +1464,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 v = None
                 return cls(v, p, mx.group(1), patch, None)
             mx = re.match(r'^OpenSSH[_\.-]+([\d\.]+\d+)(.*)', software)
-            if bool(mx):
+            if mx is not None:
                 patch = cls._fix_patch(mx.group(2))
                 v, p = 'OpenBSD', SSH.Product.OpenSSH
                 v = None
