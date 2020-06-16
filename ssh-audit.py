@@ -97,7 +97,7 @@ class AuditConf:
         self.timeout_set = False  # Set to True when the user explicitly sets it.
 
     def __setattr__(self, name, value):
-        # type: (str, Union[str, int, bool, Sequence[int]]) -> None
+        # type: (str, Union[str, int, float, bool, Sequence[int]]) -> None
         valid = False
         if name in ['ssh1', 'ssh2', 'batch', 'client_audit', 'colors', 'verbose', 'timeout_set', 'json']:
             valid, value = True, bool(value)
