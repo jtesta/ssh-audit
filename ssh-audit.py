@@ -97,7 +97,7 @@ class AuditConf:
         self.timeout_set = False  # Set to True when the user explicitly sets it.
 
     def __setattr__(self, name, value):
-        # type: (str, Union[str, int, bool, Sequence[int]]) -> None
+        # type: (str, Union[str, int, float, bool, Sequence[int]]) -> None
         valid = False
         if name in ['ssh1', 'ssh2', 'batch', 'client_audit', 'colors', 'verbose', 'timeout_set', 'json']:
             valid, value = True, bool(value)
@@ -189,10 +189,10 @@ class AuditConf:
             usage_cb()
         if aconf.client_audit is False:
             if oport is not None:
-                host = args[0]
+                host = args[0]  # type: Optional[str]
             else:
                 mx = re.match(r'^\[([^\]]+)\](?::(.*))?$', args[0])
-                if bool(mx):
+                if mx is not None:
                     host, oport = mx.group(1), mx.group(2)
                 else:
                     s = args[0].split(':')
@@ -286,7 +286,7 @@ class OutputBuffer(list):
         return self
 
     def flush(self, sort_lines=False):
-        # type: () -> None
+        # type: (bool) -> None
         # Lines must be sorted in some cases to ensure consistent testing.
         if sort_lines:
             self.sort()
@@ -558,9 +558,9 @@ class SSH2:  # pylint: disable=too-few-public-methods
             self.__follows = follows
             self.__unused = unused
 
-            self.__rsa_key_sizes = {}
-            self.__dh_modulus_sizes = {}
-            self.__host_keys = {}
+            self.__rsa_key_sizes = {}  # type: Dict[str, Tuple[int, int]]
+            self.__dh_modulus_sizes = {}  # type: Dict[str, Tuple[int, int]]
+            self.__host_keys = {}  # type: Dict[str, bytes]
 
         @property
         def cookie(self):
@@ -1340,7 +1340,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             else:
                 other = str(other)
             mx = re.match(r'^([\d\.]+\d+)(.*)$', other)
-            if bool(mx):
+            if mx is not None:
                 oversion, opatch = mx.group(1), mx.group(2).strip()
             else:
                 oversion, opatch = other, ''
@@ -1358,9 +1358,9 @@ class SSH:  # pylint: disable=too-few-public-methods
                 mx1 = re.match(r'^p\d(.*)', opatch)
                 mx2 = re.match(r'^p\d(.*)', spatch)
                 if not (bool(mx1) and bool(mx2)):
-                    if bool(mx1):
+                    if mx1 is not None:
                         opatch = mx1.group(1)
-                    if bool(mx2):
+                    if mx2 is not None:
                         spatch = mx2.group(1)
             if spatch < opatch:
                 return -1
@@ -1386,7 +1386,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 patch = self.patch or ''
                 if self.product == SSH.Product.OpenSSH:
                     mx = re.match(r'^(p\d)(.*)$', patch)
-                    if bool(mx):
+                    if mx is not None:
                         r += mx.group(1)
                         patch = mx.group(2).strip()
                 if bool(patch):
@@ -1430,19 +1430,19 @@ class SSH:  # pylint: disable=too-few-public-methods
             if c is None:
                 return None
             mx = re.match(r'^NetBSD(?:_Secure_Shell)?(?:[\s-]+(\d{8})(.*))?$', c)
-            if bool(mx):
+            if mx is not None:
                 d = cls._fix_date(mx.group(1))
                 return 'NetBSD' if d is None else 'NetBSD ({})'.format(d)
             mx = re.match(r'^FreeBSD(?:\slocalisations)?[\s-]+(\d{8})(.*)$', c)
             if not bool(mx):
                 mx = re.match(r'^[^@]+@FreeBSD\.org[\s-]+(\d{8})(.*)$', c)
-            if bool(mx):
+            if mx is not None:
                 d = cls._fix_date(mx.group(1))
                 return 'FreeBSD' if d is None else 'FreeBSD ({})'.format(d)
             w = ['RemotelyAnywhere', 'DesktopAuthority', 'RemoteSupportManager']
             for win_soft in w:
                 mx = re.match(r'^in ' + win_soft + r' ([\d\.]+\d)$', c)
-                if bool(mx):
+                if mx is not None:
                     ver = mx.group(1)
                     return 'Microsoft Windows ({} {})'.format(win_soft, ver)
             generic = ['NetBSD', 'FreeBSD']
@@ -1458,48 +1458,48 @@ class SSH:  # pylint: disable=too-few-public-methods
             software = str(banner.software)
             mx = re.match(r'^dropbear_([\d\.]+\d+)(.*)', software)
             v = None  # type: Optional[str]
-            if bool(mx):
+            if mx is not None:
                 patch = cls._fix_patch(mx.group(2))
                 v, p = 'Matt Johnston', SSH.Product.DropbearSSH
                 v = None
                 return cls(v, p, mx.group(1), patch, None)
             mx = re.match(r'^OpenSSH[_\.-]+([\d\.]+\d+)(.*)', software)
-            if bool(mx):
+            if mx is not None:
                 patch = cls._fix_patch(mx.group(2))
                 v, p = 'OpenBSD', SSH.Product.OpenSSH
                 v = None
                 os_version = cls._extract_os_version(banner.comments)
                 return cls(v, p, mx.group(1), patch, os_version)
             mx = re.match(r'^libssh-([\d\.]+\d+)(.*)', software)
-            if bool(mx):
+            if mx is not None:
                 patch = cls._fix_patch(mx.group(2))
                 v, p = None, SSH.Product.LibSSH
                 os_version = cls._extract_os_version(banner.comments)
                 return cls(v, p, mx.group(1), patch, os_version)
             mx = re.match(r'^libssh_([\d\.]+\d+)(.*)', software)
-            if bool(mx):
+            if mx is not None:
                 patch = cls._fix_patch(mx.group(2))
                 v, p = None, SSH.Product.LibSSH
                 os_version = cls._extract_os_version(banner.comments)
                 return cls(v, p, mx.group(1), patch, os_version)
             mx = re.match(r'^RomSShell_([\d\.]+\d+)(.*)', software)
-            if bool(mx):
+            if mx is not None:
                 patch = cls._fix_patch(mx.group(2))
                 v, p = 'Allegro Software', 'RomSShell'
                 return cls(v, p, mx.group(1), patch, None)
             mx = re.match(r'^mpSSH_([\d\.]+\d+)', software)
-            if bool(mx):
+            if mx is not None:
                 v, p = 'HP', 'iLO (Integrated Lights-Out) sshd'
                 return cls(v, p, mx.group(1), None, None)
             mx = re.match(r'^Cisco-([\d\.]+\d+)', software)
-            if bool(mx):
+            if mx is not None:
                 v, p = 'Cisco', 'IOS/PIX sshd'
                 return cls(v, p, mx.group(1), None, None)
             mx = re.match(r'^tinyssh_(.*)', software)
-            if bool(mx):
+            if mx is not None:
                 return cls(None, SSH.Product.TinySSH, mx.group(1), None, None)
             mx = re.match(r'^PuTTY_Release_(.*)', software)
-            if bool(mx):
+            if mx:
                 return cls(None, SSH.Product.PuTTY, mx.group(1), None, None)
             return None
 
@@ -1560,7 +1560,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             valid_ascii = utils.is_print_ascii(banner)
             ascii_banner = utils.to_print_ascii(banner)
             mx = cls.RX_BANNER.match(ascii_banner)
-            if not bool(mx):
+            if mx is None:
                 return None
             protocol = min(re.findall(cls.RX_PROTOCOL, mx.group(1)))
             protocol = (int(protocol[0]), int(protocol[1]))
@@ -1800,7 +1800,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                         empty_version = False
                         if len(versions) == 0 or versions[0] is None:
                             empty_version = True
-                        if not empty_version:
+                        else:
                             matches = False
                             if unknown_software:
                                 matches = True
@@ -2022,10 +2022,10 @@ class SSH:  # pylint: disable=too-few-public-methods
         SM_BANNER_SENT = 1
 
         def __init__(self, host, port, ipvo=None, timeout=5, timeout_set=False):
-            # type: (Optional[str], int) -> None
+            # type: (Optional[str], int, Optional[Sequence[int]], Union[int,float], bool) -> None
             super(SSH.Socket, self).__init__()
             self.__sock = None  # type: Optional[socket.socket]
-            self.__sock_map = {}
+            self.__sock_map = {}  # type: Dict[int, socket.socket]
             self.__block_size = 8
             self.__state = 0
             self.__header = []  # type: List[str]
@@ -2319,7 +2319,7 @@ class SSH:  # pylint: disable=too-few-public-methods
 
 class KexDH:  # pragma: nocover
     def __init__(self, kex_name, hash_alg, g, p):
-        # type: (str, int, int) -> None
+        # type: (str, str, int, int) -> None
         self.__kex_name = kex_name
         self.__hash_alg = hash_alg
         self.__g = 0
@@ -2346,7 +2346,7 @@ class KexDH:  # pragma: nocover
         self.__e = 0
 
     def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
-        # type: (SSH.Socket) -> None
+        # type: (SSH.Socket, int) -> None
         r = random.SystemRandom()
         self.__x = r.randrange(2, self.__q)
         self.__e = pow(self.__g, self.__x, self.__p)
@@ -2512,7 +2512,7 @@ class KexGroup1(KexDH):  # pragma: nocover
 
 class KexGroup14(KexDH):  # pragma: nocover
     def __init__(self, hash_alg):
-        # type: () -> None
+        # type: (str) -> None
         # rfc3526: 2048-bit modp group
         p = int('ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08ca18217c32905e462e36ce3be39e772c180e86039b2783a2ec07a28fb5c55df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa051015728e5a8aacaa68ffffffffffffffff', 16)
         super(KexGroup14, self).__init__('KexGroup14', hash_alg, 2, p)
@@ -2654,7 +2654,7 @@ class KexGroupExchange_SHA256(KexGroupExchange):
 
 
 def output_algorithms(title, alg_db, alg_type, algorithms, unknown_algs, maxlen=0, alg_sizes=None):
-    # type: (str, Dict[str, Dict[str, List[List[Optional[str]]]]], str, List[str], int) -> None
+    # type: (str, Dict[str, Dict[str, List[List[Optional[str]]]]], str, List[str], List[str], int, Optional[Dict[str, Iterable[int]]]) -> None
     with OutputBuffer() as obuf:
         for algorithm in algorithms:
             output_algorithm(alg_db, alg_type, algorithm, unknown_algs, maxlen, alg_sizes)
@@ -2665,7 +2665,7 @@ def output_algorithms(title, alg_db, alg_type, algorithms, unknown_algs, maxlen=
 
 
 def output_algorithm(alg_db, alg_type, alg_name, unknown_algs, alg_max_len=0, alg_sizes=None):
-    # type: (Dict[str, Dict[str, List[List[Optional[str]]]]], str, str, int) -> None
+    # type: (Dict[str, Dict[str, List[List[Optional[str]]]]], str, str, List[str], int, Optional[Dict[str, Iterable[int]]]) -> None
     prefix = '(' + alg_type + ') '
     if alg_max_len == 0:
         alg_max_len = len(alg_name)
@@ -2727,7 +2727,7 @@ def output_algorithm(alg_db, alg_type, alg_name, unknown_algs, alg_max_len=0, al
 
 
 def output_compatibility(algs, client_audit, for_server=True):
-    # type: (SSH.Algorithms, bool) -> None
+    # type: (SSH.Algorithms, bool, bool) -> None
 
     # Don't output any compatibility info if we're doing a client audit.
     if client_audit:
@@ -2758,15 +2758,19 @@ def output_compatibility(algs, client_audit, for_server=True):
 
 
 def output_security_sub(sub, software, client_audit, padlen):
-    # type: (str, Optional[SSH.Software], int) -> None
+    # type: (str, Optional[SSH.Software], bool, int) -> None
     secdb = SSH.Security.CVE if sub == 'cve' else SSH.Security.TXT
     if software is None or software.product not in secdb:
         return
     for line in secdb[software.product]:
-        vfrom, vtill = line[0:2]  # type: str, str
+        vfrom = ''  # type: str
+        vtill = ''  # type: str
+        vfrom, vtill = line[0:2]
         if not software.between_versions(vfrom, vtill):
             continue
-        target, name = line[2:4]  # type: int, str
+        target = 0  # type: int
+        name = ''  # type: str
+        target, name = line[2:4]
         is_server = target & 1 == 1
         is_client = target & 2 == 2
         # is_local = target & 4 == 4
@@ -2776,7 +2780,9 @@ def output_security_sub(sub, software, client_audit, padlen):
             continue
         p = '' if out.batch else ' ' * (padlen - len(name))
         if sub == 'cve':
-            cvss, descr = line[4:6]  # type: float, str
+            cvss = 0.0  # type: float
+            descr = ''  # type: str
+            cvss, descr = line[4:6]
 
             # Critical CVSS scores (>= 8.0) are printed as a fail, otherwise they are printed as a warning.
             out_func = out.warn
@@ -2789,7 +2795,7 @@ def output_security_sub(sub, software, client_audit, padlen):
 
 
 def output_security(banner, client_audit, padlen):
-    # type: (Optional[SSH.Banner], int) -> None
+    # type: (Optional[SSH.Banner], bool, int) -> None
     with OutputBuffer() as obuf:
         if banner is not None:
             software = SSH.Software.parse(banner)
@@ -2802,7 +2808,7 @@ def output_security(banner, client_audit, padlen):
 
 
 def output_fingerprints(algs, sha256=True):
-    # type: (SSH.Algorithms, bool, int) -> None
+    # type: (SSH.Algorithms, bool) -> None
     with OutputBuffer() as obuf:
         fps = []
         if algs.ssh1kex is not None:
@@ -2841,7 +2847,7 @@ def output_fingerprints(algs, sha256=True):
 
 # Returns True if no warnings or failures encountered in configuration.
 def output_recommendations(algs, software, padlen=0):
-    # type: (SSH.Algorithms, Optional[SSH.Software], int) -> None
+    # type: (SSH.Algorithms, Optional[SSH.Software], int) -> bool
 
     ret = True
     # PuTTY's algorithms cannot be modified, so there's no point in issuing recommendations.
@@ -2930,7 +2936,7 @@ def output_info(software, client_audit, any_problems):
 
 
 def output(banner, header, client_host=None, kex=None, pkm=None):
-    # type: (Optional[SSH.Banner], List[str], Optional[SSH2.Kex], Optional[SSH1.PublicKeyMessage]) -> None
+    # type: (Optional[SSH.Banner], List[str], Optional[str], Optional[SSH2.Kex], Optional[SSH1.PublicKeyMessage]) -> None
     client_audit = client_host is not None  # If set, this is a client audit.
     sshv = 1 if pkm is not None else 2
     algs = SSH.Algorithms(pkm, kex)
@@ -2965,7 +2971,8 @@ def output(banner, header, client_host=None, kex=None, pkm=None):
         out.sep()
     maxlen = algs.maxlen + 1
     output_security(banner, client_audit, maxlen)
-    unknown_algorithms = []  # Filled in by output_algorithms() with unidentified algs.
+    # Filled in by output_algorithms() with unidentified algs.
+    unknown_algorithms = []  # type: List[str]
     if pkm is not None:
         adb = SSH1.KexDB.ALGORITHMS
         ciphers = pkm.supported_ciphers
