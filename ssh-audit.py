@@ -1051,7 +1051,7 @@ class SSH1:
             ciphers = []
             for i in range(len(SSH1.CIPHERS)):
                 if self.__supported_ciphers_mask & (1 << i) != 0:
-                    ciphers.append(utils.to_utext(SSH1.CIPHERS[i]))
+                    ciphers.append(utils.to_text(SSH1.CIPHERS[i]))
             return ciphers
 
         @property
@@ -1065,7 +1065,7 @@ class SSH1:
             auths = []
             for i in range(1, len(SSH1.AUTHS)):
                 if self.__supported_authentications_mask & (1 << i) != 0:
-                    auths.append(utils.to_utext(SSH1.AUTHS[i]))
+                    auths.append(utils.to_text(SSH1.AUTHS[i]))
             return auths
 
         def write(self, wbuf):
@@ -1753,7 +1753,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 alg_db = alg_pair.db
                 for alg_type, alg_list in alg_pair.items():
                     for alg_name in alg_list:
-                        alg_name_native = utils.to_ntext(alg_name)
+                        alg_name_native = utils.to_text(alg_name)
                         alg_desc = alg_db[alg_type].get(alg_name_native)
                         if alg_desc is None:
                             continue
@@ -2686,7 +2686,7 @@ def output_algorithm(alg_db, alg_type, alg_name, unknown_algs, alg_max_len=0, al
     texts = []
     if len(alg_name.strip()) == 0:
         return
-    alg_name_native = utils.to_ntext(alg_name)
+    alg_name_native = utils.to_text(alg_name)
     if alg_name_native in alg_db[alg_type]:
         alg_desc = alg_db[alg_type][alg_name_native]
         ldesc = len(alg_desc)
@@ -3011,22 +3011,13 @@ class Utils:
         raise cls._type_err(v, 'bytes')
 
     @classmethod
-    def to_utext(cls, v, enc='utf-8'):
+    def to_text(cls, v, enc='utf-8'):
         # type: (Union[str, bytes], str) -> str
         if isinstance(v, str):
             return v
         elif isinstance(v, bytes):
             return v.decode(enc)
         raise cls._type_err(v, 'unicode text')
-
-    @classmethod
-    def to_ntext(cls, v, enc='utf-8'):
-        # type: (Union[str, bytes], str) -> str
-        if isinstance(v, str):
-            return v
-        elif isinstance(v, bytes):
-            return v.decode(enc)
-        raise cls._type_err(v, 'native text')
 
     @classmethod
     def _is_ascii(cls, v, char_filter=lambda x: x <= 127):
@@ -3053,7 +3044,7 @@ class Utils:
                     if errors == 'ignore':
                         continue
                     r.append(63)
-            return cls.to_ntext(r.decode('ascii'))
+            return cls.to_text(r.decode('ascii'))
         raise cls._type_err(v, 'ascii')
 
     @classmethod
