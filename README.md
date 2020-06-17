@@ -56,14 +56,14 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
 ### Pre-Built Packages ###
-Pre-built packages are available for Windows (see the releases page), on PyPI, as well as the snap repository.
+Pre-built packages are available for Windows (see the releases page), on PyPI, Snap, and Homebrew.
 
 To install from PyPI:
 ```
 $ pip3 install ssh-audit
 ```
 
-To install the snap package:
+To install the Snap package:
 ```
 $ snap install ssh-audit
 ```
@@ -75,6 +75,7 @@ $ brew install ssh-audit
 
 ## ChangeLog
 ### v2.2.1-dev (???)
+ - Many Python 2 code clean-ups, testing framework improvements, pylint & flake8 fixes, and mypy type comments; credit [Jürgen Gmach](https://github.com/jugmac00)).
  - Suppress recommendation of token host key types.
  - Added 1 new host key types: `ssh-rsa1`.
  - Added 1 new ciphers: `blowfish`, `AEAD_AES_128_GCM`, `AEAD_AES_256_GCM`.
