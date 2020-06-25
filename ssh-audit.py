@@ -2187,7 +2187,7 @@ class KexDH:  # pragma: nocover
         self.__e = 0
         self.set_params(g, p)
 
-        self.__ed25519_pubkey = 0
+        self.__ed25519_pubkey = None  # type: Optional[bytes]
         self.__hostkey_type = None
         self.__hostkey_e = 0
         self.__hostkey_n = 0
