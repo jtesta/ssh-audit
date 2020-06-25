@@ -714,7 +714,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
                     # selected kex and host key type.  Send the server's own
                     # list of ciphers and MACs back to it (this doesn't
                     # matter, really).
-                    client_kex = SSH2.Kex(os.urandom(16), [kex_str], [host_key_type], server_kex.client, server_kex.server, 0, 0)
+                    client_kex = SSH2.Kex(os.urandom(16), [kex_str], [host_key_type], server_kex.client, server_kex.server, False, 0)
 
                     s.write_byte(SSH.Protocol.MSG_KEXINIT)
                     client_kex.write(s)
@@ -787,7 +787,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
 
             # Send our KEX using the specified group-exchange and most of the
             # server's own values.
-            client_kex = SSH2.Kex(os.urandom(16), [gex_alg], kex.key_algorithms, kex.client, kex.server, 0, 0)
+            client_kex = SSH2.Kex(os.urandom(16), [gex_alg], kex.key_algorithms, kex.client, kex.server, False, 0)
             s.write_byte(SSH.Protocol.MSG_KEXINIT)
             client_kex.write(s)
             s.send_packet()
