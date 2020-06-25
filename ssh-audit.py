@@ -2196,7 +2196,7 @@ class KexDH:  # pragma: nocover
         self.__f = 0
         self.__h_sig = 0
 
-    def set_params(self, g, p):
+    def set_params(self, g: int, p: int) -> None:
         self.__g = g
         self.__p = p
         self.__q = (self.__p - 1) // 2
