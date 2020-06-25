@@ -88,7 +88,7 @@ class AuditConf:
         self.json = False
         self.verbose = False
         self.level = 'info'
-        self.ipvo: Sequence[int] = ()
+        self.ipvo = ()  # type: Sequence[int]
         self.ipv4 = False
         self.ipv6 = False
         self.timeout = 5.0
@@ -185,7 +185,7 @@ class AuditConf:
             usage_cb()
         if aconf.client_audit is False:
             if oport is not None:
-                host: Optional[str] = args[0]
+                host = args[0]  # type: Optional[str]
             else:
                 mx = re.match(r'^\[([^\]]+)\](?::(.*))?$', args[0])
                 if mx is not None:
@@ -213,7 +213,7 @@ class AuditConf:
 
 
 class Output:
-    LEVELS: Sequence[str] = ('info', 'warn', 'fail')
+    LEVELS = ('info', 'warn', 'fail')  # type: Sequence[str]
     COLORS = {'head': 36, 'good': 32, 'warn': 33, 'fail': 31}
 
     def __init__(self) -> None:
@@ -315,7 +315,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
         WARN_TAG_SIZE_96 = 'using small 96-bit tag size'
         WARN_EXPERIMENTAL = 'using experimental algorithm'
 
-        ALGORITHMS: Dict[str, Dict[str, List[List[Optional[str]]]]] = {
+        ALGORITHMS = {
             # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
             'kex': {
                 'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
@@ -502,7 +502,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'aes256-gcm': [[]],
                 'chacha20-poly1305@openssh.com': [[]],  # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
             }
-        }
+        }  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
 
     class KexParty:
         def __init__(self, enc: List[str], mac: List[str], compression: List[str], languages: List[str]) -> None:
@@ -537,9 +537,9 @@ class SSH2:  # pylint: disable=too-few-public-methods
             self.__follows = follows
             self.__unused = unused
 
-            self.__rsa_key_sizes: Dict[str, Tuple[int, int]] = {}
-            self.__dh_modulus_sizes: Dict[str, Tuple[int, int]] = {}
-            self.__host_keys: Dict[str, bytes] = {}
+            self.__rsa_key_sizes = {}  # type: Dict[str, Tuple[int, int]]
+            self.__dh_modulus_sizes = {}  # type: Dict[str, Tuple[int, int]]
+            self.__host_keys = {}  # type: Dict[str, bytes]
 
         @property
         def cookie(self) -> bytes:
@@ -921,7 +921,7 @@ class SSH1:
         FAIL_NA_UNSAFE = 'not implemented in OpenSSH (server), unsafe algorithm'
         TEXT_CIPHER_IDEA = 'cipher used by commercial SSH'
 
-        ALGORITHMS: Dict[str, Dict[str, List[List[Optional[str]]]]] = {
+        ALGORITHMS = {
             'key': {
                 'ssh-rsa1': [['1.2.2']],
             },
@@ -942,7 +942,7 @@ class SSH1:
                 'tis': [['1.2.2']],
                 'kerberos': [['1.2.2', '3.6'], [FAIL_OPENSSH37_REMOVE]],
             }
-        }
+        }  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
 
     class PublicKeyMessage:
         def __init__(self, cookie: bytes, skey: Tuple[int, int, int], hkey: Tuple[int, int, int], pflags: int, cmask: int, amask: int) -> None:
@@ -1366,7 +1366,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             # pylint: disable=too-many-return-statements
             software = str(banner.software)
             mx = re.match(r'^dropbear_([\d\.]+\d+)(.*)', software)
-            v: Optional[str] = None
+            v = None  # type: Optional[str]
             if mx is not None:
                 patch = cls._fix_patch(mx.group(2))
                 v, p = 'Matt Johnston', SSH.Product.DropbearSSH
@@ -1662,7 +1662,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             #         if version is not None:
             #             software = SSH.Software(None, product, version, None, None)
             #             break
-            rec: Dict[int, Dict[str, Dict[str, Dict[str, int]]]] = {}
+            rec = {}  # type: Dict[int, Dict[str, Dict[str, Dict[str, int]]]]
             if software is None:
                 unknown_software = True
             for alg_pair in self.values:
@@ -1749,7 +1749,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             def __init__(self, sshv: int, db: Dict[str, Dict[str, List[List[Optional[str]]]]]) -> None:
                 self.__sshv = sshv
                 self.__db = db
-                self.__storage: Dict[str, List[str]] = {}
+                self.__storage = {}  # type: Dict[str, List[str]]
 
             @property
             def sshv(self) -> int:
@@ -1772,7 +1772,7 @@ class SSH:  # pylint: disable=too-few-public-methods
         #             = 1.  If it affects servers, but is a local issue only,
         #             then affected = 1 + 4 = 5.
         # pylint: disable=bad-whitespace
-        CVE: Dict[str, List[List[Any]]] = {
+        CVE = {
             'Dropbear SSH': [
                 ['0.0', '2018.76', 1, 'CVE-2018-15599', 5.0, 'remote users may enumerate users on the system'],
                 ['0.0', '2017.74', 5, 'CVE-2017-9079', 4.7, 'local users can read certain files as root'],
@@ -1877,15 +1877,15 @@ class SSH:  # pylint: disable=too-few-public-methods
                 ['0.0', '0.66', 2, 'CVE-2016-2563', 7.5, 'buffer overflow in SCP command-line utility'],
                 ['0.0', '0.65', 2, 'CVE-2015-5309', 4.3, 'integer overflow in terminal-handling code'],
             ]
-        }
-        TXT: Dict[str, List[List[Any]]] = {
+        }  # type: Dict[str, List[List[Any]]]
+        TXT = {
             'Dropbear SSH': [
                 ['0.28', '0.34', 1, 'remote root exploit', 'remote format string buffer overflow exploit (exploit-db#387)']],
             'libssh': [
                 ['0.3.3', '0.3.3', 1, 'null pointer check', 'missing null pointer check in "crypt_set_algorithms_server"'],
                 ['0.3.3', '0.3.3', 1, 'integer overflow',   'integer overflow in "buffer_get_data"'],
                 ['0.3.3', '0.3.3', 3, 'heap overflow',      'heap overflow in "packet_decrypt"']]
-        }
+        }  # type: Dict[str, List[List[Any]]]
 
     class Socket(ReadBuf, WriteBuf):
         class InsufficientReadException(Exception):
@@ -1895,12 +1895,12 @@ class SSH:  # pylint: disable=too-few-public-methods
 
         def __init__(self, host: Optional[str], port: int, ipvo: Optional[Sequence[int]] = None, timeout: Union[int, float] = 5, timeout_set: bool = False) -> None:
             super(SSH.Socket, self).__init__()
-            self.__sock: Optional[socket.socket] = None
-            self.__sock_map: Dict[int, socket.socket] = {}
+            self.__sock = None  # type: Optional[socket.socket]
+            self.__sock_map = {}  # type: Dict[int, socket.socket]
             self.__block_size = 8
             self.__state = 0
-            self.__header: List[str] = []
-            self.__banner: Optional[SSH.Banner] = None
+            self.__header = []  # type: List[str]
+            self.__banner = None  # type: Optional[SSH.Banner]
             if host is None:
                 raise ValueError('undefined host')
             nport = utils.parse_int(port)
@@ -2614,13 +2614,13 @@ def output_security_sub(sub: str, software: Optional[SSH.Software], client_audit
     if software is None or software.product not in secdb:
         return
     for line in secdb[software.product]:
-        vfrom: str = ''
-        vtill: str = ''
+        vfrom = ''  # type: str
+        vtill = ''  # type: str
         vfrom, vtill = line[0:2]
         if not software.between_versions(vfrom, vtill):
             continue
-        target: int = 0
-        name: str = ''
+        target = 0  # type: int
+        name = ''  # type: str
         target, name = line[2:4]
         is_server = target & 1 == 1
         is_client = target & 2 == 2
@@ -2631,8 +2631,8 @@ def output_security_sub(sub: str, software: Optional[SSH.Software], client_audit
             continue
         p = '' if out.batch else ' ' * (padlen - len(name))
         if sub == 'cve':
-            cvss: float = 0.0
-            descr: str = ''
+            cvss = 0.0  # type: float
+            descr = ''  # type: str
             cvss, descr = line[4:6]
 
             # Critical CVSS scores (>= 8.0) are printed as a fail, otherwise they are printed as a warning.
@@ -2819,7 +2819,7 @@ def output(banner: Optional[SSH.Banner], header: List[str], client_host: Optiona
     maxlen = algs.maxlen + 1
     output_security(banner, client_audit, maxlen)
     # Filled in by output_algorithms() with unidentified algs.
-    unknown_algorithms: List[str] = []
+    unknown_algorithms = []  # type: List[str]
     if pkm is not None:
         adb = SSH1.KexDB.ALGORITHMS
         ciphers = pkm.supported_ciphers
