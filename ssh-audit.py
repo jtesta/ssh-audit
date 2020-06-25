@@ -3094,7 +3094,7 @@ utils = Utils()
 out = Output()
 
 
-def main():
+def main() -> None:  # printed text is still None
     conf = AuditConf.from_cmdline(sys.argv[1:], usage)
     audit(conf)
 
