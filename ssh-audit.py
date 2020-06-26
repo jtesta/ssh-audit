@@ -1116,7 +1116,7 @@ class ReadBuf:
     def read_line(self) -> str:
         return self._buf.readline().rstrip().decode('utf-8', 'replace')
 
-    def reset(self):
+    def reset(self) -> None:
         self._buf = io.BytesIO()
         self._len = 0
 
