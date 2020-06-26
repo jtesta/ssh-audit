@@ -2426,7 +2426,7 @@ class KexNISTP256(KexDH):
 
 
 class KexNISTP384(KexDH):
-    def __init__(self):
+    def __init__(self) -> None:
         super(KexNISTP384, self).__init__('KexNISTP384', 'sha256', 0, 0)
 
     # See comment for KexNISTP256.send_init().
@@ -2437,7 +2437,7 @@ class KexNISTP384(KexDH):
 
 
 class KexNISTP521(KexDH):
-    def __init__(self):
+    def __init__(self) -> None:
         super(KexNISTP521, self).__init__('KexNISTP521', 'sha256', 0, 0)
 
     # See comment for KexNISTP256.send_init().
@@ -2448,7 +2448,7 @@ class KexNISTP521(KexDH):
 
 
 class KexGroupExchange(KexDH):
-    def __init__(self, classname, hash_alg):
+    def __init__(self, classname, hash_alg) -> None:
         super(KexGroupExchange, self).__init__(classname, hash_alg, 0, 0)
 
     def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_GEX_REQUEST):
@@ -2499,12 +2499,12 @@ class KexGroupExchange(KexDH):
 
 
 class KexGroupExchange_SHA1(KexGroupExchange):
-    def __init__(self):
+    def __init__(self) -> None:
         super(KexGroupExchange_SHA1, self).__init__('KexGroupExchange_SHA1', 'sha1')
 
 
 class KexGroupExchange_SHA256(KexGroupExchange):
-    def __init__(self):
+    def __init__(self) -> None:
         super(KexGroupExchange_SHA256, self).__init__('KexGroupExchange_SHA256', 'sha256')
 
 
