@@ -586,7 +586,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
         def set_host_key(self, key_type: str, hostkey: bytes) -> None:
             self.__host_keys[key_type] = hostkey
 
-        def host_keys(self):
+        def host_keys(self) -> Dict[str, bytes]:
             return self.__host_keys
 
         def write(self, wbuf: 'WriteBuf') -> None:
