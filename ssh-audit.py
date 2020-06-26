@@ -580,7 +580,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
         def set_dh_modulus_size(self, gex_alg: str, modulus_size: int) -> None:
             self.__dh_modulus_sizes[gex_alg] = (modulus_size, -1)
 
-        def dh_modulus_sizes(self):
+        def dh_modulus_sizes(self) -> Dict[str, Tuple[int, int]]:
             return self.__dh_modulus_sizes
 
         def set_host_key(self, key_type, hostkey):
