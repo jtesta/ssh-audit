@@ -2767,7 +2767,7 @@ def output_recommendations(algs: SSH.Algorithms, software: Optional[SSH.Software
 
 
 # Output additional information & notes.
-def output_info(software, client_audit, any_problems):
+def output_info(software: Optional['SSH.Software'], client_audit: bool, any_problems: bool) -> None:
     with OutputBuffer() as obuf:
         # Tell user that PuTTY cannot be hardened at the protocol-level.
         if client_audit and (software is not None) and (software.product == SSH.Product.PuTTY):
