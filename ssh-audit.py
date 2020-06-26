@@ -1942,7 +1942,7 @@ class SSH:  # pylint: disable=too-few-public-methods
 
         # Listens on a server socket and accepts one connection (used for
         # auditing client connections).
-        def listen_and_accept(self):
+        def listen_and_accept(self) -> None:
 
             try:
                 # Socket to listen on all IPv4 addresses.
