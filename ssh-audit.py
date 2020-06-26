@@ -2354,7 +2354,7 @@ class KexDH:  # pragma: nocover
         return KexDH.__adjust_key_size(self.__ca_n_len)
 
     # Returns the size of the DH modulus, in bits.
-    def get_dh_modulus_size(self):
+    def get_dh_modulus_size(self) -> int:
         # -2 to account for the '0b' prefix in the string.
         return len(bin(self.__p)) - 2
 
