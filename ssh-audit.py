@@ -2148,8 +2148,8 @@ class SSH:  # pylint: disable=too-few-public-methods
             data = struct.pack('>Ib', plen, padding) + payload + pad_bytes
             return self.send(data)
 
-        # Returns True if this Socket is connected, otherwise False.
         def is_connected(self):
+            """Returns true if this Socket is connected, False otherwise."""
             return self.__sock is not None
 
         def close(self):
