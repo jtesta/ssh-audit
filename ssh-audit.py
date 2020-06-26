@@ -2379,7 +2379,7 @@ class KexGroup14_SHA1(KexGroup14):
 
 
 class KexGroup14_SHA256(KexGroup14):
-    def __init__(self):
+    def __init__(self) -> None:
         super(KexGroup14_SHA256, self).__init__('sha256')
 
 
