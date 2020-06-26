@@ -2398,7 +2398,7 @@ class KexGroup18_SHA512(KexDH):
 
 
 class KexCurve25519_SHA256(KexDH):
-    def __init__(self):
+    def __init__(self) -> None:
         super(KexCurve25519_SHA256, self).__init__('KexCurve25519_SHA256', 'sha256', 0, 0)
 
     # To start an ED25519 kex, we simply send a random 256-bit number as the
