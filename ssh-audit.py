@@ -649,7 +649,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
         }
 
         @staticmethod
-        def run(s, server_kex):
+        def run(s: 'SSH.Socket', server_kex: 'SSH2.Kex') -> None:
             KEX_TO_DHGROUP = {
                 'diffie-hellman-group1-sha1': KexGroup1,
                 'diffie-hellman-group14-sha1': KexGroup14_SHA1,
