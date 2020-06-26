@@ -2419,7 +2419,7 @@ class KexNISTP256(KexDH):
     # or import an elliptic curve library in order to randomly generate a
     # valid elliptic point each time.  Hence, we will simply send a static
     # value, which is enough for us to extract the server's host key.
-    def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
+    def send_init(self, s: 'SSH.Socket', init_msg: int = SSH.Protocol.MSG_KEXDH_INIT) -> None:
         s.write_byte(init_msg)
         s.write_string(b'\x04\x0b\x60\x44\x9f\x8a\x11\x9e\xc7\x81\x0c\xa9\x98\xfc\xb7\x90\xaa\x6b\x26\x8c\x12\x4a\xc0\x09\xbb\xdf\xc4\x2c\x4c\x2c\x99\xb6\xe1\x71\xa0\xd4\xb3\x62\x47\x74\xb3\x39\x0c\xf2\x88\x4a\x84\x6b\x3b\x15\x77\xa5\x77\xd2\xa9\xc9\x94\xf9\xd5\x66\x19\xcd\x02\x34\xd1')
         s.send_packet()
