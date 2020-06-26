@@ -2152,7 +2152,7 @@ class SSH:  # pylint: disable=too-few-public-methods
             """Returns true if this Socket is connected, False otherwise."""
             return self.__sock is not None
 
-        def close(self):
+        def close(self) -> None:
             self.__cleanup()
             self.reset()
             self.__state = 0
