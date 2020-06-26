@@ -796,7 +796,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
 
         # Runs the DH moduli test against the specified target.
         @staticmethod
-        def run(s, kex):
+        def run(s: 'SSH.Socket', kex: 'SSH2.Kex') -> None:
             GEX_ALGS = {
                 'diffie-hellman-group-exchange-sha1': KexGroupExchange_SHA1,
                 'diffie-hellman-group-exchange-sha256': KexGroupExchange_SHA256,
