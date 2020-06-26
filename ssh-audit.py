@@ -571,10 +571,10 @@ class SSH2:  # pylint: disable=too-few-public-methods
         def unused(self) -> int:
             return self.__unused
 
-        def set_rsa_key_size(self, rsa_type: str, hostkey_size:int, ca_size:int = -1) -> None:
+        def set_rsa_key_size(self, rsa_type: str, hostkey_size: int, ca_size: int = -1) -> None:
             self.__rsa_key_sizes[rsa_type] = (hostkey_size, ca_size)
 
-        def rsa_key_sizes(self):
+        def rsa_key_sizes(self) -> Dict[str, Tuple[int, int]]:
             return self.__rsa_key_sizes
 
         def set_dh_modulus_size(self, gex_alg, modulus_size):
@@ -2508,7 +2508,7 @@ class KexGroupExchange_SHA256(KexGroupExchange):
         super(KexGroupExchange_SHA256, self).__init__('KexGroupExchange_SHA256', 'sha256')
 
 
-def output_algorithms(title: str, alg_db: Dict[str, Dict[str, List[List[Optional[str]]]]], alg_type: str, algorithms: List[str], unknown_algs: List[str], maxlen: int = 0, alg_sizes: Optional[Dict[str, Iterable[int]]] = None) -> None:
+def output_algorithms(title: str, alg_db: Dict[str, Dict[str, List[List[Optional[str]]]]], alg_type: str, algorithms: List[str], unknown_algs: List[str], maxlen: int = 0, alg_sizes: Optional[Dict[str, Tuple[int, int]]] = None) -> None:
     with OutputBuffer() as obuf:
         for algorithm in algorithms:
             output_algorithm(alg_db, alg_type, algorithm, unknown_algs, maxlen, alg_sizes)
@@ -2518,7 +2518,7 @@ def output_algorithms(title: str, alg_db: Dict[str, Dict[str, List[List[Optional
         out.sep()
 
 
-def output_algorithm(alg_db: Dict[str, Dict[str, List[List[Optional[str]]]]], alg_type: str, alg_name: str, unknown_algs: List[str], alg_max_len: int = 0, alg_sizes: Optional[Dict[str, Iterable[int]]] = None) -> None:
+def output_algorithm(alg_db: Dict[str, Dict[str, List[List[Optional[str]]]]], alg_type: str, alg_name: str, unknown_algs: List[str], alg_max_len: int = 0, alg_sizes: Optional[Dict[str, Tuple[int, int]]] = None) -> None:
     prefix = '(' + alg_type + ') '
     if alg_max_len == 0:
         alg_max_len = len(alg_name)
