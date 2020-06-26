@@ -2451,7 +2451,7 @@ class KexGroupExchange(KexDH):
     def __init__(self, classname: str, hash_alg: str) -> None:
         super(KexGroupExchange, self).__init__(classname, hash_alg, 0, 0)
 
-    def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_GEX_REQUEST):
+    def send_init(self, s: 'SSH.Socket', init_msg: int = SSH.Protocol.MSG_KEXDH_GEX_REQUEST) -> None:
         self.send_init_gex(s)
 
     # The group exchange starts with sending a message to the server with
