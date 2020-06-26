@@ -2459,7 +2459,7 @@ class KexGroupExchange(KexDH):
     # The server responds with a generator and prime modulus that matches that,
     # then the handshake continues on like a normal DH handshake (except the
     # SSH message types differ).
-    def send_init_gex(self, s, minbits=1024, prefbits=2048, maxbits=8192):
+    def send_init_gex(self, s: 'SSH.Socket', minbits: int = 1024, prefbits: int = 2048, maxbits: int = 8192) -> None:
 
         # Send the initial group exchange request.  Tell the server what range
         # of modulus sizes we will accept, along with our preference.
