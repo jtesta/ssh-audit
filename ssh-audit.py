@@ -2411,7 +2411,7 @@ class KexCurve25519_SHA256(KexDH):
 
 
 class KexNISTP256(KexDH):
-    def __init__(self):
+    def __init__(self) -> None:
         super(KexNISTP256, self).__init__('KexNISTP256', 'sha256', 0, 0)
 
     # Because the server checks that the value sent here is valid (i.e.: it lies
