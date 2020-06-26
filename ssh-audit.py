@@ -2403,7 +2403,7 @@ class KexCurve25519_SHA256(KexDH):
 
     # To start an ED25519 kex, we simply send a random 256-bit number as the
     # public key.
-    def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_INIT):
+    def send_init(self, s: 'SSH.Socket', init_msg: int = SSH.Protocol.MSG_KEXDH_INIT) -> None:
         self.__ed25519_pubkey = os.urandom(32)
         s.write_byte(init_msg)
         s.write_string(self.__ed25519_pubkey)
