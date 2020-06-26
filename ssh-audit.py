@@ -676,11 +676,11 @@ class SSH2:  # pylint: disable=too-few-public-methods
                     kex_group = KEX_TO_DHGROUP[kex_str]()
                     break
 
-            if kex_str is not None:
+            if kex_str is not None and kex_group is not None:
                 SSH2.HostKeyTest.perform_test(s, server_kex, kex_str, kex_group, SSH2.HostKeyTest.HOST_KEY_TYPES)
 
         @staticmethod
-        def perform_test(s, server_kex, kex_str, kex_group, host_key_types):
+        def perform_test(s: 'SSH.Socket', server_kex: 'SSH2.Kex', kex_str: str, kex_group: 'KexDH', host_key_types: Dict[str, Dict[str, bool]]) -> None:
             hostkey_modulus_size = 0
             ca_modulus_size = 0
 
