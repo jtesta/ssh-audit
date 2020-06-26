@@ -577,7 +577,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
         def rsa_key_sizes(self) -> Dict[str, Tuple[int, int]]:
             return self.__rsa_key_sizes
 
-        def set_dh_modulus_size(self, gex_alg, modulus_size):
+        def set_dh_modulus_size(self, gex_alg: str, modulus_size: int) -> None:
             self.__dh_modulus_sizes[gex_alg] = (modulus_size, -1)
 
         def dh_modulus_sizes(self):
