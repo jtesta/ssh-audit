@@ -769,7 +769,6 @@ class SSH2:  # pylint: disable=too-few-public-methods
         # Creates a new connection to the server.  Returns True on success, or False.
         @staticmethod
         def reconnect(s: 'SSH.Socket', gex_alg: str) -> bool:
-            breakpoint()
             if s.is_connected():
                 return True
 
