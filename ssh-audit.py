@@ -1196,7 +1196,7 @@ class WriteBuf:
         self._wbuf.seek(0)
         return payload
 
-    def reset(self):
+    def reset(self) -> None:
         self._wbuf = io.BytesIO()
 
 
