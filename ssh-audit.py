@@ -2448,7 +2448,7 @@ class KexNISTP521(KexDH):
 
 
 class KexGroupExchange(KexDH):
-    def __init__(self, classname, hash_alg) -> None:
+    def __init__(self, classname: str, hash_alg: str) -> None:
         super(KexGroupExchange, self).__init__(classname, hash_alg, 0, 0)
 
     def send_init(self, s, init_msg=SSH.Protocol.MSG_KEXDH_GEX_REQUEST):
