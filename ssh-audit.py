@@ -2193,7 +2193,6 @@ class KexDH:  # pragma: nocover
         self.__hostkey_n = 0
         self.__hostkey_n_len = 0  # Length of the host key modulus.
         self.__ca_n_len = 0  # Length of the CA key modulus (if hostkey is a cert).
-        self.__h_sig = 0
 
     def set_params(self, g: int, p: int) -> None:
         self.__g = g
@@ -2229,7 +2228,7 @@ class KexDH:  # pragma: nocover
             # will remain at length 0.
             return None
 
-        hostkey_len = h_sig_len = 0  # pylint: disable=unused-variable
+        hostkey_len = 0  # pylint: disable=unused-variable
         hostkey_type_len = hostkey_e_len = 0  # pylint: disable=unused-variable
         key_id_len = principles_len = 0  # pylint: disable=unused-variable
         critical_options_len = extensions_len = 0  # pylint: disable=unused-variable
@@ -2250,7 +2249,7 @@ class KexDH:  # pragma: nocover
             return hostkey
 
         _, _, ptr = KexDH.__get_bytes(payload, ptr)
-        self.__h_sig, h_sig_len, ptr = KexDH.__get_bytes(payload, ptr)
+        _, _, ptr = KexDH.__get_bytes(payload, ptr)
 
         # Now pick apart the host key blob.
         # Get the host key type (i.e.: 'ssh-rsa', 'ssh-ed25519', etc).
