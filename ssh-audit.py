@@ -2374,7 +2374,7 @@ class KexGroup14(KexDH):  # pragma: nocover
 
 
 class KexGroup14_SHA1(KexGroup14):
-    def __init__(self):
+    def __init__(self) -> None:
         super(KexGroup14_SHA1, self).__init__('sha1')
 
 
