@@ -571,7 +571,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
         def unused(self) -> int:
             return self.__unused
 
-        def set_rsa_key_size(self, rsa_type, hostkey_size, ca_size=-1):
+        def set_rsa_key_size(self, rsa_type: str, hostkey_size:int, ca_size:int = -1) -> None:
             self.__rsa_key_sizes[rsa_type] = (hostkey_size, ca_size)
 
         def rsa_key_sizes(self):
