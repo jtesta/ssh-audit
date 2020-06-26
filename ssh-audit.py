@@ -2335,7 +2335,8 @@ class KexDH:  # pragma: nocover
     # Converts a modulus length in bytes to its size in bits, after some
     # possible adjustments.
     @staticmethod
-    def __adjust_key_size(size):
+    def __adjust_key_size(size: int) -> int:
+        breakpoint()
         size = size * 8
         # Actual keys are observed to be about 8 bits bigger than expected
         # (i.e.: 1024-bit keys have a 1032-bit modulus).  Check if this is
@@ -2346,7 +2347,7 @@ class KexDH:  # pragma: nocover
         return size
 
     # Returns the size of the hostkey, in bits.
-    def get_hostkey_size(self):
+    def get_hostkey_size(self) -> int:
         return KexDH.__adjust_key_size(self.__hostkey_n_len)
 
     # Returns the size of the CA key, in bits.
