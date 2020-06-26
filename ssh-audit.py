@@ -2327,7 +2327,7 @@ class KexDH:  # pragma: nocover
         return hostkey
 
     @staticmethod
-    def __get_bytes(buf, ptr):
+    def __get_bytes(buf: bytes, ptr: int) -> Tuple[bytes, int, int]:
         num_bytes = struct.unpack('>I', buf[ptr:ptr + 4])[0]
         ptr += 4
         return buf[ptr:ptr + num_bytes], num_bytes, ptr + num_bytes
