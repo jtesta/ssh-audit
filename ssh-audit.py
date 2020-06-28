@@ -724,7 +724,8 @@ class SSH2:  # pylint: disable=too-few-public-methods
                     # with the host key and its length.  Bingo.  We also get back the host key fingerprint.
                     kex_group.send_init(s)
                     host_key = kex_group.recv_reply(s, variable_key_len)
-                    server_kex.set_host_key(host_key_type, host_key)
+                    if host_key is not None:
+                        server_kex.set_host_key(host_key_type, host_key)
 
                     hostkey_modulus_size = kex_group.get_hostkey_size()
                     ca_modulus_size = kex_group.get_ca_size()
