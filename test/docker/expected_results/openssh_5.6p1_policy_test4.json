@@ -1,0 +1,1 @@
+{"errors": ["Ciphers did not match. Expected: ['cipher_alg1', 'cipher_alg2']; Actual: ['aes128-ctr', 'aes192-ctr', 'aes256-ctr', 'arcfour256', 'arcfour128', 'aes128-cbc', '3des-cbc', 'blowfish-cbc', 'cast128-cbc', 'aes192-cbc', 'aes256-cbc', 'arcfour', 'rijndael-cbc@lysator.liu.se']"], "host": "localhost", "passed": false, "policy": "Docker policy: test4 v1"}

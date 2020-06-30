@@ -1,0 +1,39 @@
+#
+# Docker policy: test8
+#
+
+# The name of this policy (displayed in the output during scans).  Must be in quotes.
+name = "Docker poliicy: test8"
+
+# The version of this policy (displayed in the output during scans).  Not parsed, and may be any value, including strings.
+version = 1
+
+# The banner that must match exactly.  Commented out to ignore banners, since minor variability in the banner is sometimes normal.
+# banner = "SSH-2.0-OpenSSH_5.6"
+
+# The header that must match exactly.  Commented out to ignore headers, since variability in the header is sometimes normal.
+# header = "[]"
+
+# The compression options that must match exactly (order matters).  Commented out to ignore by default.
+# compressions = none, zlib@openssh.com
+
+# RSA host key sizes.
+hostkey_size_rsa-sha2-256 = 3072
+hostkey_size_rsa-sha2-512 = 3072
+hostkey_size_ssh-rsa = 3072
+hostkey_size_ssh-rsa-cert-v01@openssh.com = 3072
+
+# RSA CA key sizes.
+cakey_size_ssh-rsa-cert-v01@openssh.com = 2048
+
+# The host key types that must match exactly (order matters).
+host keys = ssh-rsa, ssh-rsa-cert-v01@openssh.com
+
+# The key exchange algorithms that must match exactly (order matters).
+key exchanges = diffie-hellman-group-exchange-sha256, diffie-hellman-group-exchange-sha1, diffie-hellman-group14-sha1, diffie-hellman-group1-sha1
+
+# The ciphers that must match exactly (order matters).
+ciphers = aes128-ctr, aes192-ctr, aes256-ctr, arcfour256, arcfour128, aes128-cbc, 3des-cbc, blowfish-cbc, cast128-cbc, aes192-cbc, aes256-cbc, arcfour, rijndael-cbc@lysator.liu.se
+
+# The MACs that must match exactly (order matters).
+macs = hmac-md5, hmac-sha1, umac-64@openssh.com, hmac-ripemd160, hmac-ripemd160@openssh.com, hmac-sha1-96, hmac-md5-96

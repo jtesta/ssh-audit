@@ -1,0 +1,6 @@
+Host:   localhost
+Policy: Docker policy: test3 v1
+Result: [0;31m❌ Failed![0m
+[0;33m
+Errors:
+  * Host key types did not match. Expected: ['ssh-rsa', 'ssh-dss', 'key_alg1']; Actual: ['ssh-rsa', 'ssh-dss'][0m

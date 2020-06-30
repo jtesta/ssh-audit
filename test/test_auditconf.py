@@ -11,7 +11,7 @@ class TestAuditConf:
     @staticmethod
     def _test_conf(conf, **kwargs):
         options = {
-            'host': None,
+            'host': '',
             'port': 22,
             'ssh1': True,
             'ssh2': True,

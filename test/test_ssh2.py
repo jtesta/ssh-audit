@@ -143,8 +143,8 @@ class TestSSH2:
         vsocket.rdata.append(b'SSH-2.0-OpenSSH_7.3 ssh-audit-test\r\n')
         vsocket.rdata.append(self._create_ssh2_packet(w.write_flush()))
         output_spy.begin()
-        with pytest.raises(SystemExit):
-            self.audit(self._conf())
+        ret = self.audit(self._conf())
+        assert ret != 0
         lines = output_spy.flush()
         assert len(lines) == 3
         assert 'unknown message' in lines[-1]

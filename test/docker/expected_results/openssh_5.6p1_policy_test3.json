@@ -1,0 +1,1 @@
+{"errors": ["Host key types did not match. Expected: ['ssh-rsa', 'ssh-dss', 'key_alg1']; Actual: ['ssh-rsa', 'ssh-dss']"], "host": "localhost", "passed": false, "policy": "Docker policy: test3 v1"}

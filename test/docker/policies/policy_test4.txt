@@ -1,0 +1,10 @@
+#
+# Docker policy: test4
+#
+
+name = "Docker policy: test4"
+version = 1
+host keys = ssh-rsa, ssh-dss
+key exchanges = diffie-hellman-group-exchange-sha256, diffie-hellman-group-exchange-sha1, diffie-hellman-group14-sha1, diffie-hellman-group1-sha1
+ciphers = cipher_alg1, cipher_alg2
+macs = hmac-md5, hmac-sha1, umac-64@openssh.com, hmac-ripemd160, hmac-ripemd160@openssh.com, hmac-sha1-96, hmac-md5-96

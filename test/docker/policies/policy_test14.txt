@@ -1,0 +1,38 @@
+#
+# Docker policy: test14
+#
+
+# The name of this policy (displayed in the output during scans).  Must be in quotes.
+name = "Docker policy: test14"
+
+# The version of this policy (displayed in the output during scans).  Not parsed, and may be any value, including strings.
+version = 1
+
+# The banner that must match exactly.  Commented out to ignore banners, since minor variability in the banner is sometimes normal.
+# banner = "SSH-2.0-OpenSSH_8.0"
+
+# The header that must match exactly.  Commented out to ignore headers, since variability in the header is sometimes normal.
+# header = "[]"
+
+# The compression options that must match exactly (order matters).  Commented out to ignore by default.
+# compressions = none, zlib@openssh.com
+
+# RSA host key sizes.
+hostkey_size_rsa-sha2-256 = 3072
+hostkey_size_rsa-sha2-512 = 3072
+hostkey_size_ssh-rsa = 3072
+
+# Group exchange DH modulus sizes.
+dh_modulus_size_diffie-hellman-group-exchange-sha256 = 4096
+
+# The host key types that must match exactly (order matters).
+host keys = rsa-sha2-512, rsa-sha2-256, ssh-rsa, ecdsa-sha2-nistp256, ssh-ed25519
+
+# The key exchange algorithms that must match exactly (order matters).
+key exchanges = curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256, diffie-hellman-group14-sha1
+
+# The ciphers that must match exactly (order matters).
+ciphers = chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+
+# The MACs that must match exactly (order matters).
+macs = umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1

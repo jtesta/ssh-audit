@@ -465,6 +465,79 @@ function run_test {
 }
 
 
+function run_policy_test {
+    config_number=$1  # The configuration number to use.
+    test_number=$2    # The policy test number to run.
+    expected_exit_code=$3  # The expected exit code of ssh-audit.py.
+
+    version=
+    config=
+    if [[ ${config_number} == 'config1' ]]; then
+        version='5.6p1'
+        config='sshd_config-5.6p1_test1'
+    elif [[ ${config_number} == 'config2' ]]; then
+        version='8.0p1'
+        config='sshd_config-8.0p1_test1'
+    elif [[ ${config_number} == 'config3' ]]; then
+        version='5.6p1'
+        config='sshd_config-5.6p1_test4'
+    fi
+
+    server_exec="/openssh/sshd-${version} -D -f /etc/ssh/${config}"
+    policy_path="test/docker/policies/policy_${test_number}.txt"
+    test_result_stdout="${TEST_RESULT_DIR}/openssh_${version}_policy_${test_number}.txt"
+    test_result_json="${TEST_RESULT_DIR}/openssh_${version}_policy_${test_number}.json"
+    expected_result_stdout="test/docker/expected_results/openssh_${version}_policy_${test_number}.txt"
+    expected_result_json="test/docker/expected_results/openssh_${version}_policy_${test_number}.json"
+    test_name="OpenSSH ${version} policy ${test_number}"
+
+    #echo "Running: docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}"
+    cid=`docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}`
+    if [[ $? != 0 ]]; then
+	echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
+	exit 1
+    fi
+
+    #echo "Running: ./ssh-audit.py -P ${policy_path} localhost:2222 > ${test_result_stdout}"
+    ./ssh-audit.py -P ${policy_path} localhost:2222 > ${test_result_stdout}
+    actual_exit_code=$?
+    if [[ ${actual_exit_code} != ${expected_exit_code} ]]; then
+	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}"
+	docker container stop -t 0 $cid > /dev/null
+	exit 1
+    fi
+
+    #echo "Running: ./ssh-audit.py -P ${policy_path} -j localhost:2222 > ${test_result_json}"
+    ./ssh-audit.py -P ${policy_path} -j localhost:2222 > ${test_result_json}
+    actual_exit_code=$?
+    if [[ ${actual_exit_code} != ${expected_exit_code} ]]; then
+	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}"
+	docker container stop -t 0 $cid > /dev/null
+	exit 1
+    fi
+
+    docker container stop -t 0 $cid > /dev/null
+    if [[ $? != 0 ]]; then
+       echo -e "${REDB}Failed to stop docker container ${cid}! (exit code: $?)${CLR}"
+       exit 1
+    fi
+
+    diff=`diff -u ${expected_result_stdout} ${test_result_stdout}`
+    if [[ $? != 0 ]]; then
+	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+	exit 1
+    fi
+
+    diff=`diff -u ${expected_result_json} ${test_result_json}`
+    if [[ $? != 0 ]]; then
+	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+	exit 1
+    fi
+
+    echo -e "${test_name} ${GREEN}passed${CLR}."
+}
+
+
 # First check if docker is functional.
 docker version > /dev/null
 if [[ $? != 0 ]]; then
@@ -502,6 +575,39 @@ echo
 run_dropbear_test '2019.78' 'test1' '-r /etc/dropbear/dropbear_rsa_host_key_1024 -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_ecdsa_host_key'
 echo
 run_tinyssh_test '20190101' 'test1'
+echo
+echo
+run_policy_test 'config1' 'test1' '0'
+run_policy_test 'config1' 'test2' '1'
+run_policy_test 'config1' 'test3' '1'
+run_policy_test 'config1' 'test4' '1'
+run_policy_test 'config1' 'test5' '1'
+run_policy_test 'config2' 'test6' '0'
+
+# Passing test with host key certificate and CA key certificates.
+run_policy_test 'config3' 'test7' '0'
+
+# Failing test with host key certificate and non-compliant CA key length.
+run_policy_test 'config3' 'test8' '1'
+
+# Failing test with non-compliant host key certificate and CA key certificate.
+run_policy_test 'config3' 'test9' '1'
+
+# Failing test with non-compliant host key certificate and non-compliant CA key certificate.
+run_policy_test 'config3' 'test10' '1'
+
+# Passing test with host key size check.
+run_policy_test 'config2' 'test11' '0'
+
+# Failing test with non-compliant host key size check.
+run_policy_test 'config2' 'test12' '1'
+
+# Passing test with DH modulus test.
+run_policy_test 'config2' 'test13' '0'
+
+# Failing test with DH modulus test.
+run_policy_test 'config2' 'test14' '1'
+
 
 # The test functions above will terminate the script on failure, so if we reached here,
 # all tests are successful.

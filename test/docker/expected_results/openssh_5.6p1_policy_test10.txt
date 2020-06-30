@@ -1,0 +1,7 @@
+Host:   localhost
+Policy: Docker poliicy: test10 v1
+Result: [0;31m❌ Failed![0m
+[0;33m
+Errors:
+  * RSA hostkey (ssh-rsa-cert-v01@openssh.com) sizes did not match.  Expected: 4096; Actual: 3072
+  * RSA CA key (ssh-rsa-cert-v01@openssh.com) sizes did not match.  Expected: 4096; Actual: 1024[0m

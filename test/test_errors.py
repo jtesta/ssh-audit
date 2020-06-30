@@ -16,36 +16,39 @@ class TestErrors:
         conf.batch = True
         return conf
 
-    def _audit(self, spy, conf=None, sysexit=True):
+    def _audit(self, spy, conf=None, exit_expected=False):
         if conf is None:
             conf = self._conf()
         spy.begin()
-        if sysexit:
+
+        if exit_expected:
             with pytest.raises(SystemExit):
                 self.audit(conf)
         else:
-            self.audit(conf)
+            ret = self.audit(conf)
+            assert ret != 0
+
         lines = spy.flush()
         return lines
 
     def test_connection_unresolved(self, output_spy, virtual_socket):
         vsocket = virtual_socket
         vsocket.gsock.addrinfodata['localhost#22'] = []
-        lines = self._audit(output_spy)
+        lines = self._audit(output_spy, exit_expected=True)
         assert len(lines) == 1
         assert 'has no DNS records' in lines[-1]
 
     def test_connection_refused(self, output_spy, virtual_socket):
         vsocket = virtual_socket
         vsocket.errors['connect'] = socket.error(errno.ECONNREFUSED, 'Connection refused')
-        lines = self._audit(output_spy)
+        lines = self._audit(output_spy, exit_expected=True)
         assert len(lines) == 1
         assert 'Connection refused' in lines[-1]
 
     def test_connection_timeout(self, output_spy, virtual_socket):
         vsocket = virtual_socket
         vsocket.errors['connect'] = socket.timeout('timed out')
-        lines = self._audit(output_spy)
+        lines = self._audit(output_spy, exit_expected=True)
         assert len(lines) == 1
         assert 'timed out' in lines[-1]
 

@@ -1,0 +1,3 @@
+Host:   localhost
+Policy: Docker poliicy: test7 v1
+Result: [0;32m✔ Passed[0m

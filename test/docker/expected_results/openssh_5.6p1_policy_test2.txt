@@ -1,0 +1,6 @@
+Host:   localhost
+Policy: Docker policy: test2 v1
+Result: [0;31m❌ Failed![0m
+[0;33m
+Errors:
+  * Key exchanges did not match. Expected: ['kex_alg1', 'kex_alg2']; Actual: ['diffie-hellman-group-exchange-sha256', 'diffie-hellman-group-exchange-sha1', 'diffie-hellman-group14-sha1', 'diffie-hellman-group1-sha1'][0m
