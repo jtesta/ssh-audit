@@ -25,9 +25,9 @@
                                                     `- [info] available since OpenSSH 2.3.0
 [0;33m(kex) diffie-hellman-group14-sha1           -- [warn] using weak hashing algorithm[0m
                                             `- [info] available since OpenSSH 3.9, Dropbear SSH 0.53
-[0;31m(kex) diffie-hellman-group1-sha1            -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
+[0;31m(kex) diffie-hellman-group1-sha1            -- [fail] using small 1024-bit modulus[0m
+[0;31m                                            `- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
 [0;31m                                            `- [fail] disabled (in client) since OpenSSH 7.0, logjam attack[0m
-[0;33m                                            `- [warn] using small 1024-bit modulus[0m
 [0;33m                                            `- [warn] using weak hashing algorithm[0m
                                             `- [info] available since OpenSSH 2.3.0, Dropbear SSH 0.28
 

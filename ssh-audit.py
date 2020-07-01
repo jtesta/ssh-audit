@@ -636,9 +636,9 @@ class SSH2:  # pylint: disable=too-few-public-methods
         FAIL_WEAK_ALGORITHM = 'using weak/obsolete algorithm'
         FAIL_PLAINTEXT = 'no encryption/integrity'
         FAIL_DEPRECATED_MAC = 'deprecated MAC'
+        FAIL_1024BIT_MODULUS = 'using small 1024-bit modulus'
         WARN_CURVES_WEAK = 'using weak elliptic curves'
         WARN_RNDSIG_KEY = 'using weak random number generator could reveal the key'
-        WARN_MODULUS_SIZE = 'using small 1024-bit modulus'
         WARN_HASH_WEAK = 'using weak hashing algorithm'
         WARN_CIPHER_MODE = 'using weak cipher mode'
         WARN_BLOCK_SIZE = 'using small 64-bit block size'
@@ -651,8 +651,8 @@ class SSH2:  # pylint: disable=too-few-public-methods
         ALGORITHMS = {
             # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
             'kex': {
-                'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
-                'gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
+                'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_HASH_WEAK]],
+                'gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_HASH_WEAK]],
                 'gss-gex-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
                 'gss-gex-sha1-': [[], [], [WARN_HASH_WEAK]],
                 'gss-group1-sha1-': [[], [], [WARN_HASH_WEAK]],
@@ -660,6 +660,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
                 'gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==': [[]],
                 'gss-group15-sha512-toWM5Slw5Ew8Mqkay+al2g==': [[]],
+                'diffie-hellman-group1-sha256': [[], ],
                 'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
                 'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
                 'diffie-hellman-group14-sha256@ssh.com': [[]],
@@ -696,7 +697,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'curve25519-sha256': [['7.4,d2018.76']],
                 'curve448-sha512': [[]],
                 'kexguess2@matt.ucc.asn.au': [['d2013.57']],
-                'rsa1024-sha1': [[], [], [WARN_MODULUS_SIZE, WARN_HASH_WEAK]],
+                'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
                 'rsa2048-sha256': [[]],
                 'sntrup4591761x25519-sha512@tinyssh.org': [['8.0'], [], [WARN_EXPERIMENTAL]],
                 'ext-info-c': [[]],  # Extension negotiation (RFC 8308)
@@ -709,20 +710,20 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'ssh-ed25519': [['6.5,l10.7.0']],
                 'ssh-ed25519-cert-v01@openssh.com': [['6.5']],
                 'ssh-rsa': [['2.5.0,d0.28,l10.2'], [WARN_HASH_WEAK]],
-                'ssh-dss': [['2.1.0,d0.28,l10.2', '6.9'], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
+                'ssh-dss': [['2.1.0,d0.28,l10.2', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
                 'ecdsa-sha2-nistp256': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
                 'ecdsa-sha2-nistp384': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
                 'ecdsa-sha2-nistp521': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
                 'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]],  # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
-                'x509v3-sign-dss': [[], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
+                'x509v3-sign-dss': [[], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
                 'x509v3-sign-rsa': [[], [], [WARN_HASH_WEAK]],
                 'x509v3-sign-rsa-sha256@ssh.com': [[]],
-                'x509v3-ssh-dss': [[], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
+                'x509v3-ssh-dss': [[], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
                 'x509v3-ssh-rsa': [[], [], [WARN_HASH_WEAK]],
                 'ssh-rsa-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY], []],
-                'ssh-dss-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
+                'ssh-dss-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_LEGACY], [WARN_RNDSIG_KEY]],
                 'ssh-rsa-cert-v01@openssh.com': [['5.6']],
-                'ssh-dss-cert-v01@openssh.com': [['5.6', '6.9'], [FAIL_OPENSSH70_WEAK], [WARN_MODULUS_SIZE, WARN_RNDSIG_KEY]],
+                'ssh-dss-cert-v01@openssh.com': [['5.6', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
                 'ecdsa-sha2-nistp256-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
                 'ecdsa-sha2-nistp384-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
                 'ecdsa-sha2-nistp521-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
