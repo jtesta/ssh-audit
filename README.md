@@ -78,8 +78,9 @@ $ brew install ssh-audit
  - 1024-bit moduli upgraded from warnings to failures.
  - Many Python 2 code clean-ups, testing framework improvements, pylint & flake8 fixes, and mypy type comments; credit [Jürgen Gmach](https://github.com/jugmac00)).
  - Suppress recommendation of token host key types.
- - Added 1 new host key types: `ssh-rsa1`.
- - Added 1 new ciphers: `blowfish`, `AEAD_AES_128_GCM`, `AEAD_AES_256_GCM`.
+ - Added 1 new host key type: `ssh-rsa1`.
+ - Added 1 new key exchange: `diffie-hellman-group1-sha256`.
+ - Added 3 new ciphers: `blowfish`, `AEAD_AES_128_GCM`, `AEAD_AES_256_GCM`.
  - Added 2 new MACs: `chacha20-poly1305@openssh.com`, `hmac-sha3-224`.
 
 ### v2.2.0 (2020-03-11)

@@ -660,7 +660,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
                 'gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==': [[]],
                 'gss-group15-sha512-toWM5Slw5Ew8Mqkay+al2g==': [[]],
-                'diffie-hellman-group1-sha256': [[], ],
+                'diffie-hellman-group1-sha256': [[], [FAIL_1024BIT_MODULUS]],
                 'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
                 'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
                 'diffie-hellman-group14-sha256@ssh.com': [[]],
