@@ -17,7 +17,7 @@ def kex(ssh_audit):
 
 def test_prevent_runtime_error_regression(ssh_audit, kex):
     """Prevent a regression of https://github.com/jtesta/ssh-audit/issues/41
-    
+
     The following test setup does not contain any sensible data.
     It was made up to reproduce a situation when there are several host
     keys, and an error occurred when iterating and modifying them at the
@@ -32,7 +32,7 @@ def test_prevent_runtime_error_regression(ssh_audit, kex):
     kex.set_host_key("ssh-rsa6", b"\x00\x00\x00\x07ssh-rsa\x00\x00\x00")
     kex.set_host_key("ssh-rsa7", b"\x00\x00\x00\x07ssh-rsa\x00\x00\x00")
     kex.set_host_key("ssh-rsa8", b"\x00\x00\x00\x07ssh-rsa\x00\x00\x00")
-    
+
     rv = ssh_audit.build_struct(banner=None, kex=kex)
 
     assert len(rv["fingerprints"]) == 9
