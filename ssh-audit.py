@@ -624,6 +624,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
         FAIL_PLAINTEXT = 'no encryption/integrity'
         FAIL_DEPRECATED_MAC = 'deprecated MAC'
         FAIL_1024BIT_MODULUS = 'using small 1024-bit modulus'
+        FAIL_UNPROVEN = 'using unproven algorithm'
         WARN_CURVES_WEAK = 'using weak elliptic curves'
         WARN_RNDSIG_KEY = 'using weak random number generator could reveal the key'
         WARN_HASH_WEAK = 'using weak hashing algorithm'
@@ -634,6 +635,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
         WARN_TAG_SIZE = 'using small 64-bit tag size'
         WARN_TAG_SIZE_96 = 'using small 96-bit tag size'
         WARN_EXPERIMENTAL = 'using experimental algorithm'
+        WARN_OBSOLETE = 'using obsolete algorithm'
 
         ALGORITHMS = {
             # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
@@ -717,6 +719,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'rsa-sha2-256-cert-v01@openssh.com': [['7.8']],
                 'rsa-sha2-512-cert-v01@openssh.com': [['7.8']],
                 'ssh-rsa-sha256@ssh.com': [[]],
+                'ssh-dss-sha256@ssh.com': [[], [FAIL_1024BIT_MODULUS]],
                 'sk-ecdsa-sha2-nistp256-cert-v01@openssh.com': [['8.2'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
                 'sk-ecdsa-sha2-nistp256@openssh.com': [['8.2'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
                 'sk-ssh-ed25519-cert-v01@openssh.com': [['8.2']],
@@ -778,6 +781,8 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'camellia192-ctr': [[]],
                 'camellia256-cbc': [[], [], [WARN_CIPHER_MODE]],
                 'camellia256-ctr': [[]],
+                'crypticore128@ssh.com': [[], [FAIL_UNPROVEN]],
+                'seed-cbc@ssh.com': [[], [], [WARN_OBSOLETE, WARN_CIPHER_MODE]],
             },
             'mac': {
                 'none': [['d2013.56'], [FAIL_PLAINTEXT]],
@@ -822,6 +827,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'aes128-gcm': [[]],
                 'aes256-gcm': [[]],
                 'chacha20-poly1305@openssh.com': [[]],  # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
+                'crypticore-mac@ssh.com': [[], [FAIL_UNPROVEN]],
             }
         }  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
 
