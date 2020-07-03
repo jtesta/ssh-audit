@@ -2191,6 +2191,7 @@ class SSH:  # pylint: disable=too-few-public-methods
                 ['1.2.3',   '2.1.1',   1, 'CVE-2001-0361',  4.0, 'recover plaintext from ciphertext'],
                 ['1.2',     '2.1',     1, 'CVE-2000-0525', 10.0, 'execute arbitrary code (improper privileges)']],
             'PuTTY': [
+                ['0.54', '0.73', 2, 'CVE-2020-XXXX', 5.0, 'out of bounds memory read'],
                 ['0.0', '0.72', 2, 'CVE-2019-17069', 5.0, 'potential DOS by remote SSHv1 server'],
                 ['0.71', '0.72', 2, 'CVE-2019-17068', 5.0, 'xterm bracketed paste mode command injection'],
                 ['0.52', '0.72', 2, 'CVE-2019-17067', 7.5, 'port rebinding weakness in port forward tunnel handling'],
