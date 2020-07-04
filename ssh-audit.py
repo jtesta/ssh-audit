@@ -644,7 +644,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_HASH_WEAK]],
                 'gss-gex-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
                 'gss-gex-sha1-': [[], [], [WARN_HASH_WEAK]],
-                'gss-group1-sha1-': [[], [], [WARN_HASH_WEAK]],
+                'gss-group1-sha1-': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
                 'gss-group14-sha1-': [[], [], [WARN_HASH_WEAK]],
                 'gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
                 'gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==': [[]],
