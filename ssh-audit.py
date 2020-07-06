@@ -3206,10 +3206,18 @@ def make_policy(aconf: AuditConf, banner: Optional['SSH.Banner'], kex: Optional[
     if aconf.policy_file is None:
         raise RuntimeError('Internal error: cannot write policy file since filename is None!')
 
-    with open(aconf.policy_file, 'w') as f:
-        f.write(policy_data)
+    # Open with mode 'x' (creates the file, or fails if it already exist).
+    succeeded = True
+    try:
+        with open(aconf.policy_file, 'x') as f:
+            f.write(policy_data)
+    except FileExistsError:
+        succeeded = False
 
-    print("Wrote policy to %s.  Customize as necessary." % aconf.policy_file)
+    if succeeded:
+        print("Wrote policy to %s.  Customize as necessary, then run a policy scan with -P option." % aconf.policy_file)
+    else:
+        print("Error: file already exists: %s" % aconf.policy_file)
 
 
 class Utils:
