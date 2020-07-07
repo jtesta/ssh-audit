@@ -28,6 +28,12 @@ GREEN="\033[0;32m"
 REDB="\033[1;31m"   # Red + bold
 GREENB="\033[1;32m" # Green + bold
 
+# Program return values.
+PROGRAM_RETVAL_FAILURE=3
+PROGRAM_RETVAL_WARNING=2
+PROGRAM_RETVAL_CONNECTION_ERROR=1
+PROGRAM_RETVAL_GOOD=0
+
 
 # Returns 0 if current docker image exists.
 function check_if_docker_image_exists {
@@ -353,8 +359,9 @@ function run_dropbear_test {
     dropbear_version=$1
     test_number=$2
     options=$3
+    expected_retval=$4
 
-    run_test 'Dropbear' $dropbear_version $test_number "$options"
+    run_test 'Dropbear' $dropbear_version $test_number "$options" $expected_retval
 }
 
 
@@ -363,8 +370,9 @@ function run_dropbear_test {
 function run_openssh_test {
     openssh_version=$1
     test_number=$2
+    expected_retval=$3
 
-    run_test 'OpenSSH' $openssh_version $test_number ''
+    run_test 'OpenSSH' $openssh_version $test_number '' $expected_retval
 }
 
 
@@ -373,8 +381,9 @@ function run_openssh_test {
 function run_tinyssh_test {
     tinyssh_version=$1
     test_number=$2
+    expected_retval=$3
 
-    run_test 'TinySSH' $tinyssh_version $test_number ''
+    run_test 'TinySSH' $tinyssh_version $test_number '' $expected_retval
 }
 
 
@@ -383,6 +392,7 @@ function run_test {
     version=$2
     test_number=$3
     options=$4
+    expected_retval=$5
 
     server_exec=
     test_result_stdout=
@@ -421,15 +431,17 @@ function run_test {
     fi
 
     ./ssh-audit.py localhost:2222 > $test_result_stdout
-    if [[ $? != 0 ]]; then
-	echo -e "${REDB}Failed to run ssh-audit.py! (exit code: $?)${CLR}"
+    actual_retval=$?
+    if [[ $actual_retval != $expected_retval ]]; then
+	echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
 	docker container stop -t 0 $cid > /dev/null
 	exit 1
     fi
 
     ./ssh-audit.py -j localhost:2222 > $test_result_json
-    if [[ $? != 0 ]]; then
-	echo -e "${REDB}Failed to run ssh-audit.py! (exit code: $?)${CLR}"
+    actual_retval=$?
+    if [[ $actual_retval != $expected_retval ]]; then
+	echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
 	docker container stop -t 0 $cid > /dev/null
 	exit 1
     fi
@@ -560,53 +572,53 @@ TEST_RESULT_DIR=`mktemp -d /tmp/ssh-audit_test-results_XXXXXXXXXX`
 
 # Now run all the tests.
 echo -e "\nRunning tests..."
-run_openssh_test '4.0p1' 'test1'
+run_openssh_test '4.0p1' 'test1' $PROGRAM_RETVAL_FAILURE
 echo
-run_openssh_test '5.6p1' 'test1'
-run_openssh_test '5.6p1' 'test2'
-run_openssh_test '5.6p1' 'test3'
-run_openssh_test '5.6p1' 'test4'
-run_openssh_test '5.6p1' 'test5'
+run_openssh_test '5.6p1' 'test1' $PROGRAM_RETVAL_FAILURE
+run_openssh_test '5.6p1' 'test2' $PROGRAM_RETVAL_FAILURE
+run_openssh_test '5.6p1' 'test3' $PROGRAM_RETVAL_FAILURE
+run_openssh_test '5.6p1' 'test4' $PROGRAM_RETVAL_FAILURE
+run_openssh_test '5.6p1' 'test5' $PROGRAM_RETVAL_FAILURE
 echo
-run_openssh_test '8.0p1' 'test1'
-run_openssh_test '8.0p1' 'test2'
-run_openssh_test '8.0p1' 'test3'
+run_openssh_test '8.0p1' 'test1' $PROGRAM_RETVAL_FAILURE
+run_openssh_test '8.0p1' 'test2' $PROGRAM_RETVAL_FAILURE
+run_openssh_test '8.0p1' 'test3' $PROGRAM_RETVAL_GOOD
 echo
-run_dropbear_test '2019.78' 'test1' '-r /etc/dropbear/dropbear_rsa_host_key_1024 -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_ecdsa_host_key'
+run_dropbear_test '2019.78' 'test1' '-r /etc/dropbear/dropbear_rsa_host_key_1024 -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_ecdsa_host_key' 3
 echo
-run_tinyssh_test '20190101' 'test1'
+run_tinyssh_test '20190101' 'test1' $PROGRAM_RETVAL_WARNING
 echo
 echo
-run_policy_test 'config1' 'test1' '0'
-run_policy_test 'config1' 'test2' '1'
-run_policy_test 'config1' 'test3' '1'
-run_policy_test 'config1' 'test4' '1'
-run_policy_test 'config1' 'test5' '1'
-run_policy_test 'config2' 'test6' '0'
+run_policy_test 'config1' 'test1' $PROGRAM_RETVAL_GOOD
+run_policy_test 'config1' 'test2' $PROGRAM_RETVAL_FAILURE
+run_policy_test 'config1' 'test3' $PROGRAM_RETVAL_FAILURE
+run_policy_test 'config1' 'test4' $PROGRAM_RETVAL_FAILURE
+run_policy_test 'config1' 'test5' $PROGRAM_RETVAL_FAILURE
+run_policy_test 'config2' 'test6' $PROGRAM_RETVAL_GOOD
 
 # Passing test with host key certificate and CA key certificates.
-run_policy_test 'config3' 'test7' '0'
+run_policy_test 'config3' 'test7' $PROGRAM_RETVAL_GOOD
 
 # Failing test with host key certificate and non-compliant CA key length.
-run_policy_test 'config3' 'test8' '1'
+run_policy_test 'config3' 'test8' $PROGRAM_RETVAL_FAILURE
 
 # Failing test with non-compliant host key certificate and CA key certificate.
-run_policy_test 'config3' 'test9' '1'
+run_policy_test 'config3' 'test9' $PROGRAM_RETVAL_FAILURE
 
 # Failing test with non-compliant host key certificate and non-compliant CA key certificate.
-run_policy_test 'config3' 'test10' '1'
+run_policy_test 'config3' 'test10' $PROGRAM_RETVAL_FAILURE
 
 # Passing test with host key size check.
-run_policy_test 'config2' 'test11' '0'
+run_policy_test 'config2' 'test11' $PROGRAM_RETVAL_GOOD
 
 # Failing test with non-compliant host key size check.
-run_policy_test 'config2' 'test12' '1'
+run_policy_test 'config2' 'test12' $PROGRAM_RETVAL_FAILURE
 
 # Passing test with DH modulus test.
-run_policy_test 'config2' 'test13' '0'
+run_policy_test 'config2' 'test13' $PROGRAM_RETVAL_GOOD
 
 # Failing test with DH modulus test.
-run_policy_test 'config2' 'test14' '1'
+run_policy_test 'config2' 'test14' $PROGRAM_RETVAL_FAILURE
 
 
 # The test functions above will terminate the script on failure, so if we reached here,
