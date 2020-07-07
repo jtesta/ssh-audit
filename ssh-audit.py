@@ -51,6 +51,7 @@ PROGRAM_RETVAL_FAILURE = 3
 PROGRAM_RETVAL_WARNING = 2
 PROGRAM_RETVAL_CONNECTION_ERROR = 1
 PROGRAM_RETVAL_GOOD = 0
+PROGRAM_RETVAL_UNKNOWN_ERROR = -1
 
 try:  # pragma: nocover
     from colorama import init as colorama_init
@@ -3516,5 +3517,12 @@ def main() -> int:
 
 
 if __name__ == '__main__':  # pragma: nocover
-    exit_code = main()
+    exit_code = PROGRAM_RETVAL_GOOD
+
+    try:
+        exit_code = main()
+    except Exception:
+        exit_code = PROGRAM_RETVAL_UNKNOWN_ERROR
+        print(traceback.format_exc())
+
     sys.exit(exit_code)
