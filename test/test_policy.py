@@ -186,7 +186,7 @@ macs = mac_alg1, mac_alg2, mac_alg3'''
         '''Creates a policy from a kex and ensures it is generated exactly as expected.'''
 
         kex = self._get_kex()
-        pol_data = self.Policy.create('www.l0l.com', 'bannerX', kex)
+        pol_data = self.Policy.create('www.l0l.com', 'bannerX', kex, False)
 
         # Today's date is embedded in the policy, so filter it out to get repeatable results.
         pol_data = pol_data.replace(date.today().strftime('%Y/%m/%d'), '[todays date]')
@@ -199,7 +199,7 @@ macs = mac_alg1, mac_alg2, mac_alg3'''
         '''Creates a policy and evaluates it against the same server'''
 
         kex = self._get_kex()
-        policy_data = self.Policy.create('www.l0l.com', None, kex)
+        policy_data = self.Policy.create('www.l0l.com', None, kex, False)
         policy = self.Policy(policy_data=policy_data)
 
         ret, errors = policy.evaluate('SSH Server 1.0', kex)
