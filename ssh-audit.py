@@ -659,6 +659,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
         WARN_TAG_SIZE_96 = 'using small 96-bit tag size'
         WARN_EXPERIMENTAL = 'using experimental algorithm'
         WARN_OBSOLETE = 'using obsolete algorithm'
+        WARN_UNTRUSTED = 'using untrusted algorithm'
 
         ALGORITHMS = {
             # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
@@ -747,6 +748,9 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'sk-ecdsa-sha2-nistp256@openssh.com': [['8.2'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
                 'sk-ssh-ed25519-cert-v01@openssh.com': [['8.2']],
                 'sk-ssh-ed25519@openssh.com': [['8.2']],
+                'ssh-gost2001': [[], [], [WARN_UNTRUSTED]],
+                'ssh-gost2012-256': [[], [], [WARN_UNTRUSTED]],
+                'ssh-gost2012-512': [[], [], [WARN_UNTRUSTED]],
             },
             'enc': {
                 'none': [['1.2.2,d2013.56,l10.2'], [FAIL_PLAINTEXT]],
