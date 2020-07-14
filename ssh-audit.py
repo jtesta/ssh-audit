@@ -3233,7 +3233,7 @@ def output(aconf: AuditConf, banner: Optional[SSH.Banner], header: List[str], cl
     return program_retval
 
 
-def evaluate_policy(aconf: AuditConf, banner: Optional['SSH.Banner'], kex: Optional['SSH2.Kex'] = None) -> bool:
+def evaluate_policy(aconf: AuditConf, banner: Optional['SSH.Banner'], client_host: Optional[str], kex: Optional['SSH2.Kex'] = None) -> bool:
 
     if aconf.policy is None:
         raise RuntimeError('Internal error: cannot evaluate against null Policy!')
@@ -3243,9 +3243,14 @@ def evaluate_policy(aconf: AuditConf, banner: Optional['SSH.Banner'], kex: Optio
         json_struct = {'host': aconf.host, 'policy': aconf.policy.get_name_and_version(), 'passed': passed, 'errors': errors}
         print(json.dumps(json_struct, sort_keys=True))
     else:
-        print("Host:   %s" % aconf.host)
-        print("Policy: %s" % aconf.policy.get_name_and_version())
-        print("Result: ", end='')
+        spacing = ''
+        if aconf.client_audit:
+            print("Client IP: %s" % client_host)
+            spacing = "   "  # So the fields below line up with 'Client IP: '.
+        else:
+            print("Host:   %s" % aconf.host)
+        print("Policy: %s%s" % (spacing, aconf.policy.get_name_and_version()))
+        print("Result: %s" % spacing, end='')
         if passed:
             out.good("✔ Passed")
         else:
@@ -3554,7 +3559,7 @@ def audit(aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = Fal
 
         # This is a policy test.
         elif (aconf.policy is not None) and (aconf.make_policy is False):
-            program_retval = PROGRAM_RETVAL_GOOD if evaluate_policy(aconf, banner, kex=kex) else PROGRAM_RETVAL_FAILURE
+            program_retval = PROGRAM_RETVAL_GOOD if evaluate_policy(aconf, banner, s.client_host, kex=kex) else PROGRAM_RETVAL_FAILURE
 
         # A new policy should be made from this scan.
         elif (aconf.policy is None) and (aconf.make_policy is True):
