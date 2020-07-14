@@ -75,7 +75,7 @@ def usage(err: Optional[str] = None) -> None:
     uout.info('   -6,  --ipv6             enable IPv6 (order of precedence)')
     uout.info('   -p,  --port=<port>      port to connect')
     uout.info('   -t,  --timeout=<secs>   timeout (in seconds) for connection and reading\n                               (default: 5)')
-    uout.info('   -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one\n                                   per line)')
+    uout.info('   -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one\n                                   per line, format HOST:PORT)')
     uout.info('')
     uout.info('   -b,  --batch            batch output')
     uout.info('   -c,  --client-audit     starts a server on port 2222 to audit client\n                               software config (use -p to change port;\n                               use -t to change timeout)')
