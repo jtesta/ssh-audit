@@ -12,6 +12,6 @@ On a Windows machine, do the following:
 
 3.) Create the executable with:
 
-    pyinstaller -F --icon windows_icon.ico ssh-audit.py
+    pyinstaller -F --icon packages\windows_icon.ico ssh-audit.py
 
 4.) The 'dist' folder will have the resulting ssh-audit.exe.
