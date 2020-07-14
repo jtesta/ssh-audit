@@ -1,5 +1,5 @@
 Host:   localhost
-Policy: Docker policy: test12 v1
+Policy: Docker policy: test12 (version 1)
 Result: [0;31m❌ Failed![0m
 [0;33m
 Errors:

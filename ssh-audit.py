@@ -357,7 +357,7 @@ macs = %s
 
     def get_name_and_version(self) -> str:
         '''Returns a string of this Policy's name and version.'''
-        return '%s v%s' % (self._name, self._version)
+        return '%s (version %s)' % (self._name, self._version)
 
 
     def is_server_policy(self) -> bool:
