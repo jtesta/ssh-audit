@@ -1,0 +1,25 @@
+#
+# Official policy for hardened OpenSSH v8.3.
+#
+
+name = "Hardened OpenSSH v8.3"
+version = 1
+
+# RSA host key sizes.
+hostkey_size_rsa-sha2-256 = 4096
+hostkey_size_rsa-sha2-512 = 4096
+
+# Group exchange DH modulus sizes.
+dh_modulus_size_diffie-hellman-group-exchange-sha256 = 2048
+
+# The host key types that must match exactly (order matters).
+host keys = rsa-sha2-512, rsa-sha2-256, ssh-ed25519
+
+# The key exchange algorithms that must match exactly (order matters).
+key exchanges = curve25519-sha256, curve25519-sha256@libssh.org, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group-exchange-sha256
+
+# The ciphers that must match exactly (order matters).
+ciphers = chacha20-poly1305@openssh.com, aes256-gcm@openssh.com, aes128-gcm@openssh.com, aes256-ctr, aes192-ctr, aes128-ctr
+
+# The MACs that must match exactly (order matters).
+macs = hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, umac-128-etm@openssh.com
