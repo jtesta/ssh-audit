@@ -3,7 +3,7 @@
 #
 
 client policy = true
-name = "Ubuntu Client 18.04 LTS"
+name = "Hardened Ubuntu Client 18.04 LTS"
 version = 1
 
 # The host key types that must match exactly (order matters).
