@@ -192,7 +192,7 @@ macs = mac_alg1, mac_alg2, mac_alg3'''
         pol_data = pol_data.replace(date.today().strftime('%Y/%m/%d'), '[todays date]')
 
         # Instead of writing out the entire expected policy--line by line--just check that it has the expected hash.
-        assert hashlib.sha256(pol_data.encode('ascii')).hexdigest() == '1765f236d765b1741e7006f601babf0a8e1628326341a3a00b1026c7f85f48ce'
+        assert hashlib.sha256(pol_data.encode('ascii')).hexdigest() == '4af7777fb57a1dad0cf438c899a11d4f625fd9276ea3bb5ef5c9fe8806cb47dc'
 
 
     def test_policy_evaluate_passing_1(self):

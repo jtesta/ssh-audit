@@ -101,6 +101,7 @@ class Policy:
         self._banner = None  # type: Optional[str]
         self._compressions = None  # type: Optional[List[str]]
         self._host_keys = None  # type: Optional[List[str]]
+        self._optional_host_keys = None  # type: Optional[List[str]]
         self._kex = None  # type: Optional[List[str]]
         self._ciphers = None  # type: Optional[List[str]]
         self._macs = None  # type: Optional[List[str]]
@@ -137,7 +138,7 @@ class Policy:
             key = key.strip()
             val = val.strip()
 
-            if key not in ['name', 'version', 'banner', 'compressions', 'host keys', 'key exchanges', 'ciphers', 'macs', 'client policy'] and not key.startswith('hostkey_size_') and not key.startswith('cakey_size_') and not key.startswith('dh_modulus_size_'):
+            if key not in ['name', 'version', 'banner', 'compressions', 'host keys', 'optional host keys', 'key exchanges', 'ciphers', 'macs', 'client policy'] and not key.startswith('hostkey_size_') and not key.startswith('cakey_size_') and not key.startswith('dh_modulus_size_'):
                 raise ValueError("invalid field found in policy: %s" % line)
 
             if key in ['name', 'banner']:
@@ -158,7 +159,7 @@ class Policy:
                     self._banner = val
             elif key == 'version':
                 self._version = val
-            elif key in ['compressions', 'host keys', 'key exchanges', 'ciphers', 'macs']:
+            elif key in ['compressions', 'host keys', 'optional host keys', 'key exchanges', 'ciphers', 'macs']:
                 try:
                     algs = val.split(',')
                 except ValueError:
@@ -172,6 +173,8 @@ class Policy:
                     self._compressions = algs
                 elif key == 'host keys':
                     self._host_keys = algs
+                elif key == 'optional host keys':
+                    self._optional_host_keys = algs
                 elif key == 'key exchanges':
                     self._kex = algs
                 elif key == 'ciphers':
@@ -273,6 +276,9 @@ version = 1
 # The host key types that must match exactly (order matters).
 host keys = %s
 
+# Host key types that may optionally appear.
+#optional host keys = ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,sk-ssh-ed25519-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com
+
 # The key exchange algorithms that must match exactly (order matters).
 key exchanges = %s
 
@@ -305,9 +311,14 @@ macs = %s
             ret = False
             errors.append('Compression types did not match. Expected: %s; Actual: %s' % (self._compressions, kex.server.compression))
 
-        if (self._host_keys is not None) and (kex.key_algorithms != self._host_keys):
+        # If a list of optional host keys was given in the policy, remove any of its entries from the list retrieved from the server.  This allows us to do an exact comparison with the expected list below.
+        pruned_host_keys = kex.key_algorithms
+        if self._optional_host_keys is not None:
+            pruned_host_keys = [x for x in kex.key_algorithms if x not in self._optional_host_keys]
+
+        if (self._host_keys is not None) and (pruned_host_keys != self._host_keys):
             ret = False
-            errors.append('Host key types did not match. Expected: %s; Actual: %s' % (self._host_keys, kex.key_algorithms))
+            errors.append('Host key types did not match. Expected (required): %s; Expected (optional): %s; Actual: %s' % (self._host_keys, self._optional_host_keys, kex.key_algorithms))
 
         if self._hostkey_sizes is not None:
             hostkey_types = list(self._hostkey_sizes.keys())
