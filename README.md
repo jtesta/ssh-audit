@@ -75,6 +75,7 @@ $ brew install ssh-audit
 
 ## ChangeLog
 ### v2.2.1-dev (???)
+ - Created new man page (see ssh-audit.1 file).
  - 1024-bit moduli upgraded from warnings to failures.
  - Many Python 2 code clean-ups, testing framework improvements, pylint & flake8 fixes, and mypy type comments; credit [Jürgen Gmach](https://github.com/jugmac00)).
  - Suppress recommendation of token host key types.

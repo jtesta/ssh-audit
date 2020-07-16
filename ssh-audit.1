@@ -1,0 +1,216 @@
+.TH SSH-AUDIT 1 "July 16, 2020"
+.SH NAME
+\fBssh-audit\fP \- SSH server & client configuration auditor
+.SH SYNOPSIS
+.B ssh-audit
+.RI [ options ] " <target_host>"
+.SH DESCRIPTION
+.PP
+\fBssh-audit\fP analyzes the configuration of SSH servers & clients, then warns the user of weak, obsolete, and/or un-tested cryptographic primitives.  It is very useful for hardening SSH tunnels, which by default tend to be optimized for compatibility, not security.
+.PP
+See <https://www.ssh\-audit.com/> for official hardening guides for common platforms.
+
+.SH OPTIONS
+.TP
+.B -h, \-\-help
+.br
+Print short summary of options.
+
+.TP
+.B -1, \-\-ssh1
+.br
+Only perform an audit using SSH protocol version 1.
+
+.TP
+.B -2, \-\-ssh2
+.br
+Only perform an audit using SSH protocol version 2.
+
+.TP
+.B -4, \-\-ipv4
+.br
+Prioritize the usage of IPv4.
+
+.TP
+.B -6, \-\-ipv6
+.br
+Prioritize the usage of IPv6.
+
+.TP
+.B -b, \-\-batch
+.br
+Enables grepable output.
+
+.TP
+.B -c, \-\-client\-audit
+.br
+Starts a server on port 2222 to audit client software configuration.  Use -p/--port=<port> to change port and -t/--timeout=<secs> to change listen timeout.
+
+.TP
+.B -j, \-\-json
+.br
+Output results in JSON format.
+
+.TP
+.B -l, \-\-level=<info|warn|fail>
+.br
+Specify the minimum output level.  Default is info.
+
+.TP
+.B -L, \-\-list-policies
+.br
+List all official, built-in policies for common systems.  Their file paths can then be provided using -P/--policy=<path/to/policy.txt>.
+
+.TP
+.B -M, \-\-make-policy=<policy.txt>
+.br
+Creates a policy based on the target server.  Useful when other servers should be compared to the target server's custom configuration (i.e.: a cluster environment).  Note that the resulting policy can be edited manually.
+
+.TP
+.B -n, \-\-no-colors
+.br
+Disable color output.
+
+.TP
+.B -p, \-\-port=<port>
+.br
+The TCP port to connect to when auditing a server, or the port to listen on when auditing a client.
+
+.TP
+.B -P, \-\-policy=<policy.txt>
+.br
+Runs a policy audit against a target using the specified policy (see \fBPOLICY AUDIT\fP section for detailed description of this mode of operation).  Combine with -c/--client-audit to audit a client configuration instead of a server.  Use -L/--list-policies to list all official, built-in policies for common systems.
+
+.TP
+.B -t, \-\-timeout=<secs>
+.br
+The timeout, in seconds, for creating connections and reading data from the socket.  Default is 5.
+
+.TP
+.B -T, \-\-targets=<hosts.txt>
+.br
+A file containing a list of target hosts.  Each line must have one host, in the format of HOST[:PORT].
+
+.TP
+.B -v, \-\-verbose
+.br
+Enable verbose output.
+
+
+.SH STANDARD AUDIT
+.PP
+By default, \fBssh-audit\fP performs a standard audit.  That is, it enumerates all host key types, key exchanges, ciphers, MACs, and other information, then color-codes them in output to the user.  Cryptographic primitives with potential issues are displayed in yellow; primitives with serious flaws are displayed in red.
+
+
+.SH POLICY AUDIT
+.PP
+When the -P/--policy=<policy.txt> option is used, \fBssh-audit\fP performs a policy audit.  The target's host key types, key exchanges, ciphers, MACs, and other information is compared to a set of expected values defined in the specified policy file.  If everything matches, only a short message stating a passing result is reported.  Otherwise, the field(s) that did not match are reported.
+
+.PP
+Policy auditing is helpful for ensuring a group of related servers are properly hardened to an exact specification.
+
+.PP
+The set of official built-in policies can be viewed with -L/--list-policies.  Multiple servers can be audited with -T/--targets=<servers.txt>.  Custom policies can be made from an ideal target server with -M/--make-policy=<custom_policy.txt>.
+
+
+.SH EXAMPLES
+.LP
+Basic server auditing:
+.RS
+.nf
+ssh-audit localhost
+ssh-audit 127.0.0.1
+ssh-audit 127.0.0.1:222
+ssh-audit ::1
+ssh-audit [::1]:222
+.fi
+.RE
+
+.LP
+To run a standard audit against many servers (place targets into servers.txt, one on each line in the format of HOST[:PORT]):
+.RS
+.nf
+ssh-audit -T servers.txt
+.fi
+.RE
+
+.LP
+To audit a client configuration (listens on port 2222 by default; connect using "ssh anything@localhost"):
+.RS
+.nf
+ssh-audit -c
+.fi
+.RE
+
+.LP
+To audit a client configuration, with a listener on port 4567:
+.RS
+.nf
+ssh-audit -c -p 4567
+.fi
+.RE
+
+.LP
+To list all official built-in policies (hint: use resulting file paths with -P/--policy):
+.RS
+.nf
+ssh-audit -L
+.fi
+.RE
+
+.LP
+To run a policy audit against a server:
+.RS
+.nf
+ssh-audit -P path/to/server_policy targetserver
+.fi
+.RE
+
+.LP
+To run a policy audit against a client:
+.RS
+.nf
+ssh-audit -c -P path/to/client_policy
+.fi
+.RE
+
+.LP
+To run a policy audit against many servers:
+.RS
+.nf
+ssh-audit -T servers.txt -P path/to/server_policy
+.fi
+.RE
+
+.LP
+To create a policy based on a target server (which can be manually edited; see official built-in policies for syntax examples):
+.RS
+.nf
+ssh-audit -M new_policy.txt targetserver
+.fi
+.RE
+
+.SH RETURN VALUES
+When a successful connection is made and all algorithms are rated as "good", \fBssh-audit\fP returns 0.  Other possible return values are:
+
+.RS
+.nf
+1 = connection error
+2 = at least one algorithm warning was found
+3 = at least one algorithm failure was found
+<any other non-zero value> = unknown error
+.fi
+.RE
+
+.SH SSH HARDENING GUIDES
+Hardening guides for common platforms can be found at: <https://www.ssh\-audit.com/>
+
+.SH BUG REPORTS
+Please file bug reports as a Github Issue at: <https://github.com/jtesta/ssh\-audit/issues>
+
+.SH AUTHOR
+.LP
+\fBssh-audit\fP was originally written by Andris Raugulis <moo@arthepsy.eu>, and maintained from 2015 to 2017.
+.br
+.LP
+Maintainership was assumed and development was resumed in 2017 by Joe Testa <jtesta@positronsecurity.com>.
