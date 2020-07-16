@@ -22,23 +22,32 @@
 
 ## Usage
 ```
-usage: ssh-audit.py [-1246pbcnjvlt] <host>
+usage: ssh-audit.py [options] <host>
 
+   -h,  --help             print this help
    -1,  --ssh1             force ssh version 1 only
    -2,  --ssh2             force ssh version 2 only
    -4,  --ipv4             enable IPv4 (order of precedence)
    -6,  --ipv6             enable IPv6 (order of precedence)
-   -p,  --port=<port>      port to connect
    -b,  --batch            batch output
    -c,  --client-audit     starts a server on port 2222 to audit client
                                software config (use -p to change port;
                                use -t to change timeout)
-   -n,  --no-colors        disable colors
    -j,  --json             JSON output
-   -v,  --verbose          verbose output
    -l,  --level=<level>    minimum output level (info|warn|fail)
+   -L,  --list-policies    list all the official, built-in policies
+   -M,  --make-policy=<policy.txt>  creates a policy based on the target server
+                                    (i.e.: the target server has the ideal
+                                    configuration that other servers should
+                                    adhere to)
+   -n,  --no-colors        disable colors
+   -p,  --port=<port>      port to connect
+   -P,  --policy=<policy.txt>  run a policy test using the specified policy
    -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
                                (default: 5)
+   -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one
+                                   per line, format HOST[:PORT])
+   -v,  --verbose          verbose output
 ```
 * if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.  
 * batch flag `-b` will output sections without header and without empty lines (implies verbose flag).  
