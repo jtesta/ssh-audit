@@ -573,8 +573,8 @@ class AuditConf:
             with open(aconf.target_file, 'r') as f:
                 aconf.target_list = f.readlines()
 
-            # Strip out whitespace from each line in target file.
-            aconf.target_list = [target.strip() for target in aconf.target_list]
+            # Strip out whitespace from each line in target file, and skip empty lines.
+            aconf.target_list = [target.strip() for target in aconf.target_list if target not in ("", "\n")]
 
         # If a policy file was provided, validate it.
         if (aconf.policy_file is not None) and (aconf.make_policy is False):
