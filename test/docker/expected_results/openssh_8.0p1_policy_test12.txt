@@ -3,6 +3,6 @@ Policy: Docker policy: test12 (version 1)
 Result: [0;31m❌ Failed![0m
 [0;33m
 Errors:
-  * RSA hostkey (rsa-sha2-256) sizes did not match.  Expected: 4096; Actual: 3072
-  * RSA hostkey (rsa-sha2-512) sizes did not match.  Expected: 4096; Actual: 3072
-  * RSA hostkey (ssh-rsa) sizes did not match.  Expected: 4096; Actual: 3072[0m
+  * RSA host key (rsa-sha2-256) sizes did not match. Expected: 4096; Actual: 3072
+  * RSA host key (rsa-sha2-512) sizes did not match. Expected: 4096; Actual: 3072
+  * RSA host key (ssh-rsa) sizes did not match. Expected: 4096; Actual: 3072[0m

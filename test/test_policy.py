@@ -202,9 +202,11 @@ macs = mac_alg1, mac_alg2, mac_alg3'''
         policy_data = self.Policy.create('www.l0l.com', None, kex, False)
         policy = self.Policy(policy_data=policy_data)
 
-        ret, errors = policy.evaluate('SSH Server 1.0', kex)
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
         assert ret is True
         assert len(errors) == 0
+        print(error_str)
+        assert len(error_str) == 0
 
 
     def test_policy_evaluate_failing_1(self):
@@ -220,10 +222,10 @@ ciphers = cipher_alg1, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        ret, errors = policy.evaluate('SSH Server 1.0', self._get_kex())
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
         assert ret is False
         assert len(errors) == 1
-        assert errors[0].find('Banner did not match.') != -1
+        assert error_str.find('Banner did not match.') != -1
 
 
     def test_policy_evaluate_failing_2(self):
@@ -238,10 +240,10 @@ ciphers = cipher_alg1, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        ret, errors = policy.evaluate('SSH Server 1.0', self._get_kex())
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
         assert ret is False
         assert len(errors) == 1
-        assert errors[0].find('Compression types did not match.') != -1
+        assert error_str.find('Compression did not match.') != -1
 
 
     def test_policy_evaluate_failing_3(self):
@@ -256,10 +258,10 @@ ciphers = cipher_alg1, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        ret, errors = policy.evaluate('SSH Server 1.0', self._get_kex())
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
         assert ret is False
         assert len(errors) == 1
-        assert errors[0].find('Host key types did not match.') != -1
+        assert error_str.find('Host keys did not match.') != -1
 
 
     def test_policy_evaluate_failing_4(self):
@@ -274,10 +276,10 @@ ciphers = cipher_alg1, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        ret, errors = policy.evaluate('SSH Server 1.0', self._get_kex())
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
         assert ret is False
         assert len(errors) == 1
-        assert errors[0].find('Key exchanges did not match.') != -1
+        assert error_str.find('Key exchanges did not match.') != -1
 
 
     def test_policy_evaluate_failing_5(self):
@@ -292,10 +294,10 @@ ciphers = cipher_alg1, XXXmismatched, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        ret, errors = policy.evaluate('SSH Server 1.0', self._get_kex())
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
         assert ret is False
         assert len(errors) == 1
-        assert errors[0].find('Ciphers did not match.') != -1
+        assert error_str.find('Ciphers did not match.') != -1
 
 
     def test_policy_evaluate_failing_6(self):
@@ -310,10 +312,10 @@ ciphers = cipher_alg1, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, XXXmismatched, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        ret, errors = policy.evaluate('SSH Server 1.0', self._get_kex())
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
         assert ret is False
         assert len(errors) == 1
-        assert errors[0].find('MACs did not match.') != -1
+        assert error_str.find('MACs did not match.') != -1
 
 
     def test_policy_evaluate_failing_7(self):
@@ -328,10 +330,8 @@ ciphers = cipher_alg1, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, XXXmismatchedXXX, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        ret, errors = policy.evaluate('SSH Server 1.0', self._get_kex())
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
         assert ret is False
         assert len(errors) == 2
-
-        errors_str = ', '.join(errors)
-        assert errors_str.find('Host key types did not match.') != -1
-        assert errors_str.find('MACs did not match.') != -1
+        assert error_str.find('Host keys did not match.') != -1
+        assert error_str.find('MACs did not match.') != -1
