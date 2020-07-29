@@ -514,7 +514,8 @@ function run_policy_test {
     ./ssh-audit.py -P ${policy_path} localhost:2222 > ${test_result_stdout}
     actual_exit_code=$?
     if [[ ${actual_exit_code} != ${expected_exit_code} ]]; then
-	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}"
+	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
+        cat ${test_result_stdout}
 	docker container stop -t 0 $cid > /dev/null
 	exit 1
     fi
@@ -523,7 +524,8 @@ function run_policy_test {
     ./ssh-audit.py -P ${policy_path} -j localhost:2222 > ${test_result_json}
     actual_exit_code=$?
     if [[ ${actual_exit_code} != ${expected_exit_code} ]]; then
-	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}"
+	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
+        cat ${test_result_json}
 	docker container stop -t 0 $cid > /dev/null
 	exit 1
     fi
