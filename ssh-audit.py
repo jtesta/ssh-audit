@@ -753,6 +753,8 @@ class SSH2:  # pylint: disable=too-few-public-methods
                 'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
                 'rsa2048-sha256': [[]],
                 'sntrup4591761x25519-sha512@tinyssh.org': [['8.0'], [], [WARN_EXPERIMENTAL]],
+                'kexAlgoCurve25519SHA256': [[]],
+                'Curve25519SHA256': [[]],
                 'ext-info-c': [[]],  # Extension negotiation (RFC 8308)
                 'ext-info-s': [[]],  # Extension negotiation (RFC 8308)
             },

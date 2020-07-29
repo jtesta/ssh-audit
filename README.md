@@ -90,7 +90,7 @@ $ brew install ssh-audit
  - Suppress recommendation of token host key types.
  - Added check for use-after-free vulnerability in PuTTY v0.73.
  - Added 5 new host key types: `ssh-rsa1`, `ssh-dss-sha256@ssh.com`, `ssh-gost2001`, `ssh-gost2012-256`, `ssh-gost2012-512`.
- - Added 1 new key exchange: `diffie-hellman-group1-sha256`.
+ - Added 3 new key exchanges: `diffie-hellman-group1-sha256`, `kexAlgoCurve25519SHA256`, `Curve25519SHA256`.
  - Added 5 new ciphers: `blowfish`, `AEAD_AES_128_GCM`, `AEAD_AES_256_GCM`, `crypticore128@ssh.com`, `seed-cbc@ssh.com`.
  - Added 3 new MACs: `chacha20-poly1305@openssh.com`, `hmac-sha3-224`, `crypticore-mac@ssh.com`.
 
