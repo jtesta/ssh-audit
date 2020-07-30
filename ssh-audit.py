@@ -79,6 +79,7 @@ def usage(err: Optional[str] = None) -> None:
     uout.info('   -j,  --json             JSON output')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies')
+    uout.info('        --lookup=<alg>     performs an algorithm lookup (accepts a comma separated list)')
     uout.info('   -M,  --make-policy=<policy.txt>  creates a policy based on the target server\n                                    (i.e.: the target server has the ideal\n                                    configuration that other servers should\n                                    adhere to)')
     uout.info('   -n,  --no-colors        disable colors')
     uout.info('   -p,  --port=<port>      port to connect')
@@ -477,6 +478,7 @@ class AuditConf:
         self.target_file = None  # type: Optional[str]
         self.target_list = []  # type: List[str]
         self.list_policies = False
+        self.lookup = ''
 
     def __setattr__(self, name: str, value: Union[str, int, float, bool, Sequence[int]]) -> None:
         valid = False
@@ -518,7 +520,7 @@ class AuditConf:
             if value == -1.0:
                 raise ValueError('invalid timeout: {}'.format(value))
             valid = True
-        elif name in ['policy_file', 'policy', 'target_file', 'target_list']:
+        elif name in ['policy_file', 'policy', 'target_file', 'target_list', 'lookup']:
             valid = True
 
         if valid:
@@ -530,7 +532,7 @@ class AuditConf:
         aconf = cls()
         try:
             sopts = 'h1246M:p:P:jbcnvl:t:T:L'
-            lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies']
+            lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=']
             opts, args = getopt.gnu_getopt(args, sopts, lopts)
         except getopt.GetoptError as err:
             usage_cb(str(err))
@@ -578,9 +580,14 @@ class AuditConf:
                 aconf.target_file = a
             elif o in ('-L', '--list-policies'):
                 aconf.list_policies = True
+            elif o in ('--lookup'):
+                aconf.lookup = a
 
-        if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False:
+        if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '':
             usage_cb()
+
+        if aconf.lookup != '':
+            return aconf
 
         if aconf.list_policies:
             list_policies()
@@ -3713,13 +3720,54 @@ def audit(aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = Fal
 
     return program_retval
 
+def algorithm_lookup(alg_names):       
+    if not alg_names:    
+        out.fail("[exception] Missing argument: alg_names")
+        sys.exit(1)
+        
+    alg_types = {'kex': 'key exchange algorithms', 
+                 'key': 'host-key algorithms',
+                 'mac': 'message authentication code algorithms',
+                 'enc': 'encryption algorithms (ciphers)'
+    }
+    
+    algorithms = alg_names.split(",")
+    adb = SSH2.KexDB.ALGORITHMS
+    algorithms_dict = {}
+    
+    for alg_type in alg_types:
+        for alg_name in algorithms:
+            try:
+                SSH2.KexDB.ALGORITHMS[alg_type][alg_name]
+                algorithms_dict.update( {alg_name : alg_type} ) 
+            except Exception:
+                pass
+
+    unknown_algorithms = []
+    padding = len(max(algorithms, key=len))
+        
+    for alg_type in alg_types:
+        algorithms_dict_filtered = {k:v for (k,v) in algorithms_dict.items() if alg_type in v}
+        
+        if len(algorithms_dict_filtered.items()) > 0:
+            title = alg_types.get(alg_type)
+            output_algorithms(title, adb, alg_type, algorithms_dict_filtered.keys(), unknown_algorithms, False, PROGRAM_RETVAL_GOOD, padding)
+          
+    algorithms_not_found = [i for i in algorithms if i not in algorithms_dict]
+    if len(algorithms_not_found) > 0:
+        out.head('# unknown algorithms')
+        for algorithm_not_found in algorithms_not_found:
+            out.fail(algorithm_not_found) 
 
 utils = Utils()
 out = Output()
 
-
 def main() -> int:
     aconf = AuditConf.from_cmdline(sys.argv[1:], usage)
+
+    if aconf.lookup != '':
+        algorithm_lookup(aconf.lookup)
+        sys.exit(0)
 
     # If multiple targets were specified...
     if len(aconf.target_list) > 0:
