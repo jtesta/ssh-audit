@@ -3720,54 +3720,70 @@ def audit(aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = Fal
 
     return program_retval
 
-def algorithm_lookup(alg_names):       
-    if not alg_names:    
-        out.fail("[exception] Missing argument: alg_names")
-        sys.exit(1)
-        
-    alg_types = {'kex': 'key exchange algorithms', 
-                 'key': 'host-key algorithms',
-                 'mac': 'message authentication code algorithms',
-                 'enc': 'encryption algorithms (ciphers)'
-    }
-    
-    algorithms = alg_names.split(",")
-    adb = SSH2.KexDB.ALGORITHMS
-    algorithms_dict = {}
-    
-    for alg_type in alg_types:
-        for alg_name in algorithms:
-            try:
-                SSH2.KexDB.ALGORITHMS[alg_type][alg_name]
-                algorithms_dict.update( {alg_name : alg_type} ) 
-            except Exception:
-                pass
 
-    unknown_algorithms = []
-    padding = len(max(algorithms, key=len))
-        
+def algorithm_lookup(alg_names: str) -> int:
+    alg_types = {
+        'kex': 'key exchange algorithms',
+        'key': 'host-key algorithms',
+        'mac': 'message authentication code algorithms',
+        'enc': 'encryption algorithms (ciphers)'
+    }
+
+    algorithm_names = alg_names.split(",")
+    adb = SSH2.KexDB.ALGORITHMS
+
+    # Use nested dictionary comprehension to iterate an outer dictionary where
+    # each key is an alg type that consists of a value (which is itself a
+    # dictionary) of alg names. Filter the alg names against the user supplied
+    # list of names.
+    algorithms_dict = {
+        outer_k: {
+            inner_k
+            for (inner_k, inner_v) in outer_v.items()
+            if inner_k in algorithm_names
+        }
+        for (outer_k, outer_v) in adb.items()
+    }
+
+    unknown_algorithms = []  # type: List[str]
+    padding = len(max(algorithm_names, key=len))
+
     for alg_type in alg_types:
-        algorithms_dict_filtered = {k:v for (k,v) in algorithms_dict.items() if alg_type in v}
-        
-        if len(algorithms_dict_filtered.items()) > 0:
-            title = alg_types.get(alg_type)
-            output_algorithms(title, adb, alg_type, algorithms_dict_filtered.keys(), unknown_algorithms, False, PROGRAM_RETVAL_GOOD, padding)
-          
-    algorithms_not_found = [i for i in algorithms if i not in algorithms_dict]
+        if len(algorithms_dict[alg_type]) > 0:
+            title = str(alg_types.get(alg_type))
+            retval = output_algorithms(title, adb, alg_type, algorithms_dict[alg_type], unknown_algorithms, False, PROGRAM_RETVAL_GOOD, padding)
+
+    algorithms_dict_flattened = [
+        alg_name
+        for val in algorithms_dict.values()
+        for alg_name in val
+    ]
+
+    algorithms_not_found = [
+        alg_name
+        for alg_name in algorithm_names
+        if alg_name not in algorithms_dict_flattened
+    ]
+
     if len(algorithms_not_found) > 0:
+        retval = PROGRAM_RETVAL_FAILURE
         out.head('# unknown algorithms')
         for algorithm_not_found in algorithms_not_found:
-            out.fail(algorithm_not_found) 
+            out.fail(algorithm_not_found)
+
+    return retval
+
 
 utils = Utils()
 out = Output()
+
 
 def main() -> int:
     aconf = AuditConf.from_cmdline(sys.argv[1:], usage)
 
     if aconf.lookup != '':
-        algorithm_lookup(aconf.lookup)
-        sys.exit(0)
+        retval = algorithm_lookup(aconf.lookup)
+        sys.exit(retval)
 
     # If multiple targets were specified...
     if len(aconf.target_list) > 0:
