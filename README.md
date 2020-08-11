@@ -36,6 +36,7 @@ usage: ssh-audit.py [options] <host>
    -j,  --json             JSON output
    -l,  --level=<level>    minimum output level (info|warn|fail)
    -L,  --list-policies    list all the official, built-in policies
+        --lookup=<alg>     performs an algorithm lookup (accepts a comma separated list)
    -M,  --make-policy=<policy.txt>  creates a policy based on the target server
                                     (i.e.: the target server has the ideal
                                     configuration that other servers should
