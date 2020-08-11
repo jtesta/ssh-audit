@@ -79,7 +79,7 @@ def usage(err: Optional[str] = None) -> None:
     uout.info('   -j,  --json             JSON output')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies')
-    uout.info('        --lookup=<alg>     performs an algorithm lookup (accepts a comma separated list)')
+    uout.info('        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without\n                                    connecting to a server')
     uout.info('   -M,  --make-policy=<policy.txt>  creates a policy based on the target server\n                                    (i.e.: the target server has the ideal\n                                    configuration that other servers should\n                                    adhere to)')
     uout.info('   -n,  --no-colors        disable colors')
     uout.info('   -p,  --port=<port>      port to connect')
@@ -580,7 +580,7 @@ class AuditConf:
                 aconf.target_file = a
             elif o in ('-L', '--list-policies'):
                 aconf.list_policies = True
-            elif o in ('--lookup'):
+            elif o == '--lookup':
                 aconf.lookup = a
 
         if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '':
@@ -3722,6 +3722,8 @@ def audit(aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = Fal
 
 
 def algorithm_lookup(alg_names: str) -> int:
+    '''Looks up a comma-separated list of algorithms and outputs their security properties.  Returns a PROGRAM_RETVAL_* flag.'''
+    retval = PROGRAM_RETVAL_GOOD
     alg_types = {
         'kex': 'key exchange algorithms',
         'key': 'host-key algorithms',
@@ -3751,7 +3753,7 @@ def algorithm_lookup(alg_names: str) -> int:
     for alg_type in alg_types:
         if len(algorithms_dict[alg_type]) > 0:
             title = str(alg_types.get(alg_type))
-            retval = output_algorithms(title, adb, alg_type, algorithms_dict[alg_type], unknown_algorithms, False, PROGRAM_RETVAL_GOOD, padding)
+            retval = output_algorithms(title, adb, alg_type, list(algorithms_dict[alg_type]), unknown_algorithms, False, retval, padding)
 
     algorithms_dict_flattened = [
         alg_name

@@ -36,7 +36,8 @@ usage: ssh-audit.py [options] <host>
    -j,  --json             JSON output
    -l,  --level=<level>    minimum output level (info|warn|fail)
    -L,  --list-policies    list all the official, built-in policies
-        --lookup=<alg>     performs an algorithm lookup (accepts a comma separated list)
+        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without
+                                    connecting to a server
    -M,  --make-policy=<policy.txt>  creates a policy based on the target server
                                     (i.e.: the target server has the ideal
                                     configuration that other servers should
@@ -87,7 +88,8 @@ $ brew install ssh-audit
 ### v2.2.1-dev (???)
  - Created new man page (see ssh-audit.1 file).
  - 1024-bit moduli upgraded from warnings to failures.
- - Many Python 2 code clean-ups, testing framework improvements, pylint & flake8 fixes, and mypy type comments; credit [Jürgen Gmach](https://github.com/jugmac00)).
+ - Many Python 2 code clean-ups, testing framework improvements, pylint & flake8 fixes, and mypy type comments; credit [Jürgen Gmach](https://github.com/jugmac00).
+ - Added feature to look up algorithms in internal database (see `--lookup`); credit [Adam Russell](https://github.com/thecliguy).
  - Suppress recommendation of token host key types.
  - Added check for use-after-free vulnerability in PuTTY v0.73.
  - Added 5 new host key types: `ssh-rsa1`, `ssh-dss-sha256@ssh.com`, `ssh-gost2001`, `ssh-gost2012-256`, `ssh-gost2012-512`.
