@@ -12,7 +12,7 @@ dh_modulus_size_diffie-hellman-group-exchange-sha256 = 2048
 host keys = ssh-ed25519
 
 # Host key types that may optionally appear.
-optional host keys = sk-ssh-ed25519@openssh.com,ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com
+optional host keys = ssh-ed25519-cert-v01@openssh.com, rsa-sha2-256-cert-v01@openssh.com, rsa-sha2-512-cert-v01@openssh.com
 
 # The key exchange algorithms that must match exactly (order matters).
 key exchanges = curve25519-sha256, curve25519-sha256@libssh.org, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group-exchange-sha256
