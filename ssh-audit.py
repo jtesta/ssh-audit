@@ -3242,7 +3242,7 @@ def build_struct(banner, kex=None, pkm=None, client_host=None):
 		host_keys = kex.host_keys()
 
 		# Normalize all RSA key types to 'ssh-rsa'.  Otherwise, due to Python's order-indifference dictionary types, we would iterate key types in unpredictable orders, which interferes with the docker testing framework (i.e.: tests would fail because elements are reported out of order, even though the output is semantically the same).
-		for host_key_type in host_keys.keys():
+		for host_key_type in host_keys.copy().keys():
 			if host_key_type in SSH2.HostKeyTest.RSA_FAMILY:
 				val = host_keys[host_key_type]
 				del(host_keys[host_key_type])
