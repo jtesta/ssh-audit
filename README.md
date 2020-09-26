@@ -85,15 +85,15 @@ $ brew install ssh-audit
 ```
 
 ## ChangeLog
-### v2.2.1-dev (???)
- - Created new man page (see ssh-audit.1 file).
+### v2.3.0 (???)
+ - Created new man page (see `ssh-audit.1` file).
  - 1024-bit moduli upgraded from warnings to failures.
  - Many Python 2 code clean-ups, testing framework improvements, pylint & flake8 fixes, and mypy type comments; credit [Jürgen Gmach](https://github.com/jugmac00).
  - Added feature to look up algorithms in internal database (see `--lookup`); credit [Adam Russell](https://github.com/thecliguy).
  - Suppress recommendation of token host key types.
  - Added check for use-after-free vulnerability in PuTTY v0.73.
- - Added 5 new host key types: `ssh-rsa1`, `ssh-dss-sha256@ssh.com`, `ssh-gost2001`, `ssh-gost2012-256`, `ssh-gost2012-512`.
- - Added 3 new key exchanges: `diffie-hellman-group1-sha256`, `kexAlgoCurve25519SHA256`, `Curve25519SHA256`.
+ - Added 11 new host key types: `ssh-rsa1`, `ssh-dss-sha256@ssh.com`, `ssh-gost2001`, `ssh-gost2012-256`, `ssh-gost2012-512`, `spki-sign-rsa`, `ssh-ed448`, `x509v3-ecdsa-sha2-nistp256`, `x509v3-ecdsa-sha2-nistp384`, `x509v3-ecdsa-sha2-nistp521`, `x509v3-rsa2048-sha256`.
+ - Added 8 new key exchanges: `diffie-hellman-group1-sha256`, `kexAlgoCurve25519SHA256`, `Curve25519SHA256`, `gss-group14-sha256-`, `gss-group15-sha512-`, `gss-group16-sha512-`, `gss-nistp256-sha256-`, `gss-curve25519-sha256-`.
  - Added 5 new ciphers: `blowfish`, `AEAD_AES_128_GCM`, `AEAD_AES_256_GCM`, `crypticore128@ssh.com`, `seed-cbc@ssh.com`.
  - Added 3 new MACs: `chacha20-poly1305@openssh.com`, `hmac-sha3-224`, `crypticore-mac@ssh.com`.
 
