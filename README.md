@@ -19,6 +19,7 @@
 - output security information (related issues, assigned CVE list, etc);
 - analyze SSH version compatibility based on algorithm information;
 - historical information from OpenSSH, Dropbear SSH and libssh;
+- policy scans to ensure adherence to a hardened/standard configuration;
 - runs on Linux and Windows;
 - no dependencies
 
@@ -56,12 +57,71 @@ usage: ssh-audit.py [options] <host>
 * if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.  
 * batch flag `-b` will output sections without header and without empty lines (implies verbose flag).  
 * verbose flag `-v` will prefix each line with section type and algorithm name.  
+* an exit code of 0 is returned when all algorithms are considered secure (for a standard audit), or when a policy check passes (for a policy audit).
 
-### Server Audit Example
-Below is a screen shot of the server-auditing output when connecting to an unhardened OpenSSH v5.3 service:
+Basic server auditing:
+```
+ssh-audit localhost
+ssh-audit 127.0.0.1
+ssh-audit 127.0.0.1:222
+ssh-audit ::1
+ssh-audit [::1]:222
+```
+
+To run a standard audit against many servers (place targets into servers.txt, one on each line in the format of HOST[:PORT]):
+
+```
+ssh-audit -T servers.txt
+```
+
+To audit a client configuration (listens on port 2222 by default; connect using "ssh anything@localhost"):
+
+```
+ssh-audit -c
+```
+
+To audit a client configuration, with a listener on port 4567:
+```
+ssh-audit -c -p 4567
+```
+
+To  list all official built-in policies (hint: use resulting file paths with -P/--policy):
+```
+ssh-audit -L
+```
+
+To run a policy audit against a server:
+```
+ssh-audit -P path/to/server_policy targetserver
+```
+
+To run a policy audit against a client:
+```
+ssh-audit -c -P path/to/client_policy
+```
+
+To run a policy audit against many servers:
+```
+ssh-audit -T servers.txt -P path/to/server_policy
+```
+
+To create a policy based on a target server (which can be manually edited; see official built-in policies for syntax examples):
+```
+ssh-audit -M new_policy.txt targetserver
+```
+
+### Server Standard Audit Example
+Below is a screen shot of the standard server-auditing output when connecting to an unhardened OpenSSH v5.3 service:
 ![screenshot](https://user-images.githubusercontent.com/2982011/64388792-317e6f80-d00e-11e9-826e-a4934769bb07.png)
 
-### Client Audit Example
+### Server Policy Audit Example
+Below is a screen shot of the policy auditing output when connecting to an un-hardened Ubuntu Server 20.04 machine:
+![screenshot](https://user-images.githubusercontent.com/2982011/94370881-95178700-00c0-11eb-8705-3157a4669dc0.png)
+
+After applying the steps in the hardening guide (see below), the output changes to the following:
+![screenshot](https://user-images.githubusercontent.com/2982011/94370873-87620180-00c0-11eb-9a59-469f61a56ce1.png)
+
+### Client Standard Audit Example
 Below is a screen shot of the client-auditing output when an unhardened OpenSSH v7.2 client connects:
 ![client_screenshot](https://user-images.githubusercontent.com/2982011/68867998-b946c100-06c4-11ea-975f-1f47e4178a74.png)
 
@@ -88,6 +148,7 @@ $ brew install ssh-audit
 
 ## ChangeLog
 ### v2.3.0 (???)
+ - Added new policy auditing functionality to test adherence to a hardening guide/standard configuration.  For an in-depth tutorial, see <link_goes_here>.
  - Created new man page (see `ssh-audit.1` file).
  - 1024-bit moduli upgraded from warnings to failures.
  - Many Python 2 code clean-ups, testing framework improvements, pylint & flake8 fixes, and mypy type comments; credit [Jürgen Gmach](https://github.com/jugmac00).
