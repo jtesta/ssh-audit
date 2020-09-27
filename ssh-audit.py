@@ -44,7 +44,7 @@ import traceback
 from typing import Dict, List, Set, Sequence, Tuple, Iterable
 from typing import Callable, Optional, Union, Any
 
-VERSION = 'v2.2.1-dev'
+VERSION = 'v2.3.0'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.2'  # SSH software to impersonate
 GITHUB_ISSUES_URL = 'https://github.com/jtesta/ssh-audit/issues'  # The URL to the Github issues tracker.
 
@@ -3292,13 +3292,7 @@ def output(aconf: AuditConf, banner: Optional[SSH.Banner], header: List[str], cl
             if aconf.port != 22:
 
                 # Check if this is an IPv6 address, as that is printed in a different format.
-                is_ipv6 = True
-                try:
-                    ipaddress.IPv6Address(aconf.host)
-                except ipaddress.AddressValueError:
-                    is_ipv6 = False
-
-                if is_ipv6:
+                if Utils.is_ipv6_address(aconf.host):
                     host = '[%s]:%d' % (aconf.host, aconf.port)
                 else:
                     host = '%s:%d' % (aconf.host, aconf.port)
@@ -3383,7 +3377,15 @@ def evaluate_policy(aconf: AuditConf, banner: Optional['SSH.Banner'], client_hos
             print("Client IP: %s" % client_host)
             spacing = "   "  # So the fields below line up with 'Client IP: '.
         else:
-            print("Host:   %s" % aconf.host)
+            host = aconf.host
+            if aconf.port != 22:
+                # Check if this is an IPv6 address, as that is printed in a different format.
+                if Utils.is_ipv6_address(aconf.host):
+                    host = '[%s]:%d' % (aconf.host, aconf.port)
+                else:
+                    host = '%s:%d' % (aconf.host, aconf.port)
+
+            print("Host:   %s" % host)
         print("Policy: %s%s" % (spacing, aconf.policy.get_name_and_version()))
         print("Result: %s" % spacing, end='')
         if passed:
@@ -3589,6 +3591,17 @@ class Utils:
                     port = int(s[1])
 
         return host, port
+
+    @staticmethod
+    def is_ipv6_address(address: str) -> bool:
+        '''Returns True if address is an IPv6 address, otherwise False.'''
+        is_ipv6 = True
+        try:
+            ipaddress.IPv6Address(address)
+        except ipaddress.AddressValueError:
+            is_ipv6 = False
+
+        return is_ipv6
 
 
 def build_struct(banner: Optional['SSH.Banner'], kex: Optional['SSH2.Kex'] = None, pkm: Optional['SSH1.PublicKeyMessage'] = None, client_host: Optional[str] = None) -> Any:
