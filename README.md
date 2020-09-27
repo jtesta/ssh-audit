@@ -150,8 +150,8 @@ $ brew install ssh-audit
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
-### v2.3.0 (???)
- - Added new policy auditing functionality to test adherence to a hardening guide/standard configuration.  For an in-depth tutorial, see <link_goes_here>.
+### v2.3.0 (2020-09-27)
+ - Added new policy auditing functionality to test adherence to a hardening guide/standard configuration (see `-L`/`--list-policies`, `-M`/`--make-policy` and `-P`/`--policy`).  For an in-depth tutorial, see <https://www.positronsecurity.com/blog/2020-09-27-ssh-policy-configuration-checks-with-ssh-audit/>.
  - Created new man page (see `ssh-audit.1` file).
  - 1024-bit moduli upgraded from warnings to failures.
  - Many Python 2 code clean-ups, testing framework improvements, pylint & flake8 fixes, and mypy type comments; credit [Jürgen Gmach](https://github.com/jugmac00).
