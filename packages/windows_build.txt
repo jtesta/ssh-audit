@@ -12,6 +12,8 @@ On a Windows machine, do the following:
 
 3.) Create the executable with:
 
-    pyinstaller -F --icon packages\windows_icon.ico ssh-audit.py
+    pyinstaller -D --icon packages\windows_icon.ico --add-data policies;policies ssh-audit.py
 
-4.) The 'dist' folder will have the resulting ssh-audit.exe.
+4.) Rename the "dist\ssh-audit\" folder to "dist\ssh-audit vX.X.X\"
+
+5.) Zip the "dist\ssh-audit vX.X.X\" folder and name it "ssh-audit_vX.X.X.zip".
