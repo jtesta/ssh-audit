@@ -7,6 +7,8 @@
 -->
 **ssh-audit** is a tool for ssh server & client configuration auditing.
 
+[jtesta/ssh-audit](https://github.com/jtesta/ssh-audit/) (v2.0+) is the updated and maintained version of ssh-audit forked from [arthepsy/ssh-audit](https://github.com/arthepsy/ssh-audit) (v1.x) due to inactivity.
+
 ## Features
 - SSH1 and SSH2 protocol server support;
 - analyze SSH client configuration;
