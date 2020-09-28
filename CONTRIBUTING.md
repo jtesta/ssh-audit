@@ -1,6 +1,6 @@
 # Contributing to ssh-audit
 
-We are very much open to receiving patches from the community!  To encourage participation, passing Travis tests, unit tests, etc., *is OPTIONAL*.  As long as the patch works properly, it can be merged (please submit pull requests to the `dev` branch).
+We are very much open to receiving patches from the community!  To encourage participation, passing Travis tests, unit tests, etc., *is OPTIONAL*.  As long as the patch works properly, it can be merged.
 
 However, if you can submit patches that pass all of our automated tests, then you'll lighten the load for the project maintainer (who already has enough to do!).  This document describes what tests are done and what documentation is maintained.
 
