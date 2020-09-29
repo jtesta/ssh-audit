@@ -2,7 +2,7 @@ all:
 	cp ../ssh-audit.py sshaudit/sshaudit.py
 	cp ../README.md sshaudit/README.md
 	echo -e "\n\nDid you remember to bump the version number in snapcraft.yaml?\n\n"
-	snapcraft
+	snapcraft --use-lxd
 
 clean:
 	rm -rf parts/ prime/ snap/ stage/ build/ dist/ *.egg-info/ sshaudit/sshaudit.py sshaudit/LICENSE sshaudit/README.md ssh-audit*.snap

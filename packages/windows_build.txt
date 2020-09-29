@@ -16,4 +16,4 @@ On a Windows machine, do the following:
 
 4.) Rename the "dist\ssh-audit\" folder to "dist\ssh-audit vX.X.X\"
 
-5.) Zip the "dist\ssh-audit vX.X.X\" folder and name it "ssh-audit_vX.X.X.zip".
+5.) Zip the "dist\ssh-audit vX.X.X\" folder and name it "windows_ssh-audit_vX.X.X.zip" (hint: zip windows_ssh-audit_vX.X.X.zip -r "ssh-audit vX.X.X").

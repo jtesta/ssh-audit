@@ -36,6 +36,12 @@ $ pip3 install ssh-audit
 
 = Snap =
 
-To create the snap package, simply run:
+To create the snap package, run a fully-updated Ubuntu Server 20.04 VM.
 
-$ make -f Makefile.snap
+As root, run:
+
+# lxd init
+
+Leave all options default.  Bump the version number in snapcraft.yaml.  Then run:
+
+# make -f Makefile.snap
