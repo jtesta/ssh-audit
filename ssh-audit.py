@@ -1306,9 +1306,7 @@ class SSH2:  # pylint: disable=too-few-public-methods
                         if err is not None:
                             return
 
-                        unused = None  # pylint: disable=unused-variable
-                        unused2 = None  # pylint: disable=unused-variable
-                        unused, unused2, err = s.get_banner()
+                        _, _, err = s.get_banner()
                         if err is not None:
                             s.close()
                             return
