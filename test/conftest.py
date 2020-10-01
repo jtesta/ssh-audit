@@ -1,5 +1,3 @@
-import os
-import importlib
 import io
 import sys
 import socket
@@ -8,9 +6,8 @@ import pytest
 
 @pytest.fixture(scope='module')
 def ssh_audit():
-    __rdir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'src')
-    sys.path.append(os.path.abspath(__rdir))
-    return importlib.import_module("ssh_audit.ssh_audit")
+    import ssh_audit.ssh_audit
+    return ssh_audit.ssh_audit
 
 
 # pylint: disable=attribute-defined-outside-init
