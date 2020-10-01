@@ -18,12 +18,13 @@
 IMAGE_VERSION=3
 
 # This is the name of our docker image.
-IMAGE_NAME=ssh-audit-test
+IMAGE_NAME=positronsecurity/ssh-audit-test-framework
 
 
 # Terminal colors.
 CLR="\033[0m"
 RED="\033[0;31m"
+YELLOW="\033[0;33m"
 GREEN="\033[0;32m"
 REDB="\033[1;31m"   # Red + bold
 GREENB="\033[1;32m" # Green + bold
@@ -243,7 +244,7 @@ function get_release_key {
 
     # The TinySSH release key isn't on any website, apparently.
     if [[ $project == 'TinySSH' ]]; then
-	gpg --recv-key $key_id
+	gpg --keyserver keys.gnupg.net --recv-key $key_id
     else
 	echo -e "\nGetting ${project} release key...\n"
 	wget -O key.asc $2
@@ -348,6 +349,18 @@ function get_source {
     local checksum_actual=`sha256sum ${tarball} | cut -f1 -d" "`
     if [[ $checksum_actual != $tarball_checksum_expected ]]; then
         echo -e "${REDB}Error: ${project} checksum is invalid!\n  Expected: ${tarball_checksum_expected}\n  Actual:   ${checksum_actual}\n\n  Terminating.${CLR}"
+        exit -1
+    fi
+}
+
+
+# Pulls the defined image from Dockerhub.
+function pull_docker_image {
+    docker pull $IMAGE_NAME:$IMAGE_VERSION
+    if [[ $? == 0 ]]; then
+        echo -e "${GREEN}Successfully downloaded image ${IMAGE_NAME}:${IMAGE_VERSION} from Dockerhub.${CLR}\n"
+    else
+        echo -e "${REDB}Failed to pull image ${IMAGE_NAME}:${IMAGE_VERSION} from Dockerhub!  Error code: $?${CLR}\n"
         exit -1
     fi
 }
@@ -559,15 +572,38 @@ if [[ $? != 0 ]]; then
     exit 1
 fi
 
-# Check if the docker image is the most up-to-date version.  If not, create it.
+
+# Check if the docker image is the most up-to-date version.
+docker_image_exists=0
 check_if_docker_image_exists
 if [[ $? == 0 ]]; then
-    echo -e "\n${GREEN}Docker image $IMAGE_NAME:$IMAGE_VERSION already exists.${CLR}"
-else
-    echo -e "\nCreating docker image $IMAGE_NAME:$IMAGE_VERSION..."
-    create_docker_image
-    echo -e "\n${GREEN}Done creating docker image!${CLR}"
+    docker_image_exists=1
 fi
+
+
+# Check if the user specified --create to build a new image.
+if [[ ($# == 1) && ($1 == "--create") ]]; then
+    # Ensure that the image name doesn't already exist before building.
+    if [[ $docker_image_exists == 1 ]]; then
+        echo -e "${REDB}Error: --create specified, but $IMAGE_NAME:$IMAGE_VERSION already exists!${CLR}"
+        exit 1
+    else
+        echo -e "\nCreating docker image $IMAGE_NAME:$IMAGE_VERSION..."
+        create_docker_image
+        echo -e "\n${GREEN}Done creating docker image!${CLR}"
+        exit 0
+    fi
+fi
+
+
+# If we weren't explicitly told to create a new image, and it doesn't exist, then pull it from Dockerhub.
+if [[ $docker_image_exists == 0 ]]; then
+    echo -e "\nPulling docker image $IMAGE_NAME:$IMAGE_VERSION..."
+    pull_docker_image
+fi
+
+
+echo -e "\n${GREEN}Starting tests...${CLR}"
 
 # Create a temporary directory to write test results to.
 TEST_RESULT_DIR=`mktemp -d /tmp/ssh-audit_test-results_XXXXXXXXXX`
