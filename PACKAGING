@@ -7,7 +7,7 @@ $ virtualenv -p /usr/bin/python3 /tmp/pypi_upload
 $ cd /tmp/pypi_upload; source bin/activate
 $ pip3 install twine
 $ cp -R path/to/ssh-audit .
-$ cd ssh-audit/packages
+$ cd ssh-audit
 $ make -f Makefile.pypi
 $ make -f Makefile.pypi uploadtest
 
@@ -22,7 +22,7 @@ $ pip3 install --index-url https://test.pypi.org/simple ssh-audit
 To upload to production server:
 
 $ cd /tmp/pypi_upload; source bin/activate
-$ cd ssh-audit/pypi
+$ cd ssh-audit
 $ make -f Makefile.pypi uploadprod
 
 

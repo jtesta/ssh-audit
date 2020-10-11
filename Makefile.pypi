@@ -1,0 +1,11 @@
+all:
+	python3 setup.py sdist bdist_wheel
+
+uploadtest:
+	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+uploadprod:
+	twine upload dist/*
+
+clean:
+	rm -rf build/ dist/ src/*.egg-info/

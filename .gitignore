@@ -1,5 +1,5 @@
 *~
-*.pyc
+*.py[cod]
 *.exe
 *.asc
 venv*/
@@ -9,11 +9,16 @@ venv*/
 .coverage*
 reports/
 .scannerwork/
-packages/sshaudit/LICENSE
-packages/sshaudit/README.md
-packages/sshaudit/sshaudit.py
-packages/parts/
-packages/prime/
-packages/snap/
-packages/stage/
-packages/ssh-audit_*.snap
+
+# PyPI packaging
+/build/
+/dist/
+*.egg-info/
+*.egg
+
+# Snap packaging
+/parts/
+/prime/
+/snap/
+/stage/
+/ssh-audit_*.snap
