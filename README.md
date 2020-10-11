@@ -151,6 +151,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 ### v2.3.1-dev (???)
+ - Added setup.py support; credit [Ganden Schaffner](https://github.com/gschaffner)
  - Added 1 new cipher: `des-cbc@ssh.com`.
 
 ### v2.3.0 (2020-09-27)
