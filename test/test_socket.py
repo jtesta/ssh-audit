@@ -1,28 +1,30 @@
 import pytest
 
+from ssh_audit.ssh_socket import SSH_Socket
+
 
 # pylint: disable=attribute-defined-outside-init
 class TestSocket:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
-        self.ssh = ssh_audit.SSH
+        self.ssh_socket = SSH_Socket
 
     def test_invalid_host(self, virtual_socket):
         with pytest.raises(ValueError):
-            self.ssh.Socket(None, 22)
+            self.ssh_socket(None, 22)
 
     def test_invalid_port(self, virtual_socket):
         with pytest.raises(ValueError):
-            self.ssh.Socket('localhost', 'abc')
+            self.ssh_socket('localhost', 'abc')
         with pytest.raises(ValueError):
-            self.ssh.Socket('localhost', -1)
+            self.ssh_socket('localhost', -1)
         with pytest.raises(ValueError):
-            self.ssh.Socket('localhost', 0)
+            self.ssh_socket('localhost', 0)
         with pytest.raises(ValueError):
-            self.ssh.Socket('localhost', 65536)
+            self.ssh_socket('localhost', 65536)
 
     def test_not_connected_socket(self, virtual_socket):
-        sock = self.ssh.Socket('localhost', 22)
+        sock = self.ssh_socket('localhost', 22)
         banner, header, err = sock.get_banner()
         assert banner is None
         assert len(header) == 0

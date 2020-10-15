@@ -1,4 +1,5 @@
 import pytest
+from ssh_audit.ssh_audit import process_commandline
 
 
 # pylint: disable=attribute-defined-outside-init
@@ -7,6 +8,7 @@ class TestAuditConf:
     def init(self, ssh_audit):
         self.AuditConf = ssh_audit.AuditConf
         self.usage = ssh_audit.usage
+        self.process_commandline = process_commandline
 
     @staticmethod
     def _test_conf(conf, **kwargs):
@@ -123,9 +125,9 @@ class TestAuditConf:
                 conf.level = level
             excinfo.match(r'.*invalid level.*')
 
-    def test_audit_conf_cmdline(self):
+    def test_audit_conf_process_commandline(self):
         # pylint: disable=too-many-statements
-        c = lambda x: self.AuditConf.from_cmdline(x.split(), self.usage)  # noqa
+        c = lambda x: self.process_commandline(x.split(), self.usage)  # noqa
         with pytest.raises(SystemExit):
             conf = c('')
         with pytest.raises(SystemExit):

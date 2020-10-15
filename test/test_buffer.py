@@ -1,13 +1,16 @@
 import re
 import pytest
 
+from ssh_audit.readbuf import ReadBuf
+from ssh_audit.writebuf import WriteBuf
+
 
 # pylint: disable=attribute-defined-outside-init,bad-whitespace
 class TestBuffer:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
-        self.rbuf = ssh_audit.ReadBuf
-        self.wbuf = ssh_audit.WriteBuf
+        self.rbuf = ReadBuf
+        self.wbuf = WriteBuf
         self.utf8rchar = b'\xef\xbf\xbd'
 
     @classmethod

@@ -1,18 +1,22 @@
 import pytest
 
+from ssh_audit.algorithm import Algorithm
+from ssh_audit.timeframe import Timeframe
+
 
 # pylint: disable=attribute-defined-outside-init
-class TestSSHAlgorithm:
+class TestAlgorithm:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
-        self.ssh = ssh_audit.SSH
+        self.algorithm = Algorithm
+        self.timeframe = Timeframe
 
     def _tf(self, v, s=None):
-        return self.ssh.Algorithm.Timeframe().update(v, s)
+        return self.timeframe().update(v, s)
 
     def test_get_ssh_version(self):
         def ver(v):
-            return self.ssh.Algorithm.get_ssh_version(v)
+            return self.algorithm.get_ssh_version(v)
 
         assert ver('7.5') == ('OpenSSH', '7.5', False)
         assert ver('7.5C') == ('OpenSSH', '7.5', True)
@@ -22,7 +26,7 @@ class TestSSHAlgorithm:
 
     def test_get_since_text(self):
         def gst(v):
-            return self.ssh.Algorithm.get_since_text(v)
+            return self.algorithm.get_since_text(v)
 
         assert gst(['7.5']) == 'available since OpenSSH 7.5'
         assert gst(['7.5C']) == 'available since OpenSSH 7.5 (client only)'

@@ -1,21 +1,25 @@
 import pytest
 
+from ssh_audit.banner import Banner
+from ssh_audit.software import Software
+
 
 # pylint: disable=line-too-long,attribute-defined-outside-init
 class TestSoftware:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
-        self.ssh = ssh_audit.SSH
+        self.software = Software
+        self.banner = Banner
 
     def test_unknown_software(self):
-        ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
+        ps = lambda x: self.software.parse(self.banner.parse(x))  # noqa
         assert ps('SSH-1.5') is None
         assert ps('SSH-1.99-AlfaMegaServer') is None
         assert ps('SSH-2.0-BetaMegaServer 0.0.1') is None
 
     def test_openssh_software(self):
         # pylint: disable=too-many-statements
-        ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
+        ps = lambda x: self.software.parse(self.banner.parse(x))  # noqa
         # common
         s = ps('SSH-2.0-OpenSSH_7.3')
         assert s.vendor is None
@@ -102,7 +106,7 @@ class TestSoftware:
         assert repr(s) == '<Software(product=OpenSSH, version=5.9, patch=CASPUR)>'
 
     def test_dropbear_software(self):
-        ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
+        ps = lambda x: self.software.parse(self.banner.parse(x))  # noqa
         # common
         s = ps('SSH-2.0-dropbear_2016.74')
         assert s.vendor is None
@@ -153,7 +157,7 @@ class TestSoftware:
         assert repr(s) == '<Software(product=Dropbear SSH, version=2014.66, patch=agbn_1)>'
 
     def test_libssh_software(self):
-        ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
+        ps = lambda x: self.software.parse(self.banner.parse(x))  # noqa
         # common
         s = ps('SSH-2.0-libssh-0.2')
         assert s.vendor is None
@@ -179,7 +183,7 @@ class TestSoftware:
         assert repr(s) == '<Software(product=libssh, version=0.7.4)>'
 
     def test_romsshell_software(self):
-        ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
+        ps = lambda x: self.software.parse(self.banner.parse(x))  # noqa
         # common
         s = ps('SSH-2.0-RomSShell_5.40')
         assert s.vendor == 'Allegro Software'
@@ -194,7 +198,7 @@ class TestSoftware:
         assert repr(s) == '<Software(vendor=Allegro Software, product=RomSShell, version=5.40)>'
 
     def test_hp_ilo_software(self):
-        ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
+        ps = lambda x: self.software.parse(self.banner.parse(x))  # noqa
         # common
         s = ps('SSH-2.0-mpSSH_0.2.1')
         assert s.vendor == 'HP'
@@ -209,7 +213,7 @@ class TestSoftware:
         assert repr(s) == '<Software(vendor=HP, product=iLO (Integrated Lights-Out) sshd, version=0.2.1)>'
 
     def test_cisco_software(self):
-        ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
+        ps = lambda x: self.software.parse(self.banner.parse(x))  # noqa
         # common
         s = ps('SSH-1.5-Cisco-1.25')
         assert s.vendor == 'Cisco'
@@ -224,7 +228,7 @@ class TestSoftware:
         assert repr(s) == '<Software(vendor=Cisco, product=IOS/PIX sshd, version=1.25)>'
 
     def test_software_os(self):
-        ps = lambda x: self.ssh.Software.parse(self.ssh.Banner.parse(x))  # noqa
+        ps = lambda x: self.software.parse(self.banner.parse(x))  # noqa
         # unknown
         s = ps('SSH-2.0-OpenSSH_3.7.1 MegaOperatingSystem 123')
         assert s.os is None

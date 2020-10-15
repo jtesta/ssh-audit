@@ -1,17 +1,19 @@
 import os
-
 import pytest
+
+from ssh_audit.ssh2_kex import SSH2_Kex
+from ssh_audit.ssh2_kexparty import SSH2_KexParty
 
 
 @pytest.fixture
 def kex(ssh_audit):
     kex_algs, key_algs = [], []
     enc, mac, compression, languages = [], [], ['none'], []
-    cli = ssh_audit.SSH2.KexParty(enc, mac, compression, languages)
+    cli = SSH2_KexParty(enc, mac, compression, languages)
     enc, mac, compression, languages = [], [], ['none'], []
-    srv = ssh_audit.SSH2.KexParty(enc, mac, compression, languages)
+    srv = SSH2_KexParty(enc, mac, compression, languages)
     cookie = os.urandom(16)
-    kex = ssh_audit.SSH2.Kex(cookie, kex_algs, key_algs, cli, srv, 0)
+    kex = SSH2_Kex(cookie, kex_algs, key_algs, cli, srv, 0)
     return kex
 
 
