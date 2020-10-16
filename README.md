@@ -74,7 +74,7 @@ To run a standard audit against many servers (place targets into servers.txt, on
 ssh-audit -T servers.txt
 ```
 
-To audit a client configuration (listens on port 2222 by default; connect using `ssh anything@localhost`):
+To audit a client configuration (listens on port 2222 by default; connect using `ssh -p 2222 anything@localhost`):
 
 ```
 ssh-audit -c
@@ -151,6 +151,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 ### v2.3.1-dev (???)
+ - Split single 3,500 line script into many files (by class).
  - Added setup.py support; credit [Ganden Schaffner](https://github.com/gschaffner)
  - Added 1 new cipher: `des-cbc@ssh.com`.
 
