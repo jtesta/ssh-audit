@@ -47,7 +47,8 @@ usage: ssh-audit.py [options] <host>
                                     adhere to)
    -n,  --no-colors        disable colors
    -p,  --port=<port>      port to connect
-   -P,  --policy=<policy.txt>  run a policy test using the specified policy
+   -P,  --policy=<"policy name" | policy.txt>  run a policy test using the
+                                                   specified policy
    -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
                                (default: 5)
    -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one
@@ -92,17 +93,17 @@ ssh-audit -L
 
 To run a policy audit against a server:
 ```
-ssh-audit -P path/to/server_policy targetserver
+ssh-audit -P ["policy name" | path/to/server_policy.txt] targetserver
 ```
 
 To run a policy audit against a client:
 ```
-ssh-audit -c -P path/to/client_policy
+ssh-audit -c -P ["policy name" | path/to/client_policy.txt]
 ```
 
 To run a policy audit against many servers:
 ```
-ssh-audit -T servers.txt -P path/to/server_policy
+ssh-audit -T servers.txt -P ["policy name" | path/to/server_policy.txt]
 ```
 
 To create a policy based on a target server (which can be manually edited; see official built-in policies for syntax examples):
@@ -151,8 +152,9 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 ### v2.3.1-dev (???)
+ - Migrated pre-made policies from external files to internal database.
  - Split single 3,500 line script into many files (by class).
- - Added setup.py support; credit [Ganden Schaffner](https://github.com/gschaffner)
+ - Added setup.py support; credit [Ganden Schaffner](https://github.com/gschaffner).
  - Added 1 new cipher: `des-cbc@ssh.com`.
 
 ### v2.3.0 (2020-09-27)

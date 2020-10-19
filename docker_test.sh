@@ -489,8 +489,25 @@ function run_test {
     echo -e "${test_name} ${GREEN}passed${CLR}."
 }
 
+function run_builtin_policy_test {
+    policy_name=$1         # The built-in policy name to use.
+    version=$2             # Version of OpenSSH to test with.
+    test_number=$3         # The test number to run.
+    server_options=$4      # The options to start the server with (i.e.: "-o option1,options2,...")
+    expected_exit_code=$5  # The expected exit code of ssh-audit.py.
 
-function run_policy_test {
+    server_exec="/openssh/sshd-${version} -D -f /etc/ssh/sshd_config-8.0p1_test1 ${server_options}"
+    test_result_stdout="${TEST_RESULT_DIR}/openssh_${version}_builtin_policy_${test_number}.txt"
+    test_result_json="${TEST_RESULT_DIR}/openssh_${version}_builtin_policy_${test_number}.json"
+    expected_result_stdout="test/docker/expected_results/openssh_${version}_builtin_policy_${test_number}.txt"
+    expected_result_json="test/docker/expected_results/openssh_${version}_builtin_policy_${test_number}.json"
+    test_name="OpenSSH ${version} built-in policy ${test_number}"
+
+    run_policy_test "${test_name}" "${server_exec}" "${policy_name}" "${test_result_stdout}" "${test_result_json}" "${expected_exit_code}"
+}
+
+
+function run_custom_policy_test {
     config_number=$1  # The configuration number to use.
     test_number=$2    # The policy test number to run.
     expected_exit_code=$3  # The expected exit code of ssh-audit.py.
@@ -510,11 +527,24 @@ function run_policy_test {
 
     server_exec="/openssh/sshd-${version} -D -f /etc/ssh/${config}"
     policy_path="test/docker/policies/policy_${test_number}.txt"
-    test_result_stdout="${TEST_RESULT_DIR}/openssh_${version}_policy_${test_number}.txt"
-    test_result_json="${TEST_RESULT_DIR}/openssh_${version}_policy_${test_number}.json"
-    expected_result_stdout="test/docker/expected_results/openssh_${version}_policy_${test_number}.txt"
-    expected_result_json="test/docker/expected_results/openssh_${version}_policy_${test_number}.json"
-    test_name="OpenSSH ${version} policy ${test_number}"
+    test_result_stdout="${TEST_RESULT_DIR}/openssh_${version}_custom_policy_${test_number}.txt"
+    test_result_json="${TEST_RESULT_DIR}/openssh_${version}_custom_policy_${test_number}.json"
+    expected_result_stdout="test/docker/expected_results/openssh_${version}_custom_policy_${test_number}.txt"
+    expected_result_json="test/docker/expected_results/openssh_${version}_custom_policy_${test_number}.json"
+    test_name="OpenSSH ${version} custom policy ${test_number}"
+
+    run_policy_test "${test_name}" "${server_exec}" "${policy_path}" "${test_result_stdout}" "${test_result_json}" "${expected_exit_code}"
+}
+
+
+function run_policy_test {
+    test_name=$1
+    server_exec=$2
+    policy_path=$3
+    test_result_stdout=$4
+    test_result_json=$5
+    expected_exit_code=$6
+
 
     #echo "Running: docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}"
     cid=`docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}`
@@ -523,8 +553,8 @@ function run_policy_test {
 	exit 1
     fi
 
-    #echo "Running: ./ssh-audit.py -P ${policy_path} localhost:2222 > ${test_result_stdout}"
-    ./ssh-audit.py -P ${policy_path} localhost:2222 > ${test_result_stdout}
+    #echo "Running: ./ssh-audit.py -P \"${policy_path}\" localhost:2222 > ${test_result_stdout}"
+    ./ssh-audit.py -P "${policy_path}" localhost:2222 > ${test_result_stdout}
     actual_exit_code=$?
     if [[ ${actual_exit_code} != ${expected_exit_code} ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
@@ -533,8 +563,8 @@ function run_policy_test {
 	exit 1
     fi
 
-    #echo "Running: ./ssh-audit.py -P ${policy_path} -j localhost:2222 > ${test_result_json}"
-    ./ssh-audit.py -P ${policy_path} -j localhost:2222 > ${test_result_json}
+    #echo "Running: ./ssh-audit.py -P \"${policy_path}\" -j localhost:2222 > ${test_result_json}"
+    ./ssh-audit.py -P "${policy_path}" -j localhost:2222 > ${test_result_json}
     actual_exit_code=$?
     if [[ ${actual_exit_code} != ${expected_exit_code} ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
@@ -627,36 +657,42 @@ echo
 run_tinyssh_test '20190101' 'test1' $PROGRAM_RETVAL_WARNING
 echo
 echo
-run_policy_test 'config1' 'test1' $PROGRAM_RETVAL_GOOD
-run_policy_test 'config1' 'test2' $PROGRAM_RETVAL_FAILURE
-run_policy_test 'config1' 'test3' $PROGRAM_RETVAL_FAILURE
-run_policy_test 'config1' 'test4' $PROGRAM_RETVAL_FAILURE
-run_policy_test 'config1' 'test5' $PROGRAM_RETVAL_FAILURE
-run_policy_test 'config2' 'test6' $PROGRAM_RETVAL_GOOD
+run_custom_policy_test 'config1' 'test1' $PROGRAM_RETVAL_GOOD
+run_custom_policy_test 'config1' 'test2' $PROGRAM_RETVAL_FAILURE
+run_custom_policy_test 'config1' 'test3' $PROGRAM_RETVAL_FAILURE
+run_custom_policy_test 'config1' 'test4' $PROGRAM_RETVAL_FAILURE
+run_custom_policy_test 'config1' 'test5' $PROGRAM_RETVAL_FAILURE
+run_custom_policy_test 'config2' 'test6' $PROGRAM_RETVAL_GOOD
 
 # Passing test with host key certificate and CA key certificates.
-run_policy_test 'config3' 'test7' $PROGRAM_RETVAL_GOOD
+run_custom_policy_test 'config3' 'test7' $PROGRAM_RETVAL_GOOD
 
 # Failing test with host key certificate and non-compliant CA key length.
-run_policy_test 'config3' 'test8' $PROGRAM_RETVAL_FAILURE
+run_custom_policy_test 'config3' 'test8' $PROGRAM_RETVAL_FAILURE
 
 # Failing test with non-compliant host key certificate and CA key certificate.
-run_policy_test 'config3' 'test9' $PROGRAM_RETVAL_FAILURE
+run_custom_policy_test 'config3' 'test9' $PROGRAM_RETVAL_FAILURE
 
 # Failing test with non-compliant host key certificate and non-compliant CA key certificate.
-run_policy_test 'config3' 'test10' $PROGRAM_RETVAL_FAILURE
+run_custom_policy_test 'config3' 'test10' $PROGRAM_RETVAL_FAILURE
 
 # Passing test with host key size check.
-run_policy_test 'config2' 'test11' $PROGRAM_RETVAL_GOOD
+run_custom_policy_test 'config2' 'test11' $PROGRAM_RETVAL_GOOD
 
 # Failing test with non-compliant host key size check.
-run_policy_test 'config2' 'test12' $PROGRAM_RETVAL_FAILURE
+run_custom_policy_test 'config2' 'test12' $PROGRAM_RETVAL_FAILURE
 
 # Passing test with DH modulus test.
-run_policy_test 'config2' 'test13' $PROGRAM_RETVAL_GOOD
+run_custom_policy_test 'config2' 'test13' $PROGRAM_RETVAL_GOOD
 
 # Failing test with DH modulus test.
-run_policy_test 'config2' 'test14' $PROGRAM_RETVAL_FAILURE
+run_custom_policy_test 'config2' 'test14' $PROGRAM_RETVAL_FAILURE
+
+# Passing test for built-in OpenSSH 8.0p1 server policy.
+run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 1)" "8.0p1" "test1" "-o HostKeyAlgorithms=ssh-ed25519 -o KexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256 -o Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr -o MACs=hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com" $PROGRAM_RETVAL_GOOD
+
+# Failing test for built-in OpenSSH 8.0p1 server policy (MACs not hardened).
+run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 1)" "8.0p1" "test2" "-o HostKeyAlgorithms=ssh-ed25519 -o KexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256 -o Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" $PROGRAM_RETVAL_FAILURE
 
 
 # The test functions above will terminate the script on failure, so if we reached here,

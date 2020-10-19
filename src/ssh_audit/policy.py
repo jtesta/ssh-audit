@@ -22,7 +22,7 @@
    THE SOFTWARE.
 """
 from typing import Dict, List, Tuple
-from typing import Optional, Any
+from typing import Optional, Any, Union, cast
 from datetime import date
 
 from ssh_audit.ssh2_kex import SSH2_Kex  # pylint: disable=unused-import
@@ -32,7 +32,49 @@ from ssh_audit.banner import Banner
 # Validates policy files and performs policy testing
 class Policy:
 
-    def __init__(self, policy_file: Optional[str] = None, policy_data: Optional[str] = None) -> None:
+    # Each field maps directly to a private member variable of the Policy class.
+    BUILTIN_POLICIES = {
+
+        # Ubuntu Server policies
+
+        'Hardened Ubuntu Server 16.04 LTS (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519'], 'optional_host_keys': ['ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256@libssh.org', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+        'Hardened Ubuntu Server 18.04 LTS (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519'], 'optional_host_keys': ['ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+        'Hardened Ubuntu Server 20.04 LTS (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-ed25519'], 'optional_host_keys': ['sk-ssh-ed25519@openssh.com', 'ssh-ed25519-cert-v01@openssh.com', 'sk-ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': {'rsa-sha2-256': 4096, 'rsa-sha2-512': 4096}, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+
+        # Generic OpenSSH Server policies
+
+        'Hardened OpenSSH Server v7.7 (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519'], 'optional_host_keys': ['ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+        'Hardened OpenSSH Server v7.8 (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519'], 'optional_host_keys': ['ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+        'Hardened OpenSSH Server v7.9 (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519'], 'optional_host_keys': ['ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+        'Hardened OpenSSH Server v8.0 (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519'], 'optional_host_keys': ['ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+        'Hardened OpenSSH Server v8.1 (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519'], 'optional_host_keys': ['sk-ssh-ed25519@openssh.com', 'ssh-ed25519-cert-v01@openssh.com', 'sk-ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+        'Hardened OpenSSH Server v8.2 (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-ed25519'], 'optional_host_keys': ['sk-ssh-ed25519@openssh.com', 'ssh-ed25519-cert-v01@openssh.com', 'sk-ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': {'rsa-sha2-256': 4096, 'rsa-sha2-512': 4096}, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+        'Hardened OpenSSH Server v8.3 (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-ed25519'], 'optional_host_keys': ['sk-ssh-ed25519@openssh.com', 'ssh-ed25519-cert-v01@openssh.com', 'sk-ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': {'rsa-sha2-256': 4096, 'rsa-sha2-512': 4096}, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+        'Hardened OpenSSH Server v8.4 (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-ed25519'], 'optional_host_keys': ['sk-ssh-ed25519@openssh.com', 'ssh-ed25519-cert-v01@openssh.com', 'sk-ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com'], 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': {'rsa-sha2-256': 4096, 'rsa-sha2-512': 4096}, 'cakey_sizes': None, 'dh_modulus_sizes': {'diffie-hellman-group-exchange-sha256': 2048}, 'server_policy': True},
+
+
+        # Ubuntu Client policies
+
+        'Hardened Ubuntu Client 16.04 LTS (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519', 'ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-rsa-cert-v01@openssh.com'], 'optional_host_keys': None, 'kex': ['curve25519-sha256@libssh.org', 'diffie-hellman-group-exchange-sha256', 'ext-info-c'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': None, 'server_policy': False},
+
+        'Hardened Ubuntu Client 18.04 LTS (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519', 'ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-rsa-cert-v01@openssh.com'], 'optional_host_keys': None, 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256', 'ext-info-c'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': None, 'server_policy': False},
+
+        'Hardened Ubuntu Client 20.04 LTS (version 1)': {'version': '1', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519', 'ssh-ed25519-cert-v01@openssh.com', 'sk-ssh-ed25519@openssh.com', 'sk-ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512', 'rsa-sha2-512-cert-v01@openssh.com', 'ssh-rsa-cert-v01@openssh.com'], 'optional_host_keys': None, 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256', 'ext-info-c'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': None, 'server_policy': False},
+
+    }  # type: Dict[str, Dict[str, Union[Optional[str], Optional[List[str]], bool, Dict[str, int]]]]
+
+
+    def __init__(self, policy_file: Optional[str] = None, policy_data: Optional[str] = None, manual_load: bool = False) -> None:
         self._name = None  # type: Optional[str]
         self._version = None  # type: Optional[str]
         self._banner = None  # type: Optional[str]
@@ -47,10 +89,22 @@ class Policy:
         self._dh_modulus_sizes = None  # type: Optional[Dict[str, int]]
         self._server_policy = True
 
-        if (policy_file is None) and (policy_data is None):
-            raise RuntimeError('policy_file and policy_data must not both be None.')
-        elif (policy_file is not None) and (policy_data is not None):
-            raise RuntimeError('policy_file and policy_data must not both be specified.')
+        self._name_and_version = ''  # type: str
+
+        # Ensure that only one mode was specified.
+        num_modes = 0
+        if policy_file is not None:
+            num_modes += 1
+        if policy_data is not None:
+            num_modes += 1
+        if manual_load is True:
+            num_modes += 1
+
+        if num_modes != 1:
+            raise RuntimeError('Exactly one of the following can be specified only: policy_file, policy_data, or manual_load')
+
+        if manual_load:
+            return
 
         if policy_file is not None:
             with open(policy_file, "r") as f:
@@ -141,6 +195,8 @@ class Policy:
             raise ValueError('The policy does not have a name field.')
         if self._version is None:
             raise ValueError('The policy does not have a version field.')
+
+        self._name_and_version = "%s (version %s)" % (self._name, self._version)
 
 
     @staticmethod
@@ -339,12 +395,56 @@ macs = %s
 
     def get_name_and_version(self) -> str:
         '''Returns a string of this Policy's name and version.'''
-        return '%s (version %s)' % (self._name, self._version)
+        return self._name_and_version
 
 
     def is_server_policy(self) -> bool:
         '''Returns True if this is a server policy, or False if this is a client policy.'''
         return self._server_policy
+
+
+    @staticmethod
+    def list_builtin_policies() -> Tuple[List[str], List[str]]:
+        '''Returns two lists: a list of names of built-in server policies, and a list of names of built-in client policies, respectively.'''
+        server_policy_names = []
+        client_policy_names = []
+
+        for policy_name in Policy.BUILTIN_POLICIES:
+            if Policy.BUILTIN_POLICIES[policy_name]['server_policy']:
+                server_policy_names.append(policy_name)
+            else:
+                client_policy_names.append(policy_name)
+
+        server_policy_names.sort()
+        client_policy_names.sort()
+        return server_policy_names, client_policy_names
+
+
+    @staticmethod
+    def load_builtin_policy(policy_name: str) -> Optional['Policy']:
+        '''Returns a Policy with the specified built-in policy name loaded, or None if no policy of that name exists.'''
+        p = None
+        if policy_name in Policy.BUILTIN_POLICIES:
+            policy_struct = Policy.BUILTIN_POLICIES[policy_name]
+            p = Policy(manual_load=True)
+            policy_name_without_version = policy_name[0:policy_name.rfind(' (')]
+            p._name = policy_name_without_version  # pylint: disable=protected-access
+            p._version = cast(str, policy_struct['version'])  # pylint: disable=protected-access
+            p._banner = cast(Optional[str], policy_struct['banner'])  # pylint: disable=protected-access
+            p._compressions = cast(Optional[List[str]], policy_struct['compressions'])  # pylint: disable=protected-access
+            p._host_keys = cast(Optional[List[str]], policy_struct['host_keys'])  # pylint: disable=protected-access
+            p._optional_host_keys = cast(Optional[List[str]], policy_struct['optional_host_keys'])  # pylint: disable=protected-access
+            p._kex = cast(Optional[List[str]], policy_struct['kex'])  # pylint: disable=protected-access
+            p._ciphers = cast(Optional[List[str]], policy_struct['ciphers'])  # pylint: disable=protected-access
+            p._macs = cast(Optional[List[str]], policy_struct['macs'])  # pylint: disable=protected-access
+            p._hostkey_sizes = cast(Optional[Dict[str, int]], policy_struct['hostkey_sizes'])  # pylint: disable=protected-access
+            p._cakey_sizes = cast(Optional[Dict[str, int]], policy_struct['cakey_sizes'])  # pylint: disable=protected-access
+            p._dh_modulus_sizes = cast(Optional[Dict[str, int]], policy_struct['dh_modulus_sizes'])  # pylint: disable=protected-access
+            p._server_policy = cast(bool, policy_struct['server_policy'])  # pylint: disable=protected-access
+
+            p._name_and_version = "%s (version %s)" % (p._name, p._version)  # pylint: disable=protected-access
+
+        return p
 
 
     @staticmethod
@@ -367,9 +467,14 @@ macs = %s
         banner = undefined
         compressions_str = undefined
         host_keys_str = undefined
+        optional_host_keys_str = undefined
         kex_str = undefined
         ciphers_str = undefined
         macs_str = undefined
+        hostkey_sizes_str = undefined
+        cakey_sizes_str = undefined
+        dh_modulus_sizes_str = undefined
+
 
         if self._name is not None:
             name = '[%s]' % self._name
@@ -382,11 +487,19 @@ macs = %s
             compressions_str = ', '.join(self._compressions)
         if self._host_keys is not None:
             host_keys_str = ', '.join(self._host_keys)
+        if self._optional_host_keys is not None:
+            optional_host_keys_str = ', '.join(self._optional_host_keys)
         if self._kex is not None:
             kex_str = ', '.join(self._kex)
         if self._ciphers is not None:
             ciphers_str = ', '.join(self._ciphers)
         if self._macs is not None:
             macs_str = ', '.join(self._macs)
+        if self._hostkey_sizes is not None:
+            hostkey_sizes_str = str(self._hostkey_sizes)
+        if self._cakey_sizes is not None:
+            cakey_sizes_str = str(self._cakey_sizes)
+        if self._dh_modulus_sizes is not None:
+            dh_modulus_sizes_str = str(self._dh_modulus_sizes)
 
-        return "Name: %s\nVersion: %s\nBanner: %s\nCompressions: %s\nHost Keys: %s\nKey Exchanges: %s\nCiphers: %s\nMACs: %s" % (name, version, banner, compressions_str, host_keys_str, kex_str, ciphers_str, macs_str)
+        return "Name: %s\nVersion: %s\nBanner: %s\nCompressions: %s\nHost Keys: %s\nOptional Host Keys: %s\nKey Exchanges: %s\nCiphers: %s\nMACs: %s\nHost Key Sizes: %s\nCA Key Sizes: %s\nDH Modulus Sizes: %s\nServer Policy: %r" % (name, version, banner, compressions_str, host_keys_str, optional_host_keys_str, kex_str, ciphers_str, macs_str, hostkey_sizes_str, cakey_sizes_str, dh_modulus_sizes_str, self._server_policy)

@@ -35,6 +35,23 @@ class TestPolicy:
         return self.ssh2_kex.parse(w.write_flush())
 
 
+    def test_builtin_policy_consistency(self):
+        '''Ensure that the BUILTIN_POLICIES struct is consistent.'''
+
+        for policy_name in Policy.BUILTIN_POLICIES:
+            # Ensure that the policy name ends with " (version X)", where X is the 'version' field.
+            version_str = " (version %s)" % Policy.BUILTIN_POLICIES[policy_name]['version']
+            assert(policy_name.endswith(version_str))
+
+            # Ensure that each built-in policy can be loaded with Policy.load_builtin_policy().
+            assert(Policy.load_builtin_policy(policy_name) is not None)
+
+        # Ensure that both server and client policy names are returned.
+        server_policy_names, client_policy_names = Policy.list_builtin_policies()
+        assert(len(server_policy_names) > 0)
+        assert(len(client_policy_names) > 0)
+
+
     def test_policy_basic(self):
         '''Ensure that a basic policy can be parsed correctly.'''
 
@@ -49,7 +66,7 @@ ciphers = cipher_alg1, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        assert str(policy) == "Name: [Test Policy]\nVersion: [1]\nBanner: {undefined}\nCompressions: comp_alg1\nHost Keys: key_alg1\nKey Exchanges: kex_alg1, kex_alg2\nCiphers: cipher_alg1, cipher_alg2, cipher_alg3\nMACs: mac_alg1, mac_alg2, mac_alg3"
+        assert str(policy) == "Name: [Test Policy]\nVersion: [1]\nBanner: {undefined}\nCompressions: comp_alg1\nHost Keys: key_alg1\nOptional Host Keys: {undefined}\nKey Exchanges: kex_alg1, kex_alg2\nCiphers: cipher_alg1, cipher_alg2, cipher_alg3\nMACs: mac_alg1, mac_alg2, mac_alg3\nHost Key Sizes: {undefined}\nCA Key Sizes: {undefined}\nDH Modulus Sizes: {undefined}\nServer Policy: True"
 
 
     def test_policy_invalid_1(self):
