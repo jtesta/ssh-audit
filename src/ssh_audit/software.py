@@ -83,8 +83,8 @@ class Software:
             if not re.match(r'^test\d.*$', spatch):
                 spatch = 'z{}'.format(spatch)
         elif self.product == Product.OpenSSH:
-            mx1 = re.match(r'^p\d(.*)', opatch)
-            mx2 = re.match(r'^p\d(.*)', spatch)
+            mx1 = re.match(r'^p(\d).*', opatch)
+            mx2 = re.match(r'^p(\d).*', spatch)
             if not (bool(mx1) and bool(mx2)):
                 if mx1 is not None:
                     opatch = mx1.group(1)

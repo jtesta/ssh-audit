@@ -136,13 +136,15 @@ class TestVersionCompare:
         s2 = self.get_openssh_software('2.1.1p2')
         assert s1.compare_version(s1) == 0
         assert s2.compare_version(s2) == 0
-        assert s1.compare_version('2.1.1p1') == 0
-        assert s1.compare_version('2.1.1p2') == 0
-        assert s2.compare_version('2.1.1') == 0
+        assert s1.compare_version('2.1.1') == 0
+        assert s2.compare_version('2.1.1p2') == 0
+        assert s1.compare_version('2.1.1p1') != 0
+        assert s1.compare_version('2.1.1p2') != 0
+        assert s2.compare_version('2.1.1') != 0
         assert s2.compare_version('2.1.1p1') > 0
         assert s2.compare_version('2.1.1p3') < 0
-        assert s1.compare_version(s2) == 0
-        assert s2.compare_version(s1) == 0
+        assert s1.compare_version(s2) != 0
+        assert s2.compare_version(s1) != 0
 
     def test_openbsd_compare_version_sequential(self):
         versions = []
