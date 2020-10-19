@@ -152,6 +152,8 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 ### v2.3.1-dev (???)
+ - Now parses public key sizes for `rsa-sha2-256-cert-v01@openssh.com` and `rsa-sha2-512-cert-v01@openssh.com` host key types.
+ - Built-in policies now include CA key requirements (if certificates are in use).
  - Migrated pre-made policies from external files to internal database.
  - Split single 3,500 line script into many files (by class).
  - Added setup.py support; credit [Ganden Schaffner](https://github.com/gschaffner).

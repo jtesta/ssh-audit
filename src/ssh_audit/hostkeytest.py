@@ -45,7 +45,9 @@ class HostKeyTest:
         'rsa-sha2-256': {'cert': False, 'variable_key_len': True},
         'rsa-sha2-512': {'cert': False, 'variable_key_len': True},
 
-        'ssh-rsa-cert-v01@openssh.com':     {'cert': True, 'variable_key_len': True},
+        'ssh-rsa-cert-v01@openssh.com':      {'cert': True, 'variable_key_len': True},
+        'rsa-sha2-256-cert-v01@openssh.com': {'cert': True, 'variable_key_len': True},
+        'rsa-sha2-512-cert-v01@openssh.com': {'cert': True, 'variable_key_len': True},
 
         'ssh-ed25519':                      {'cert': False, 'variable_key_len': False},
         'ssh-ed25519-cert-v01@openssh.com': {'cert': True, 'variable_key_len': False},
