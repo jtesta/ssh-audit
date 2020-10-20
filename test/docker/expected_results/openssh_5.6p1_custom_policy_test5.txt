@@ -3,4 +3,7 @@ Policy: Docker policy: test5 (version 1)
 Result: [0;31m❌ Failed![0m
 [0;33m
 Errors:
-  * MACs did not match. Expected: ['hmac-md5', 'hmac-sha1', 'umac-64@openssh.com', 'hmac-ripemd160', 'hmac-ripemd160@openssh.com', 'hmac_alg1', 'hmac-md5-96']; Actual: ['hmac-md5', 'hmac-sha1', 'umac-64@openssh.com', 'hmac-ripemd160', 'hmac-ripemd160@openssh.com', 'hmac-sha1-96', 'hmac-md5-96'][0m
+  * MACs did not match.
+    - Expected: hmac-md5, hmac-sha1, umac-64@openssh.com, hmac-ripemd160, hmac-ripemd160@openssh.com, hmac_alg1, hmac-md5-96
+    - Actual:   hmac-md5, hmac-sha1, umac-64@openssh.com, hmac-ripemd160, hmac-ripemd160@openssh.com, hmac-sha1-96, hmac-md5-96
+[0m

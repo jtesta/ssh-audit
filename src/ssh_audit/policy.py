@@ -375,20 +375,23 @@ macs = %s
         '''Transforms an error struct to a flat string of error messages.'''
 
         error_list = []
+        spacer = ''
         for e in errors:
-            e_str = "%s did not match. " % e['mismatched_field']
+            e_str = "  * %s did not match.\n" % e['mismatched_field']
             if ('expected_optional' in e) and (e['expected_optional'] != ['']):
-                e_str += "Expected (required): %s; Expected (optional): %s" % (Policy._normalize_error_field(e['expected_required']), Policy._normalize_error_field(e['expected_optional']))
+                e_str += "    - Expected (required): %s\n    - Expected (optional): %s\n" % (Policy._normalize_error_field(e['expected_required']), Policy._normalize_error_field(e['expected_optional']))
+                spacer = '              '
             else:
-                e_str += "Expected: %s" % Policy._normalize_error_field(e['expected_required'])
-            e_str += "; Actual: %s" % Policy._normalize_error_field(e['actual'])
+                e_str += "    - Expected: %s\n" % Policy._normalize_error_field(e['expected_required'])
+                spacer = '   '
+            e_str += "    - Actual:%s%s\n" % (spacer, Policy._normalize_error_field(e['actual']))
             error_list.append(e_str)
 
         error_list.sort()  # To ensure repeatable results for testing.
 
         error_str = ''
         if len(error_list) > 0:
-            error_str = "  * %s" % '\n  * '.join(error_list)
+            error_str = "\n".join(error_list)
 
         return error_str
 
@@ -449,14 +452,14 @@ macs = %s
 
     @staticmethod
     def _normalize_error_field(field: List[str]) -> Any:
-        '''If field is an array with a string parsable as an integer, return that integer.  Otherwise, return the field unmodified.'''
+        '''If field is an array with a string parsable as an integer, return that integer.  Otherwise, return the field joined with commas.'''
         if len(field) == 1:
             try:
                 return int(field[0])
             except ValueError:
-                return field
+                return field[0]
         else:
-            return field
+            return ', '.join(field)
 
 
     def __str__(self) -> str:

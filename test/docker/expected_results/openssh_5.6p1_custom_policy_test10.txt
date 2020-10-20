@@ -3,5 +3,11 @@ Policy: Docker poliicy: test10 (version 1)
 Result: [0;31m❌ Failed![0m
 [0;33m
 Errors:
-  * RSA CA key (ssh-rsa-cert-v01@openssh.com) sizes did not match. Expected: 4096; Actual: 1024
-  * RSA host key (ssh-rsa-cert-v01@openssh.com) sizes did not match. Expected: 4096; Actual: 3072[0m
+  * RSA CA key (ssh-rsa-cert-v01@openssh.com) sizes did not match.
+    - Expected: 4096
+    - Actual:   1024
+
+  * RSA host key (ssh-rsa-cert-v01@openssh.com) sizes did not match.
+    - Expected: 4096
+    - Actual:   3072
+[0m
