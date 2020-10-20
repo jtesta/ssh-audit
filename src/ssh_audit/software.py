@@ -90,6 +90,9 @@ class Software:
                     opatch = mx1.group(1)
                 if mx2 is not None:
                     spatch = mx2.group(1)
+            # OpenBSD version and p1 versions are considered the same.
+            if ((spatch == '') and (opatch == '1')) or ((spatch == '1') and (opatch == '')):
+                return 0
         if spatch < opatch:
             return -1
         elif spatch > opatch:

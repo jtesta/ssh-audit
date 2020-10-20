@@ -138,7 +138,7 @@ class TestVersionCompare:
         assert s2.compare_version(s2) == 0
         assert s1.compare_version('2.1.1') == 0
         assert s2.compare_version('2.1.1p2') == 0
-        assert s1.compare_version('2.1.1p1') != 0
+        assert s1.compare_version('2.1.1p1') == 0  # OpenBSD version and p1 version should be the same.
         assert s1.compare_version('2.1.1p2') != 0
         assert s2.compare_version('2.1.1') != 0
         assert s2.compare_version('2.1.1p1') > 0
