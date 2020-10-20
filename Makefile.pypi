@@ -1,11 +1,15 @@
 all:
-	python3 setup.py sdist bdist_wheel
+	rm -rf /tmp/pypi_upload
+	virtualenv -p /usr/bin/python3 /tmp/pypi_upload/
+	cp -R src /tmp/pypi_upload/
+	cp setup.py setup.cfg README.md LICENSE /tmp/pypi_upload/
+	/bin/bash -c "pushd /tmp/pypi_upload/; source bin/activate; pip3 install setuptools twine; python3 setup.py sdist bdist_wheel"
 
 uploadtest:
-	twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+	/bin/bash -c "pushd /tmp/pypi_upload; source bin/activate; twine upload --repository-url https://test.pypi.org/legacy/ /tmp/pypi_upload/dist/*"
 
 uploadprod:
-	twine upload dist/*
+	/bin/bash -c "pushd /tmp/pypi_upload; source bin/activate; twine upload /tmp/pypi_upload/dist/*"
 
 clean:
-	rm -rf build/ dist/ src/*.egg-info/
+	rm -rf /tmp/pypi_upload/
