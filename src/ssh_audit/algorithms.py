@@ -179,7 +179,7 @@ class Algorithms:
                     else:
                         if faults == 0:
                             continue
-                        if n in ['diffie-hellman-group-exchange-sha256', 'rsa-sha2-256', 'rsa-sha2-512', 'ssh-rsa-cert-v01@openssh.com']:
+                        if n in ['diffie-hellman-group-exchange-sha256', 'rsa-sha2-256', 'rsa-sha2-512', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com']:
                             rec[sshv][alg_type]['chg'][n] = faults
                         else:
                             rec[sshv][alg_type]['del'][n] = faults

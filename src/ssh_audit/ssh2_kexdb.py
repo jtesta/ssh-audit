@@ -140,7 +140,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'x509v3-ssh-rsa': [[], [], [WARN_HASH_WEAK]],
             'ssh-rsa-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY], []],
             'ssh-dss-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_LEGACY], [WARN_RNDSIG_KEY]],
-            'ssh-rsa-cert-v01@openssh.com': [['5.6']],
+            'ssh-rsa-cert-v01@openssh.com': [['5.6'], [WARN_HASH_WEAK]],
             'ssh-dss-cert-v01@openssh.com': [['5.6', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp256-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp384-cert-v01@openssh.com': [['5.7'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
