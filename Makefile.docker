@@ -1,0 +1,13 @@
+VERSION = $(shell grep VERSION src/ssh_audit/globals.py | grep -E -o "'(v.*)'" | tr -d "'")
+ifeq ($(VERSION),)
+  $(error "could not determine version!")
+endif
+
+all:
+	docker build -t positronsecurity/ssh-audit:${VERSION} .
+	docker tag positronsecurity/ssh-audit:${VERSION} positronsecurity/ssh-audit:latest
+
+upload:
+	docker login
+	docker push positronsecurity/ssh-audit:${VERSION}
+	docker push positronsecurity/ssh-audit:latest

@@ -147,6 +147,12 @@ To install on Homebrew:
 $ brew install ssh-audit
 ```
 
+To install from Dockerhub:
+```
+$ docker pull positronsecurity/ssh-audit
+```
+(Then run with: `docker run -it -p 2222:2222 positronsecurity/ssh-audit 10.1.1.1`)
+
 ### Web Front-End
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 

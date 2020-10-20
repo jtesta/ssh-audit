@@ -45,3 +45,15 @@ As root, run:
 Leave all options default.  Bump the version number in snapcraft.yaml.  Then run:
 
 # make -f Makefile.snap
+
+----
+
+= Docker =
+
+Build image with:
+
+$ make -f Makefile.docker
+
+Then upload them to Dockerhub with:
+
+$ make -f Makefile.docker upload
