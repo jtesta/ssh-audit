@@ -60,7 +60,7 @@ class Software:
         return self.__os
 
     def compare_version(self, other: Union[None, 'Software', str]) -> int:
-        # pylint: disable=too-many-branches
+        # pylint: disable=too-many-branches,too-many-return-statements
         if other is None:
             return 1
         if isinstance(other, Software):
