@@ -67,3 +67,10 @@ class TestUtils:
         assert self.utils.unique_seq((3, 3, 3, 2, 2, 1)) == (3, 2, 1)
         assert self.utils.unique_seq([1, 2, 2, 3, 3, 3]) == [1, 2, 3]
         assert self.utils.unique_seq([3, 3, 3, 2, 2, 1]) == [3, 2, 1]
+
+    def test_parse_float(self):
+        assert self.utils.parse_float('5.x') == -1.0
+
+    def test_ipv6address(self):
+        assert self.utils.is_ipv6_address('1.2.3.4') is False
+        assert self.utils.is_ipv6_address('2600:1f18:420a:b500:bc4:c9c6:1d6:e3e4') is True

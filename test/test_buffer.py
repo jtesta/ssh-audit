@@ -132,3 +132,14 @@ class TestBuffer:
             assert mpint2w(p[0]) == self._b(p[1])
             assert mpint2r(self._b(p[1])) == p[0]
         assert mpint2r(self._b('00 00 00 02 ff 80')) == -0x80
+
+    def test_reset(self):
+        w = self.wbuf()
+        w.write_int(7)
+        w.write_int(13)
+        assert len(w.write_flush()) == 8
+
+        w.write_int(7)
+        w.write_int(13)
+        w.reset()
+        assert len(w.write_flush()) == 0
