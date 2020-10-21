@@ -1,6 +1,6 @@
 # ssh-audit
+[![Build Status](https://travis-ci.org/jtesta/ssh-audit.svg?branch=master)](https://travis-ci.org/jtesta/ssh-audit)
 <!--
-[![travis build status](https://api.travis-ci.org/arthepsy/ssh-audit.svg?branch=develop)](https://travis-ci.org/arthepsy/ssh-audit)
 [![appveyor build status](https://ci.appveyor.com/api/projects/status/4m5r73m0r023edil/branch/develop?svg=true)](https://ci.appveyor.com/project/arthepsy/ssh-audit)
 [![codecov](https://codecov.io/gh/arthepsy/ssh-audit/branch/develop/graph/badge.svg)](https://codecov.io/gh/arthepsy/ssh-audit)
 [![Quality Gate](https://sonarqube.com/api/badges/gate?key=arthepsy-github%3Assh-audit%3Adevelop&template=ROUNDED)](https://sq.evolutiongaming.com/dashboard?id=arthepsy-github%3Assh-audit%3Adevelop)  
