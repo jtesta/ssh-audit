@@ -21,10 +21,13 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
+import sys
+
 from typing import Dict, List, Tuple
 from typing import Optional, Any, Union, cast
 from datetime import date
 
+from ssh_audit import exitcodes
 from ssh_audit.ssh2_kex import SSH2_Kex  # pylint: disable=unused-import
 from ssh_audit.banner import Banner
 
@@ -107,8 +110,12 @@ class Policy:
             return
 
         if policy_file is not None:
-            with open(policy_file, "r") as f:
-                policy_data = f.read()
+            try:
+                with open(policy_file, "r") as f:
+                    policy_data = f.read()
+            except FileNotFoundError:
+                print("Error: policy file not found: %s" % policy_file)
+                sys.exit(exitcodes.UNKNOWN_ERROR)
 
         lines = []
         if policy_data is not None:
