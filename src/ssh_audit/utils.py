@@ -118,14 +118,14 @@ class Utils:
     def parse_int(v: Any) -> int:
         try:
             return int(v)
-        except Exception:  # pylint: disable=bare-except
+        except ValueError:
             return 0
 
     @staticmethod
     def parse_float(v: Any) -> float:
         try:
             return float(v)
-        except Exception:  # pylint: disable=bare-except
+        except ValueError:
             return -1.0
 
     @staticmethod

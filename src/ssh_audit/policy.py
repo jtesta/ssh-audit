@@ -29,7 +29,7 @@ from datetime import date
 
 from ssh_audit import exitcodes
 from ssh_audit.ssh2_kex import SSH2_Kex  # pylint: disable=unused-import
-from ssh_audit.banner import Banner
+from ssh_audit.banner import Banner  # pylint: disable=unused-import
 
 
 # Validates policy files and performs policy testing
