@@ -36,6 +36,10 @@ PROGRAM_RETVAL_CONNECTION_ERROR=1
 PROGRAM_RETVAL_GOOD=0
 
 
+# Counts the number of test failures.
+num_failures=0
+
+
 # Returns 0 if current docker image exists.
 function check_if_docker_image_exists {
     images=`docker image ls | egrep "$IMAGE_NAME[[:space:]]+$IMAGE_VERSION"`
@@ -407,6 +411,7 @@ function run_test {
     options=$4
     expected_retval=$5
 
+    failed=0  # Set to 1 if this test fails.
     server_exec=
     test_result_stdout=
     test_result_json=
@@ -478,15 +483,20 @@ function run_test {
     diff=`diff -u ${expected_result_stdout} ${test_result_stdout}`
     if [[ $? != 0 ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-	exit 1
+	failed=1
+	num_failures=$((num_failures+1))
     fi
 
     diff=`diff -u ${expected_result_json} ${test_result_json}`
     if [[ $? != 0 ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-	exit 1
+	failed=1
+	num_failures=$((num_failures+1))
     fi
-    echo -e "${test_name} ${GREEN}passed${CLR}."
+
+    if [[ $failed == 0 ]]; then
+	echo -e "${test_name} ${GREEN}passed${CLR}."
+    fi
 }
 
 function run_builtin_policy_test {
@@ -695,9 +705,11 @@ run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 1)" "8.0p1" "test
 run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 1)" "8.0p1" "test2" "-o HostKeyAlgorithms=ssh-ed25519 -o KexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256 -o Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" $PROGRAM_RETVAL_FAILURE
 
 
-# The test functions above will terminate the script on failure, so if we reached here,
-# all tests are successful.
-echo -e "\n${GREENB}ALL TESTS PASS!${CLR}\n"
+if [[ $num_failures == 0 ]]; then
+    echo -e "\n${GREENB}ALL TESTS PASS!${CLR}\n"
+else
+    echo -e "\n${REDB}${num_failures} TESTS FAILED!${CLR}\n"
+fi
 
 rm -rf $TEST_RESULT_DIR
 exit 0
