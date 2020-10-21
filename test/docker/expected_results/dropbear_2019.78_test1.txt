@@ -71,13 +71,16 @@
 [0;31m(rec) -ecdh-sha2-nistp256            -- kex algorithm to remove [0m
 [0;31m(rec) -ecdh-sha2-nistp384            -- kex algorithm to remove [0m
 [0;31m(rec) -ecdh-sha2-nistp521            -- kex algorithm to remove [0m
+[0;31m(rec) -ecdsa-sha2-nistp256           -- key algorithm to remove [0m
 [0;31m(rec) -hmac-sha1-96                  -- mac algorithm to remove [0m
 [0;31m(rec) -ssh-dss                       -- key algorithm to remove [0m
+[0;31m(rec) -ssh-rsa                       -- key algorithm to remove [0m
 [0;32m(rec) +diffie-hellman-group16-sha512 -- kex algorithm to append [0m
 [0;32m(rec) +twofish128-ctr                -- enc algorithm to append [0m
 [0;32m(rec) +twofish256-ctr                -- enc algorithm to append [0m
 [0;33m(rec) -diffie-hellman-group14-sha1   -- kex algorithm to remove [0m
 [0;33m(rec) -hmac-sha1                     -- mac algorithm to remove [0m
+[0;33m(rec) -hmac-sha2-256                 -- mac algorithm to remove [0m
 
 [0;36m# additional info[0m
 [0;33m(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>[0m

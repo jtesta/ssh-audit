@@ -189,27 +189,15 @@ class Algorithms:
                 add_count = len(rec[sshv][alg_type]['add'])
                 del_count = len(rec[sshv][alg_type]['del'])
                 chg_count = len(rec[sshv][alg_type]['chg'])
-                new_alg_count = len(alg_list) + add_count - del_count
-                if new_alg_count < 1 and del_count > 0:
-                    mf = min(rec[sshv][alg_type]['del'].values())
-                    new_del = {}
-                    for k, cf in rec[sshv][alg_type]['del'].items():
-                        if cf != mf:
-                            new_del[k] = cf
-                    if del_count != len(new_del):
-                        rec[sshv][alg_type]['del'] = new_del
-                        new_alg_count += del_count - len(new_del)
-                if new_alg_count < 1:
+
+                if add_count == 0:
+                    del rec[sshv][alg_type]['add']
+                if del_count == 0:
+                    del rec[sshv][alg_type]['del']
+                if chg_count == 0:
+                    del rec[sshv][alg_type]['chg']
+                if len(rec[sshv][alg_type]) == 0:
                     del rec[sshv][alg_type]
-                else:
-                    if add_count == 0:
-                        del rec[sshv][alg_type]['add']
-                    if del_count == 0:
-                        del rec[sshv][alg_type]['del']
-                    if chg_count == 0:
-                        del rec[sshv][alg_type]['chg']
-                    if len(rec[sshv][alg_type]) == 0:
-                        del rec[sshv][alg_type]
             if len(rec[sshv]) == 0:
                 del rec[sshv]
         return software, rec

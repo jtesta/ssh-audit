@@ -141,7 +141,10 @@
 [0;31m(rec) -hmac-sha1-96                         -- mac algorithm to remove [0m
 [0;31m(rec) -rijndael-cbc@lysator.liu.se          -- enc algorithm to remove [0m
 [0;31m(rec) -ssh-dss                              -- key algorithm to remove [0m
+[0;31m(rec) -ssh-rsa                              -- key algorithm to remove [0m
 [0;33m(rec) -diffie-hellman-group14-sha1          -- kex algorithm to remove [0m
+[0;33m(rec) -hmac-sha1                            -- mac algorithm to remove [0m
+[0;33m(rec) -umac-64@openssh.com                  -- mac algorithm to remove [0m
 
 [0;36m# additional info[0m
 [0;33m(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>[0m

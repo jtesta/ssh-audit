@@ -35,7 +35,8 @@
 [0;31m(key) ssh-rsa (1024-bit)                    -- [fail] using weak hashing algorithm[0m
 [0;33m                                            `- [warn] using small 1024-bit modulus[0m
                                             `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28
-[0;31m(key) ssh-rsa-cert-v01@openssh.com (1024-bit cert/3072-bit CA) -- [fail] using small 1024-bit modulus[0m
+[0;31m(key) ssh-rsa-cert-v01@openssh.com (1024-bit cert/3072-bit CA) -- [fail] using weak hashing algorithm[0m
+[0;33m                                                               `- [warn] using small 1024-bit modulus[0m
                                                                `- [info] available since OpenSSH 5.6
 
 [0;36m# encryption algorithms (ciphers)[0m
@@ -121,7 +122,6 @@
 
 [0;36m# algorithm recommendations (for OpenSSH 5.6)[0m
 [0;31m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 2048 bits or larger) [0m
-[0;31m(rec) !ssh-rsa-cert-v01@openssh.com         -- key algorithm to change (increase modulus size to 2048 bits or larger) [0m
 [0;31m(rec) -3des-cbc                             -- enc algorithm to remove [0m
 [0;31m(rec) -aes128-cbc                           -- enc algorithm to remove [0m
 [0;31m(rec) -aes192-cbc                           -- enc algorithm to remove [0m
@@ -140,7 +140,10 @@
 [0;31m(rec) -hmac-sha1-96                         -- mac algorithm to remove [0m
 [0;31m(rec) -rijndael-cbc@lysator.liu.se          -- enc algorithm to remove [0m
 [0;31m(rec) -ssh-rsa                              -- key algorithm to remove [0m
+[0;31m(rec) -ssh-rsa-cert-v01@openssh.com         -- key algorithm to remove [0m
 [0;33m(rec) -diffie-hellman-group14-sha1          -- kex algorithm to remove [0m
+[0;33m(rec) -hmac-sha1                            -- mac algorithm to remove [0m
+[0;33m(rec) -umac-64@openssh.com                  -- mac algorithm to remove [0m
 
 [0;36m# additional info[0m
 [0;33m(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>[0m
