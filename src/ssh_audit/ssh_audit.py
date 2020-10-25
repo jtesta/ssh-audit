@@ -899,11 +899,29 @@ def algorithm_lookup(alg_names: str) -> int:
         if alg_name not in algorithms_dict_flattened
     ]
 
+    similar_algorithms = [
+        alg_unknown + " --> (" + alg_type + ") " + alg_name
+        for alg_unknown in algorithms_not_found
+        for alg_type in adb.keys()
+        for alg_name in adb[alg_type]
+        # Perform a case-insensitive comparison using 'casefold'
+        # and match substrings using the 'in' operator.
+        if alg_unknown.casefold() in alg_name.casefold()
+    ]
+
     if len(algorithms_not_found) > 0:
         retval = exitcodes.FAILURE
         out.head('# unknown algorithms')
         for algorithm_not_found in algorithms_not_found:
             out.fail(algorithm_not_found)
+
+    print()
+
+    if len(similar_algorithms) > 0:
+        retval = exitcodes.FAILURE
+        out.head('# suggested similar algorithms')
+        for similar_algorithm in similar_algorithms:
+            out.warn(similar_algorithm)
 
     return retval
 
