@@ -21,6 +21,6 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
-VERSION = 'v2.3.1-dev'
+VERSION = 'v2.3.1'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.2'  # SSH software to impersonate
 GITHUB_ISSUES_URL = 'https://github.com/jtesta/ssh-audit/issues'  # The URL to the Github issues tracker.
