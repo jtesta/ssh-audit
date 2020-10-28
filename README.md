@@ -157,11 +157,12 @@ $ docker pull positronsecurity/ssh-audit
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
-### v2.3.1-dev (???)
- - Fixed bug in recommendation output which suppressed some algorithms inappropriately.
- - Flag `ssh-rsa-cert-v01@openssh.com` as a failure due to SHA-1 hash.
+### v2.3.1 (2020-10-28)
  - Now parses public key sizes for `rsa-sha2-256-cert-v01@openssh.com` and `rsa-sha2-512-cert-v01@openssh.com` host key types.
+ - Flag `ssh-rsa-cert-v01@openssh.com` as a failure due to SHA-1 hash.
+ - Fixed bug in recommendation output which suppressed some algorithms inappropriately.
  - Built-in policies now include CA key requirements (if certificates are in use).
+ - Lookup function (`--lookup`) now performs case-insensitive lookups of similar algorithms; credit [Adam Russell](https://github.com/thecliguy).
  - Migrated pre-made policies from external files to internal database.
  - Split single 3,500 line script into many files (by class).
  - Added setup.py support; credit [Ganden Schaffner](https://github.com/gschaffner).
