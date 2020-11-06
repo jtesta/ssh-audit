@@ -159,6 +159,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 ### v2.4.0-dev (???)
  - Added version check for OpenSSH user enumeration (CVE-2018-15473).
+ - Fixed crash when receiving unexpected response during host key test.
 
 ### v2.3.1 (2020-10-28)
  - Now parses public key sizes for `rsa-sha2-256-cert-v01@openssh.com` and `rsa-sha2-512-cert-v01@openssh.com` host key types.
