@@ -707,9 +707,9 @@ run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 1)" "8.0p1" "test
 
 if [[ $num_failures == 0 ]]; then
     echo -e "\n${GREENB}ALL TESTS PASS!${CLR}\n"
+    rm -rf $TEST_RESULT_DIR
 else
     echo -e "\n${REDB}${num_failures} TESTS FAILED!${CLR}\n"
 fi
 
-rm -rf $TEST_RESULT_DIR
 exit 0
