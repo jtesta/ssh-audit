@@ -902,7 +902,7 @@ def algorithm_lookup(alg_names: str) -> int:
     similar_algorithms = [
         alg_unknown + " --> (" + alg_type + ") " + alg_name
         for alg_unknown in algorithms_not_found
-        for alg_type in adb.keys()
+        for alg_type in adb
         for alg_name in adb[alg_type]
         # Perform a case-insensitive comparison using 'casefold'
         # and match substrings using the 'in' operator.
