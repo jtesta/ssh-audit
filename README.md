@@ -157,6 +157,9 @@ $ docker pull positronsecurity/ssh-audit
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
+### v2.4.0-dev (???)
+ - Added version check for OpenSSH user enumeration (CVE-2018-15473).
+
 ### v2.3.1 (2020-10-28)
  - Now parses public key sizes for `rsa-sha2-256-cert-v01@openssh.com` and `rsa-sha2-512-cert-v01@openssh.com` host key types.
  - Flag `ssh-rsa-cert-v01@openssh.com` as a failure due to SHA-1 hash.

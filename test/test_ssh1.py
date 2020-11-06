@@ -134,7 +134,7 @@ class TestSSH1:
         output_spy.begin()
         self.audit(self._conf())
         lines = output_spy.flush()
-        assert len(lines) == 13
+        assert len(lines) == 14
 
     def test_ssh1_server_invalid_first_packet(self, output_spy, virtual_socket):
         vsocket = virtual_socket
@@ -147,7 +147,7 @@ class TestSSH1:
         ret = self.audit(self._conf())
         assert ret != 0
         lines = output_spy.flush()
-        assert len(lines) == 7
+        assert len(lines) == 8
         assert 'unknown message' in lines[-1]
 
     def test_ssh1_server_invalid_checksum(self, output_spy, virtual_socket):
