@@ -116,7 +116,15 @@ Below is a screen shot of the standard server-auditing output when connecting to
 ![screenshot](https://user-images.githubusercontent.com/2982011/64388792-317e6f80-d00e-11e9-826e-a4934769bb07.png)
 
 ### Server Policy Audit Example
-Below is a screen shot of the policy auditing output when connecting to an un-hardened Ubuntu Server 20.04 machine:
+For a list of available built-in policies call
+
+    ./ssh-audit.py -L
+    
+Below is a screen shot of the policy auditing output when connecting to an un-hardened Ubuntu Server 20.04 machine you get by the command
+
+    ./ssh-audit.py -P "Hardened Ubuntu Server 20.04 LTS (version 1)" ubuntu20server.lol
+
+    
 ![screenshot](https://user-images.githubusercontent.com/2982011/94370881-95178700-00c0-11eb-8705-3157a4669dc0.png)
 
 After applying the steps in the hardening guide (see below), the output changes to the following:
