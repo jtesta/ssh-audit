@@ -1,11 +1,11 @@
 language: python
 
-arch: 
+arch:
+  - arm64
   - amd64
   - ppc64le
 
 python:
-  - "3.5"
   - "3.6"
   - "3.7"
   - "3.8"
