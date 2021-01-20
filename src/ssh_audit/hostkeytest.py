@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -117,20 +117,16 @@ class HostKeyTest:
                         s.close()
                         return
 
-                    # Parse the server's initial KEX.
-                    packet_type = 0  # pylint: disable=unused-variable
-                    packet_type, payload = s.read_packet()
+                    # Send our KEX using the specified group-exchange and most of the server's own values.
+                    client_kex = SSH2_Kex(os.urandom(16), [kex_str], [host_key_type], server_kex.client, server_kex.server, False, 0)
+                    s.write_byte(Protocol.MSG_KEXINIT)
+                    client_kex.write(s)
+                    s.send_packet()
+
+                    # Parse the server's KEX.
+                    _, payload = s.read_packet()
                     SSH2_Kex.parse(payload)
 
-                # Send the server our KEXINIT message, using only our
-                # selected kex and host key type.  Send the server's own
-                # list of ciphers and MACs back to it (this doesn't
-                # matter, really).
-                client_kex = SSH2_Kex(os.urandom(16), [kex_str], [host_key_type], server_kex.client, server_kex.server, False, 0)
-
-                s.write_byte(Protocol.MSG_KEXINIT)
-                client_kex.write(s)
-                s.send_packet()
 
                 # Do the initial DH exchange.  The server responds back
                 # with the host key and its length.  Bingo.  We also get back the host key fingerprint.
