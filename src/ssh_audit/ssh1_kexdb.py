@@ -34,7 +34,7 @@ class SSH1_KexDB:  # pylint: disable=too-few-public-methods
     FAIL_NA_UNSAFE = 'not implemented in OpenSSH (server), unsafe algorithm'
     TEXT_CIPHER_IDEA = 'cipher used by commercial SSH'
 
-    ALGORITHMS = {
+    ALGORITHMS: Dict[str, Dict[str, List[List[Optional[str]]]]] = {
         'key': {
             'ssh-rsa1': [['1.2.2']],
         },
@@ -55,4 +55,4 @@ class SSH1_KexDB:  # pylint: disable=too-few-public-methods
             'tis': [['1.2.2']],
             'kerberos': [['1.2.2', '3.6'], [FAIL_OPENSSH37_REMOVE]],
         }
-    }  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
+    }

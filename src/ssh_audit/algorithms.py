@@ -131,7 +131,7 @@ class Algorithms:
         #         if version is not None:
         #             software = SSH.Software(None, product, version, None, None)
         #             break
-        rec = {}  # type: Dict[int, Dict[str, Dict[str, Dict[str, int]]]]
+        rec: Dict[int, Dict[str, Dict[str, Dict[str, int]]]] = {}
         if software is None:
             unknown_software = True
         for alg_pair in self.values:
@@ -206,7 +206,7 @@ class Algorithms:
         def __init__(self, sshv: int, db: Dict[str, Dict[str, List[List[Optional[str]]]]]) -> None:
             self.__sshv = sshv
             self.__db = db
-            self.__storage = {}  # type: Dict[str, List[str]]
+            self.__storage: Dict[str, List[str]] = {}
 
         @property
         def sshv(self) -> int:

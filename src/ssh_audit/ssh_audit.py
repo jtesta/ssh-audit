@@ -210,13 +210,13 @@ def output_security_sub(sub: str, software: Optional[Software], client_audit: bo
     if software is None or software.product not in secdb:
         return
     for line in secdb[software.product]:
-        vfrom = ''  # type: str
-        vtill = ''  # type: str
+        vfrom: str = ''
+        vtill: str = ''
         vfrom, vtill = line[0:2]
         if not software.between_versions(vfrom, vtill):
             continue
-        target = 0  # type: int
-        name = ''  # type: str
+        target: int = 0
+        name: str = ''
         target, name = line[2:4]
         is_server = target & 1 == 1
         is_client = target & 2 == 2
@@ -227,8 +227,8 @@ def output_security_sub(sub: str, software: Optional[Software], client_audit: bo
             continue
         p = '' if out.batch else ' ' * (padlen - len(name))
         if sub == 'cve':
-            cvss = 0.0  # type: float
-            descr = ''  # type: str
+            cvss: float = 0.0
+            descr: str = ''
             cvss, descr = line[4:6]
 
             # Critical CVSS scores (>= 8.0) are printed as a fail, otherwise they are printed as a warning.
@@ -431,7 +431,7 @@ def output(aconf: AuditConf, banner: Optional[Banner], header: List[str], client
     maxlen = algs.maxlen + 1
     output_security(banner, client_audit, maxlen, aconf.json)
     # Filled in by output_algorithms() with unidentified algs.
-    unknown_algorithms = []  # type: List[str]
+    unknown_algorithms: List[str] = []
     if pkm is not None:
         adb = SSH1_KexDB.ALGORITHMS
         ciphers = pkm.supported_ciphers
@@ -529,7 +529,7 @@ def list_policies() -> None:
 def make_policy(aconf: AuditConf, banner: Optional['Banner'], kex: Optional['SSH2_Kex'], client_host: Optional[str]) -> None:
 
     # Set the source of this policy to the server host if this is a server audit, otherwise set it to the client address.
-    source = aconf.host  # type: Optional[str]
+    source: Optional[str] = aconf.host
     if aconf.client_audit:
         source = client_host
 
@@ -562,9 +562,9 @@ def process_commandline(args: List[str], usage_cb: Callable[..., None]) -> 'Audi
     except getopt.GetoptError as err:
         usage_cb(str(err))
     aconf.ssh1, aconf.ssh2 = False, False
-    host = ''  # type: str
-    oport = None  # type: Optional[str]
-    port = 0  # type: int
+    host: str = ''
+    oport: Optional[str] = None
+    port: int = 0
     for o, a in opts:
         if o in ('-h', '--help'):
             usage_cb()
@@ -687,14 +687,14 @@ def build_struct(banner: Optional['Banner'], kex: Optional['SSH2_Kex'] = None, p
         banner_software = banner.software
         banner_comments = banner.comments
 
-    res = {
+    res: Any = {
         "banner": {
             "raw": banner_str,
             "protocol": banner_protocol,
             "software": banner_software,
             "comments": banner_comments,
         },
-    }  # type: Any
+    }
     if client_host is not None:
         res['client_ip'] = client_host
     if kex is not None:
@@ -703,9 +703,9 @@ def build_struct(banner: Optional['Banner'], kex: Optional['SSH2_Kex'] = None, p
         res['kex'] = []
         alg_sizes = kex.dh_modulus_sizes()
         for algorithm in kex.kex_algorithms:
-            entry = {
+            entry: Any = {
                 'algorithm': algorithm,
-            }  # type: Any
+            }
             if algorithm in alg_sizes:
                 hostkey_size, ca_size = alg_sizes[algorithm]
                 entry['keysize'] = hostkey_size
@@ -879,7 +879,7 @@ def algorithm_lookup(alg_names: str) -> int:
         for (outer_k, outer_v) in adb.items()
     }
 
-    unknown_algorithms = []  # type: List[str]
+    unknown_algorithms: List[str] = []
     padding = len(max(algorithm_names, key=len))
 
     for alg_type in alg_types:

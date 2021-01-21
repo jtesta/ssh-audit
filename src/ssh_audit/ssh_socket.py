@@ -54,12 +54,12 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
     def __init__(self, host: Optional[str], port: int, ipvo: Optional[Sequence[int]] = None, timeout: Union[int, float] = 5, timeout_set: bool = False) -> None:
         super(SSH_Socket, self).__init__()
-        self.__sock = None  # type: Optional[socket.socket]
-        self.__sock_map = {}  # type: Dict[int, socket.socket]
+        self.__sock: Optional[socket.socket] = None
+        self.__sock_map: Dict[int, socket.socket] = {}
         self.__block_size = 8
         self.__state = 0
-        self.__header = []  # type: List[str]
-        self.__banner = None  # type: Optional[Banner]
+        self.__header: List[str] = []
+        self.__banner: Optional[Banner] = None
         if host is None:
             raise ValueError('undefined host')
         nport = Utils.parse_int(port)
@@ -73,7 +73,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
             self.__ipvo = ()
         self.__timeout = timeout
         self.__timeout_set = timeout_set
-        self.client_host = None  # type: Optional[str]
+        self.client_host: Optional[str] = None
         self.client_port = None
 
     def _resolve(self, ipvo: Sequence[int]) -> Iterable[Tuple[int, Tuple[Any, ...]]]:

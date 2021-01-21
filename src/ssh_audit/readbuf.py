@@ -43,14 +43,14 @@ class ReadBuf:
         return self._buf.read(size)
 
     def read_byte(self) -> int:
-        v = struct.unpack('B', self.read(1))[0]  # type: int
+        v: int = struct.unpack('B', self.read(1))[0]
         return v
 
     def read_bool(self) -> bool:
         return self.read_byte() != 0
 
     def read_int(self) -> int:
-        v = struct.unpack('>I', self.read(4))[0]  # type: int
+        v: int = struct.unpack('>I', self.read(4))[0]
         return v
 
     def read_list(self) -> List[str]:

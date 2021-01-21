@@ -36,7 +36,7 @@ from ssh_audit.banner import Banner  # pylint: disable=unused-import
 class Policy:
 
     # Each field maps directly to a private member variable of the Policy class.
-    BUILTIN_POLICIES = {
+    BUILTIN_POLICIES: Dict[str, Dict[str, Union[Optional[str], Optional[List[str]], bool, Dict[str, int]]]] = {
 
         # Ubuntu Server policies
 
@@ -74,25 +74,25 @@ class Policy:
 
         'Hardened Ubuntu Client 20.04 LTS (version 2)': {'version': '2', 'banner': None, 'compressions': None, 'host_keys': ['ssh-ed25519', 'ssh-ed25519-cert-v01@openssh.com', 'sk-ssh-ed25519@openssh.com', 'sk-ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512', 'rsa-sha2-512-cert-v01@openssh.com'], 'optional_host_keys': None, 'kex': ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group-exchange-sha256', 'ext-info-c'], 'ciphers': ['chacha20-poly1305@openssh.com', 'aes256-gcm@openssh.com', 'aes128-gcm@openssh.com', 'aes256-ctr', 'aes192-ctr', 'aes128-ctr'], 'macs': ['hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'umac-128-etm@openssh.com'], 'hostkey_sizes': None, 'cakey_sizes': None, 'dh_modulus_sizes': None, 'server_policy': False},
 
-    }  # type: Dict[str, Dict[str, Union[Optional[str], Optional[List[str]], bool, Dict[str, int]]]]
+    }
 
 
     def __init__(self, policy_file: Optional[str] = None, policy_data: Optional[str] = None, manual_load: bool = False) -> None:
-        self._name = None  # type: Optional[str]
-        self._version = None  # type: Optional[str]
-        self._banner = None  # type: Optional[str]
-        self._compressions = None  # type: Optional[List[str]]
-        self._host_keys = None  # type: Optional[List[str]]
-        self._optional_host_keys = None  # type: Optional[List[str]]
-        self._kex = None  # type: Optional[List[str]]
-        self._ciphers = None  # type: Optional[List[str]]
-        self._macs = None  # type: Optional[List[str]]
-        self._hostkey_sizes = None  # type: Optional[Dict[str, int]]
-        self._cakey_sizes = None  # type: Optional[Dict[str, int]]
-        self._dh_modulus_sizes = None  # type: Optional[Dict[str, int]]
+        self._name: Optional[str] = None
+        self._version: Optional[str] = None
+        self._banner: Optional[str] = None
+        self._compressions: Optional[List[str]] = None
+        self._host_keys: Optional[List[str]] = None
+        self._optional_host_keys: Optional[List[str]] = None
+        self._kex: Optional[List[str]] = None
+        self._ciphers: Optional[List[str]] = None
+        self._macs: Optional[List[str]] = None
+        self._hostkey_sizes: Optional[Dict[str, int]] = None
+        self._cakey_sizes: Optional[Dict[str, int]] = None
+        self._dh_modulus_sizes: Optional[Dict[str, int]] = None
         self._server_policy = True
 
-        self._name_and_version = ''  # type: str
+        self._name_and_version: str = ''
 
         # Ensure that only one mode was specified.
         num_modes = 0
@@ -305,7 +305,7 @@ macs = %s
         '''Evaluates a server configuration against this policy.  Returns a tuple of a boolean (True if server adheres to policy) and an array of strings that holds error messages.'''
 
         ret = True
-        errors = []  # type: List[Any]
+        errors: List[Any] = []
 
         banner_str = str(banner)
         if (self._banner is not None) and (banner_str != self._banner):

@@ -32,7 +32,7 @@ from ssh_audit.utils import Utils
 
 
 class Output:
-    LEVELS = ('info', 'warn', 'fail')  # type: Sequence[str]
+    LEVELS: Sequence[str] = ('info', 'warn', 'fail')
     COLORS = {'head': 36, 'good': 32, 'warn': 33, 'fail': 31}
 
     # Use brighter colors on Windows for better readability.

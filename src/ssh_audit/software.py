@@ -180,7 +180,7 @@ class Software:
         # pylint: disable=too-many-return-statements
         software = str(banner.software)
         mx = re.match(r'^dropbear_([\d\.]+\d+)(.*)', software)
-        v = None  # type: Optional[str]
+        v: Optional[str] = None
         if mx is not None:
             patch = cls._fix_patch(mx.group(2))
             v, p = 'Matt Johnston', Product.DropbearSSH

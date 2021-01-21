@@ -43,16 +43,16 @@ class AuditConf:
         self.json = False
         self.verbose = False
         self.level = 'info'
-        self.ipvo = ()  # type: Sequence[int]
+        self.ipvo: Sequence[int] = ()
         self.ipv4 = False
         self.ipv6 = False
         self.make_policy = False  # When True, creates a policy file from an audit scan.
-        self.policy_file = None   # type: Optional[str]  # File system path to a policy
-        self.policy = None  # type: Optional[Policy]  # Policy object
+        self.policy_file: Optional[str] = None   # File system path to a policy
+        self.policy: Optional[Policy] = None  # Policy object
         self.timeout = 5.0
         self.timeout_set = False  # Set to True when the user explicitly sets it.
-        self.target_file = None  # type: Optional[str]
-        self.target_list = []  # type: List[str]
+        self.target_file: Optional[str] = None
+        self.target_list: List[str] = []
         self.list_policies = False
         self.lookup = ''
 

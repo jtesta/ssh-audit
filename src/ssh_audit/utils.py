@@ -96,7 +96,7 @@ class Utils:
 
     @classmethod
     def unique_seq(cls, seq: Sequence[Any]) -> Sequence[Any]:
-        seen = set()  # type: Set[Any]
+        seen: Set[Any] = set()
 
         def _seen_add(x: Any) -> bool:
             seen.add(x)

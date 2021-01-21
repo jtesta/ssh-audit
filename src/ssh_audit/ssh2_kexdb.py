@@ -59,7 +59,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     WARN_OBSOLETE = 'using obsolete algorithm'
     WARN_UNTRUSTED = 'using untrusted algorithm'
 
-    ALGORITHMS = {
+    ALGORITHMS: Dict[str, Dict[str, List[List[Optional[str]]]]] = {
         # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
         'kex': {
             'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_HASH_WEAK]],
@@ -268,4 +268,4 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'chacha20-poly1305@openssh.com': [[]],  # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
             'crypticore-mac@ssh.com': [[], [FAIL_UNPROVEN]],
         }
-    }  # type: Dict[str, Dict[str, List[List[Optional[str]]]]]
+    }
