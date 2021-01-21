@@ -798,7 +798,7 @@ def audit(aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = Fal
         else:
             err = '[exception] did not receive banner: {}'.format(err)
     if err is None:
-        s.send_algorithms()  # Send the algorithms we support (except we don't since this isn't a real SSH connection).
+        s.send_kexinit()  # Send the algorithms we support (except we don't since this isn't a real SSH connection).
 
         packet_type, payload = s.read_packet(sshv)
         if packet_type < 0:

@@ -21,14 +21,12 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
-import os
 
 # pylint: disable=unused-import
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
 from ssh_audit.kexdh import KexGroupExchange_SHA1, KexGroupExchange_SHA256
-from ssh_audit.protocol import Protocol
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh_socket import SSH_Socket
@@ -55,10 +53,7 @@ class GEXTest:
 
         # Send our KEX using the specified group-exchange and most of the
         # server's own values.
-        client_kex = SSH2_Kex(os.urandom(16), [gex_alg], kex.key_algorithms, kex.client, kex.server, False, 0)
-        s.write_byte(Protocol.MSG_KEXINIT)
-        client_kex.write(s)
-        s.send_packet()
+        s.send_kexinit(key_exchanges=[gex_alg], hostkeys=kex.key_algorithms, ciphers=kex.server.encryption, macs=kex.server.mac, compressions=kex.server.compression, languages=kex.server.languages)
 
         # Parse the server's KEX.
         _, payload = s.read_packet(2)
