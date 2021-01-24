@@ -37,6 +37,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     FAIL_OPENSSH67_UNSAFE = 'removed (in server) since OpenSSH 6.7, unsafe algorithm'
     FAIL_OPENSSH61_REMOVE = 'removed since OpenSSH 6.1, removed from specification'
     FAIL_OPENSSH31_REMOVE = 'removed since OpenSSH 3.1'
+    INFO_OPENSSH82_FUTURE_DEPRECATION = 'A future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2'
     FAIL_DBEAR67_DISABLED = 'disabled since Dropbear SSH 2015.67'
     FAIL_DBEAR53_DISABLED = 'disabled since Dropbear SSH 0.53'
     FAIL_DEPRECATED_CIPHER = 'deprecated cipher'
@@ -127,7 +128,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'rsa-sha2-512': [['7.2']],
             'ssh-ed25519': [['6.5,l10.7.0']],
             'ssh-ed25519-cert-v01@openssh.com': [['6.5']],
-            'ssh-rsa': [['2.5.0,d0.28,l10.2'], [WARN_HASH_WEAK]],
+            'ssh-rsa': [['2.5.0,d0.28,l10.2'], [WARN_HASH_WEAK], [], [INFO_OPENSSH82_FUTURE_DEPRECATION]],
             'ssh-dss': [['2.1.0,d0.28,l10.2', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp256': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp384': [['5.7,d2013.62,l10.6.4'], [WARN_CURVES_WEAK], [WARN_RNDSIG_KEY]],
