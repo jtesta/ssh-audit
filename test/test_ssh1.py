@@ -3,6 +3,7 @@ import pytest
 
 from ssh_audit.auditconf import AuditConf
 from ssh_audit.fingerprint import Fingerprint
+from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.protocol import Protocol
 from ssh_audit.readbuf import ReadBuf
 from ssh_audit.ssh1 import SSH1
@@ -15,6 +16,7 @@ from ssh_audit.writebuf import WriteBuf
 class TestSSH1:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
+        self.OutputBuffer = OutputBuffer
         self.protocol = Protocol
         self.ssh1 = SSH1
         self.PublicKeyMessage = SSH1_PublicKeyMessage
@@ -132,9 +134,11 @@ class TestSSH1:
         vsocket.rdata.append(b'SSH-1.5-OpenSSH_7.2 ssh-audit-test\r\n')
         vsocket.rdata.append(self._create_ssh1_packet(w.write_flush()))
         output_spy.begin()
-        self.audit(self._conf())
+        out = self.OutputBuffer()
+        self.audit(out, self._conf())
+        out.write()
         lines = output_spy.flush()
-        assert len(lines) == 14
+        assert len(lines) == 15
 
     def test_ssh1_server_invalid_first_packet(self, output_spy, virtual_socket):
         vsocket = virtual_socket
@@ -144,10 +148,12 @@ class TestSSH1:
         vsocket.rdata.append(b'SSH-1.5-OpenSSH_7.2 ssh-audit-test\r\n')
         vsocket.rdata.append(self._create_ssh1_packet(w.write_flush()))
         output_spy.begin()
-        ret = self.audit(self._conf())
+        out = self.OutputBuffer()
+        ret = self.audit(out, self._conf())
+        out.write()
         assert ret != 0
         lines = output_spy.flush()
-        assert len(lines) == 8
+        assert len(lines) == 9
         assert 'unknown message' in lines[-1]
 
     def test_ssh1_server_invalid_checksum(self, output_spy, virtual_socket):
@@ -158,8 +164,10 @@ class TestSSH1:
         vsocket.rdata.append(b'SSH-1.5-OpenSSH_7.2 ssh-audit-test\r\n')
         vsocket.rdata.append(self._create_ssh1_packet(w.write_flush(), False))
         output_spy.begin()
+        out = self.OutputBuffer()
         with pytest.raises(SystemExit):
-            self.audit(self._conf())
+            self.audit(out, self._conf())
+        out.write()
         lines = output_spy.flush()
-        assert len(lines) == 1
-        assert 'checksum' in lines[-1]
+        assert len(lines) == 3
+        assert ('checksum' in lines[0]) or ('checksum' in lines[1]) or ('checksum' in lines[2])

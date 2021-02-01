@@ -36,7 +36,7 @@ from typing import Callable, Optional, Union, Any  # noqa: F401
 from ssh_audit import exitcodes
 from ssh_audit.banner import Banner
 from ssh_audit.globals import SSH_HEADER
-from ssh_audit.output import Output
+from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.protocol import Protocol
 from ssh_audit.readbuf import ReadBuf
 from ssh_audit.ssh1 import SSH1
@@ -95,7 +95,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
                 if not check or socktype == socket.SOCK_STREAM:
                     yield af, addr
         except socket.error as e:
-            Output().fail('[exception] {}'.format(e))
+            OutputBuffer().fail('[exception] {}'.format(e)).write()
             sys.exit(exitcodes.CONNECTION_ERROR)
 
     # Listens on a server socket and accepts one connection (used for
@@ -273,7 +273,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
                 payload_length = packet_length - padding_length - 1
                 check_size = 4 + 1 + payload_length + padding_length
             if check_size % self.__block_size != 0:
-                Output().fail('[exception] invalid ssh packet (block size)')
+                OutputBuffer().fail('[exception] invalid ssh packet (block size)').write()
                 sys.exit(exitcodes.CONNECTION_ERROR)
             self.ensure_read(payload_length)
             if sshv == 1:
@@ -288,7 +288,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
             if sshv == 1:
                 rcrc = SSH1.crc32(padding + payload)
                 if crc != rcrc:
-                    Output().fail('[exception] packet checksum CRC32 mismatch.')
+                    OutputBuffer().fail('[exception] packet checksum CRC32 mismatch.').write()
                     sys.exit(exitcodes.CONNECTION_ERROR)
             else:
                 self.ensure_read(padding_length)

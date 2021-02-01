@@ -7,6 +7,7 @@ class TestAuditConf:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.AuditConf = ssh_audit.AuditConf
+        self.OutputBuffer = ssh_audit.OutputBuffer
         self.usage = ssh_audit.usage
         self.process_commandline = process_commandline
 
@@ -127,7 +128,7 @@ class TestAuditConf:
 
     def test_audit_conf_process_commandline(self):
         # pylint: disable=too-many-statements
-        c = lambda x: self.process_commandline(x.split(), self.usage)  # noqa
+        c = lambda x: self.process_commandline(self.OutputBuffer, x.split(), self.usage)  # noqa
         with pytest.raises(SystemExit):
             conf = c('')
         with pytest.raises(SystemExit):

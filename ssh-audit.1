@@ -94,7 +94,12 @@ The timeout, in seconds, for creating connections and reading data from the sock
 .TP
 .B -T, \-\-targets=<hosts.txt>
 .br
-A file containing a list of target hosts.  Each line must have one host, in the format of HOST[:PORT].
+A file containing a list of target hosts.  Each line must have one host, in the format of HOST[:PORT].  Use --threads to control concurrent scans.
+
+.TP
+.B     \-\-threads=<threads>
+.br
+The number of threads to use when scanning multiple targets (with -T/--targets).  Default is 32.
 
 .TP
 .B -v, \-\-verbose

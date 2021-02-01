@@ -53,6 +53,7 @@ class AuditConf:
         self.timeout_set = False  # Set to True when the user explicitly sets it.
         self.target_file: Optional[str] = None
         self.target_list: List[str] = []
+        self.threads = 32
         self.list_policies = False
         self.lookup = ''
 
@@ -98,6 +99,11 @@ class AuditConf:
             valid = True
         elif name in ['policy_file', 'policy', 'target_file', 'target_list', 'lookup']:
             valid = True
+        elif name == "threads":
+            valid, num_threads = True, Utils.parse_int(value)
+            if num_threads < 1:
+                raise ValueError('invalid number of threads: {}'.format(value))
+            value = num_threads
 
         if valid:
             object.__setattr__(self, name, value)

@@ -21,6 +21,7 @@
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - policy scans to ensure adherence to a hardened/standard configuration;
 - runs on Linux and Windows;
+- supports Python 3.6 - 3.9;
 - no dependencies
 
 ## Usage
@@ -158,9 +159,11 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 ### v2.4.0-dev (???)
+ - Added multi-threaded scanning support.
  - Added version check for OpenSSH user enumeration (CVE-2018-15473).
  - Fixed crash when receiving unexpected response during host key test.
  - Fixed hang against older Cisco devices during host key test & gex test.
+ - Fixed improper termination while scanning multiple targets when one target returns an error.
  - Dropped support for Python 3.5 (which reached EOL in Sept. 2020).
 
 ### v2.3.1 (2020-10-28)

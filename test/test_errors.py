@@ -2,12 +2,15 @@ import socket
 import errno
 import pytest
 
+from ssh_audit.outputbuffer import OutputBuffer
+
 
 # pylint: disable=attribute-defined-outside-init
 class TestErrors:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.AuditConf = ssh_audit.AuditConf
+        self.OutputBuffer = ssh_audit.OutputBuffer
         self.audit = ssh_audit.audit
 
     def _conf(self):
@@ -21,14 +24,21 @@ class TestErrors:
             conf = self._conf()
         spy.begin()
 
+        out = OutputBuffer()
         if exit_expected:
             with pytest.raises(SystemExit):
-                self.audit(conf)
+                self.audit(out, conf)
         else:
-            ret = self.audit(conf)
+            ret = self.audit(out, conf)
             assert ret != 0
 
+        out.write()
         lines = spy.flush()
+
+        # If the last line is empty, delete it.
+        if len(lines) > 1 and lines[-1] == '':
+            del lines[-1]
+
         return lines
 
     def test_connection_unresolved(self, output_spy, virtual_socket):
