@@ -87,7 +87,7 @@ To audit a client configuration, with a listener on port 4567:
 ssh-audit -c -p 4567
 ```
 
-To  list all official built-in policies (hint: use resulting file paths with `-P`/`--policy`):
+To  list all official built-in policies (hint: use resulting policy names with `-P`/`--policy`):
 ```
 ssh-audit -L
 ```
@@ -107,7 +107,7 @@ To run a policy audit against many servers:
 ssh-audit -T servers.txt -P ["policy name" | path/to/server_policy.txt]
 ```
 
-To create a policy based on a target server (which can be manually edited; see official built-in policies for syntax examples):
+To create a policy based on a target server (which can be manually edited):
 ```
 ssh-audit -M new_policy.txt targetserver
 ```
@@ -117,7 +117,7 @@ Below is a screen shot of the standard server-auditing output when connecting to
 ![screenshot](https://user-images.githubusercontent.com/2982011/64388792-317e6f80-d00e-11e9-826e-a4934769bb07.png)
 
 ### Server Policy Audit Example
-Below is a screen shot of the policy auditing output when connecting to an un-hardened Ubuntu Server 20.04 machine:
+Below is a screen shot of the policy auditing output when connecting to an un-hardened Ubuntu Server 20.04 machine (hint: use `-L`/`--list-policies` to see names of built-in policies to use with `-P`/`--policy`):
 ![screenshot](https://user-images.githubusercontent.com/2982011/94370881-95178700-00c0-11eb-8705-3157a4669dc0.png)
 
 After applying the steps in the hardening guide (see below), the output changes to the following:
