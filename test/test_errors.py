@@ -167,6 +167,6 @@ class TestErrors:
         conf = self._conf()
         conf.ssh1, conf.ssh2 = True, False
         lines = self._audit(output_spy, conf)
-        assert len(lines) == 3
+        assert len(lines) == 4
         assert 'error reading packet' in lines[-1]
         assert 'major versions differ' in lines[-1]

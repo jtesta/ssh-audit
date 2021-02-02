@@ -250,6 +250,9 @@ def output_security(out: OutputBuffer, banner: Optional[Banner], client_audit: b
             software = Software.parse(banner)
             output_security_sub(out, 'cve', software, client_audit, padlen)
             output_security_sub(out, 'txt', software, client_audit, padlen)
+            if banner.protocol[0] == 1:
+                p = '' if out.batch else ' ' * (padlen - 14)
+                out.fail('(sec) SSH v1 enabled{} -- SSH v1 can be exploited to recover plaintext passwords'.format(p))
     if not out.is_section_empty() and not is_json_output:
         out.head('# security')
         out.flush_section()
@@ -408,12 +411,17 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
         if len(header) > 0:
             out.info('(gen) header: ' + '\n'.join(header))
         if banner is not None:
-            out.good('(gen) banner: {}'.format(banner))
+            banner_line = '(gen) banner: {}'.format(banner)
+            if sshv == 1 or banner.protocol[0] == 1:
+                out.fail(banner_line)
+                out.fail('(gen) protocol SSH1 enabled')
+            else:
+                out.good(banner_line)
+
             if not banner.valid_ascii:
                 # NOTE: RFC 4253, Section 4.2
                 out.warn('(gen) banner contains non-printable ASCII')
-            if sshv == 1 or banner.protocol[0] == 1:
-                out.fail('(gen) protocol SSH1 enabled')
+
             software = Software.parse(banner)
             if software is not None:
                 out.good('(gen) software: {}'.format(software))
