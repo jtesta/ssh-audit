@@ -155,12 +155,20 @@ class HostKeyTest:
                     if (cert is False) and (hostkey_modulus_size < 2048):
                         for rsa_type in HostKeyTest.RSA_FAMILY:
                             alg_list = SSH2_KexDB.ALGORITHMS['key'][rsa_type]
-                            alg_list.append(['using small %d-bit modulus' % hostkey_modulus_size])
+
+                            # If no failure list exists, add an empty failure list.
+                            if len(alg_list) < 2:
+                                alg_list.append([])
+                            alg_list[1].append('using small %d-bit modulus' % hostkey_modulus_size)
                     elif (cert is True) and ((hostkey_modulus_size < 2048) or (ca_modulus_size > 0 and ca_modulus_size < 2048)):  # pylint: disable=chained-comparison
                         alg_list = SSH2_KexDB.ALGORITHMS['key'][host_key_type]
                         min_modulus = min(hostkey_modulus_size, ca_modulus_size)
                         min_modulus = min_modulus if min_modulus > 0 else max(hostkey_modulus_size, ca_modulus_size)
-                        alg_list.append(['using small %d-bit modulus' % min_modulus])
+
+                        # If no failure list exists, add an empty failure list.
+                        if len(alg_list) < 2:
+                            alg_list.append([])
+                        alg_list[1].append('using small %d-bit modulus' % min_modulus)
 
                 # If this host key type is in the RSA family, then mark them all as parsed (since results in one are valid for them all).
                 if host_key_type in HostKeyTest.RSA_FAMILY:

@@ -161,6 +161,8 @@ For convenience, a web front-end on top of the command-line tool is available at
 ### v2.4.0-dev (???)
  - Added multi-threaded scanning support.
  - Added version check for OpenSSH user enumeration (CVE-2018-15473).
+ - Added deprecation note to host key types based on SHA-1.
+ - Upgraded warnings to failures for host key types based on SHA-1.
  - Fixed crash when receiving unexpected response during host key test.
  - Fixed hang against older Cisco devices during host key test & gex test.
  - Fixed improper termination while scanning multiple targets when one target returns an error.
