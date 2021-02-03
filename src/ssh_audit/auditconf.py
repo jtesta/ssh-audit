@@ -56,10 +56,11 @@ class AuditConf:
         self.threads = 32
         self.list_policies = False
         self.lookup = ''
+        self.manual = False
 
     def __setattr__(self, name: str, value: Union[str, int, float, bool, Sequence[int]]) -> None:
         valid = False
-        if name in ['ssh1', 'ssh2', 'batch', 'client_audit', 'colors', 'verbose', 'timeout_set', 'json', 'make_policy', 'list_policies']:
+        if name in ['ssh1', 'ssh2', 'batch', 'client_audit', 'colors', 'verbose', 'timeout_set', 'json', 'make_policy', 'list_policies', 'manual']:
             valid, value = True, bool(value)
         elif name in ['ipv4', 'ipv6']:
             valid = False

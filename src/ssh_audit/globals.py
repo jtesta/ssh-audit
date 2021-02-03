@@ -24,3 +24,4 @@
 VERSION = 'v2.4.0-dev'
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.2'  # SSH software to impersonate
 GITHUB_ISSUES_URL = 'https://github.com/jtesta/ssh-audit/issues'  # The URL to the Github issues tracker.
+WINDOWS_MAN_PAGE = ''

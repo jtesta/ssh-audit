@@ -36,6 +36,7 @@ from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
 from ssh_audit.globals import VERSION
+from ssh_audit.globals import WINDOWS_MAN_PAGE
 from ssh_audit.algorithm import Algorithm
 from ssh_audit.algorithms import Algorithms
 from ssh_audit.auditconf import AuditConf
@@ -86,6 +87,7 @@ def usage(err: Optional[str] = None) -> None:
     uout.info('   -L,  --list-policies    list all the official, built-in policies')
     uout.info('        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without\n                                    connecting to a server')
     uout.info('   -M,  --make-policy=<policy.txt>  creates a policy based on the target server\n                                    (i.e.: the target server has the ideal\n                                    configuration that other servers should\n                                    adhere to)')
+    uout.info('   -m,  --manual           print the man page (Windows only)')
     uout.info('   -n,  --no-colors        disable colors')
     uout.info('   -p,  --port=<port>      port to connect')
     uout.info('   -P,  --policy=<policy.txt>  run a policy test using the specified policy')
@@ -571,8 +573,8 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     # pylint: disable=too-many-branches
     aconf = AuditConf()
     try:
-        sopts = 'h1246M:p:P:jbcnvl:t:T:L'
-        lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=', 'threads=']
+        sopts = 'h1246M:p:P:jbcnvl:t:T:Lm'
+        lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=', 'threads=', 'manual']
         opts, args = getopt.gnu_getopt(args, sopts, lopts)
     except getopt.GetoptError as err:
         usage_cb(str(err))
@@ -625,9 +627,14 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.list_policies = True
         elif o == '--lookup':
             aconf.lookup = a
+        elif o in ('-m', '--manual'):
+            aconf.manual = True
 
-    if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '':
+    if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '' and aconf.manual is False:
         usage_cb()
+
+    if aconf.manual:
+        return aconf
 
     if aconf.lookup != '':
         return aconf
@@ -989,6 +996,79 @@ def target_worker_thread(host: str, port: int, shared_aconf: AuditConf) -> Tuple
     return ret, string_output
 
 
+def windows_manual(out: OutputBuffer) -> int:
+    '''Prints the man page on Windows.  Returns an exitcodes.* flag.'''
+    import os
+    import ctypes
+
+    retval = exitcodes.GOOD
+
+    if sys.platform != 'win32':
+        out.fail("The '-m' and '--manual' parameters are reserved for use on Windows only.\nUsers of other operating systems should read the man page.")
+        retval = exitcodes.FAILURE
+        return retval
+
+    # Support for ANSI escape sequences was first introduced in Windows 10
+    # version 1511.
+    #
+    # Calling 'os.system' activates ANSI support if available.
+    #
+    # NB: If output is redirected to a file or piped to another program, ANSI
+    #     support is suppressed.
+    os.system("")
+
+    STD_OUTPUT_HANDLE = -11
+    ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4
+
+    kernel32 = ctypes.WinDLL('kernel32')
+    hStdin = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
+    consoleMode = ctypes.c_ulong()
+
+    # GetConsoleMode
+    # https://docs.microsoft.com/en-us/windows/console/getconsolemode
+    #
+    #   Parameters:
+    #     1. hConsoleHandle [in]
+    #     2. lpMode [out]
+    #
+    #   Return value:
+    #     Success: A non-zero value.
+    #     Fail:    A value of zero.
+    kernel32.GetConsoleMode(hStdin, ctypes.byref(consoleMode))
+
+    # Use a bitwise and (&) between the console mode value and the flag. If the
+    # console mode value contains the flag then ANSI is supported.
+    ansi_supported = bool(consoleMode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING)
+
+    if ansi_supported:
+        out.info(WINDOWS_MAN_PAGE)
+    else:
+        import io
+        import re
+
+        # If the text contains unicode characters this may result in a
+        # "UnicodeEncodeError" error when printing depending on the active
+        # console code page. Therefore the stdout's encoding is explicitly set
+        # to utf8.
+        #
+        # NB: If ANSI support enabled then unicode is implicitly handled.
+        new_stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf8', errors=sys.stdout.errors)
+        old_stdout = sys.stdout
+        sys.stdout = new_stdout
+
+        # An ANSI escape sequence starts with an ESC character (033 in decimal
+        # and 1b in hex), followed by an open bracket and terminates with 'm'.
+        strip_ansi = re.compile(r'\x1b\[.*?m')
+        man_plain_text = strip_ansi.sub('', WINDOWS_MAN_PAGE)
+
+        out.info(man_plain_text)
+
+        new_stdout.detach()
+        sys.stdout = old_stdout
+
+    return retval
+
+
 def main() -> int:
     out = OutputBuffer()
     aconf = process_commandline(out, sys.argv[1:], usage)
@@ -997,6 +1077,11 @@ def main() -> int:
     if aconf.json:
         out.json = True
         out.use_colors = False
+
+    if aconf.manual:
+        retval = windows_manual(out)
+        out.write()
+        sys.exit(retval)
 
     if aconf.lookup != '':
         retval = algorithm_lookup(out, aconf.lookup)
