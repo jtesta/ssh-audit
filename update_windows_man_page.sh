@@ -7,7 +7,7 @@
 #   Since Windows lacks a manual reader it's necessary to provide an alternative
 #   means of reading the man page. 
 #
-#   This script should be run as part of the ssh-audit packing process for 
+#   This script should be run as part of the ssh-audit packaging process for 
 #   Windows. It populates the 'WINDOWS_MAN_PAGE' variable in 'globals.py' with 
 #   the contents of the man page. Windows users can then print the content of 
 #   'WINDOWS_MAN_PAGE' by invoking ssh-audit with the manual parameters 
