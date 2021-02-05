@@ -998,8 +998,6 @@ def target_worker_thread(host: str, port: int, shared_aconf: AuditConf) -> Tuple
 
 def windows_manual(out: OutputBuffer) -> int:
     '''Prints the man page on Windows.  Returns an exitcodes.* flag.'''
-    import os
-    import ctypes
 
     retval = exitcodes.GOOD
 
@@ -1008,64 +1006,7 @@ def windows_manual(out: OutputBuffer) -> int:
         retval = exitcodes.FAILURE
         return retval
 
-    # Support for ANSI escape sequences was first introduced in Windows 10
-    # version 1511.
-    #
-    # Calling 'os.system' activates ANSI support if available.
-    #
-    # NB: If output is redirected to a file or piped to another program, ANSI
-    #     support is suppressed.
-    os.system("")
-
-    STD_OUTPUT_HANDLE = -11
-    ENABLE_VIRTUAL_TERMINAL_PROCESSING = 4
-
-    kernel32 = ctypes.WinDLL('kernel32')
-    hStdin = kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
-    consoleMode = ctypes.c_ulong()
-
-    # GetConsoleMode
-    # https://docs.microsoft.com/en-us/windows/console/getconsolemode
-    #
-    #   Parameters:
-    #     1. hConsoleHandle [in]
-    #     2. lpMode [out]
-    #
-    #   Return value:
-    #     Success: A non-zero value.
-    #     Fail:    A value of zero.
-    kernel32.GetConsoleMode(hStdin, ctypes.byref(consoleMode))
-
-    # Use a bitwise and (&) between the console mode value and the flag. If the
-    # console mode value contains the flag then ANSI is supported.
-    ansi_supported = bool(consoleMode.value & ENABLE_VIRTUAL_TERMINAL_PROCESSING)
-
-    if ansi_supported:
-        out.info(WINDOWS_MAN_PAGE)
-    else:
-        import io
-        import re
-
-        # If the text contains unicode characters this may result in a
-        # "UnicodeEncodeError" error when printing depending on the active
-        # console code page. Therefore the stdout's encoding is explicitly set
-        # to utf8.
-        #
-        # NB: If ANSI support enabled then unicode is implicitly handled.
-        new_stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf8', errors=sys.stdout.errors)
-        old_stdout = sys.stdout
-        sys.stdout = new_stdout
-
-        # An ANSI escape sequence starts with an ESC character (033 in decimal
-        # and 1b in hex), followed by an open bracket and terminates with 'm'.
-        strip_ansi = re.compile(r'\x1b\[.*?m')
-        man_plain_text = strip_ansi.sub('', WINDOWS_MAN_PAGE)
-
-        out.info(man_plain_text)
-
-        new_stdout.detach()
-        sys.stdout = old_stdout
-
+    out.info(WINDOWS_MAN_PAGE)
     return retval
 
 
