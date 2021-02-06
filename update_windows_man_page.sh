@@ -106,7 +106,7 @@ echo "Processing man page at ${MAN_PAGE} and placing output into ${GLOBALS_PY}..
 echo WINDOWS_MAN_PAGE = '"""' >> "$GLOBALS_PY"
 # The 'ul' tool would be necessary if running under Linux to convert the overstrike characters into ANSI escape sequences.
 # MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | ul >> "$GLOBALS_PY"
-MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "./$MAN_PAGE" >> "$GLOBALS_PY"
+MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "./$MAN_PAGE" | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
 echo '"""' >> "$GLOBALS_PY"
 
 echo "Done."

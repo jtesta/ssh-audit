@@ -58,12 +58,13 @@ from ssh_audit.ssh_socket import SSH_Socket
 from ssh_audit.utils import Utils
 from ssh_audit.versionvulnerabilitydb import VersionVulnerabilityDB
 
-
-try:  # pragma: nocover
-    from colorama import init as colorama_init
-    colorama_init(strip=False)  # pragma: nocover
-except ImportError:  # pragma: nocover
-    pass
+# Only import colorama under Windows.  Other OSes can natively handle terminal colors.
+if sys.platform == 'win32':
+    try:
+        from colorama import init as colorama_init
+        colorama_init()
+    except ImportError:
+        pass
 
 
 def usage(err: Optional[str] = None) -> None:
@@ -1013,6 +1014,10 @@ def windows_manual(out: OutputBuffer) -> int:
 def main() -> int:
     out = OutputBuffer()
     aconf = process_commandline(out, sys.argv[1:], usage)
+
+    # If we're on Windows, but the colorama module could not be imported, print a warning if we're in verbose mode.
+    if (sys.platform == 'win32') and ('colorama' not in sys.modules):
+        out.v("WARNING: colorama module not found.  Colorized output will be ddisabled.", write_now=True)
 
     # If we're outputting JSON, turn off colors and ensure 'info' level messages go through.
     if aconf.json:
