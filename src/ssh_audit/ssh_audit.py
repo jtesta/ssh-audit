@@ -28,6 +28,7 @@ import copy
 import getopt
 import json
 import os
+import re
 import sys
 import traceback
 
@@ -603,6 +604,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.client_audit = True
         elif o in ('-n', '--no-colors'):
             aconf.colors = False
+            out.use_colors = False
         elif o in ('-j', '--json'):
             aconf.json = True
         elif o in ('-v', '--verbose'):
@@ -1007,7 +1009,12 @@ def windows_manual(out: OutputBuffer) -> int:
         retval = exitcodes.FAILURE
         return retval
 
-    out.info(WINDOWS_MAN_PAGE)
+    # If colors are disabled, strip the ANSI color codes from the man page.
+    windows_man_page = WINDOWS_MAN_PAGE
+    if not out.use_colors:
+        windows_man_page = re.sub(r'\x1b\[\d+?m', '', windows_man_page)
+
+    out.info(windows_man_page)
     return retval
 
 
