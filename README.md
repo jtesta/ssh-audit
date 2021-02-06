@@ -42,6 +42,7 @@ usage: ssh-audit.py [options] <host>
    -L,  --list-policies    list all the official, built-in policies
         --lookup=<alg1,alg2,...>    looks up an algorithm(s) without
                                     connecting to a server
+   -m,  --manual           print the man page (Windows only)
    -M,  --make-policy=<policy.txt>  creates a policy based on the target server
                                     (i.e.: the target server has the ideal
                                     configuration that other servers should
@@ -54,6 +55,8 @@ usage: ssh-audit.py [options] <host>
                                (default: 5)
    -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one
                                    per line, format HOST[:PORT])
+        --threads=<threads>    number of threads to use when scanning multiple
+                                   targets (-T/--targets) (default: 32)
    -v,  --verbose          verbose output
 ```
 * if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.  
@@ -160,6 +163,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 ### v2.4.0-dev (???)
  - Added multi-threaded scanning support.
+ - Added built-in Windows manual page (see `-m`/`--manual`); credit [Adam Russell](https://github.com/thecliguy).
  - Added version check for OpenSSH user enumeration (CVE-2018-15473).
  - Added deprecation note to host key types based on SHA-1.
  - Added extra warnings for SSHv1.
