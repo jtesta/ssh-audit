@@ -1026,6 +1026,12 @@ def main() -> int:
     if (sys.platform == 'win32') and ('colorama' not in sys.modules):
         out.v("WARNING: colorama module not found.  Colorized output will be ddisabled.", write_now=True)
 
+    # Disable color output on Windiows 8 and Windows Server 2012, as they are still supported by Microsoft (until Jan. 2023 and Oct. 2023, respectively); they do not support ANSI color codes.  According to https://docs.microsoft.com/en-us/windows/win32/sysinfo/operating-system-version, the major versions of Server 2016, Server 2019, and Windows 10 are all 10.
+    if (sys.platform == 'win32') and (sys.getwindowsversion().major < 10):  # pylint: disable=no-member
+        aconf.colors = False
+        out.use_colors = False
+        out.v("Disabling color output on this platform since it is not supported (Windows major version: %d)." % sys.getwindowsversion().major)  # pylint: disable=no-member
+
     # If we're outputting JSON, turn off colors and ensure 'info' level messages go through.
     if aconf.json:
         out.json = True
