@@ -52,13 +52,18 @@ function usage {
     echo >&2 "  -h    This help message"
 }
 
-if [[ $(uname -s) != CYGWIN* ]]; then
-    echo >&2 "This script is designed to be run under Cygwin only.  It can potentially be extended to run under Linux, but this is not supported at this time."
-    exit -1
-fi
+PLATFORM="$(uname -s)"
 
-MAN_PAGE=ssh-audit.1
-GLOBALS_PY=src/ssh_audit/globals.py
+# This script is intended for use on Linux and Cygwin only.
+case "$PLATFORM" in
+    Linux | CYGWIN*) ;;
+    *) echo "Platform not supported: $PLATFORM"
+	exit 1
+	;;
+esac
+
+MAN_PAGE=./ssh-audit.1
+GLOBALS_PY=./src/ssh_audit/globals.py
 
 while getopts "m: g: h" OPTION
 do
@@ -85,8 +90,10 @@ done
 [ -f "$MAN_PAGE" ] || { echo >&2 "man page file not found: $MAN_PAGE"; exit 1; }
 [ -f "$GLOBALS_PY" ] || { echo >&2 "globals.py file not found: $GLOBALS_PY"; exit 1; }
 
-# Check that the 'ul' (do underlining) binary exists.  (Commented out since Cygwin's man outputs ANSI escape codes automatically; re-enable if running under Linux.)
-# command -v ul >/dev/null 2>&1 || { echo >&2 "ul not found."; exit 1; }
+# Check that the 'ul' (do underlining) binary exists.
+if [[ "$PLATFORM" = Linux ]]; then
+    command -v ul >/dev/null 2>&1 || { echo >&2 "ul not found."; exit 1; }
+fi
 
 # Check that the 'sed' (stream editor) binary exists.
 command -v sed >/dev/null 2>&1 || { echo >&2 "sed not found."; exit 1; }
@@ -101,12 +108,19 @@ echo "Processing man page at ${MAN_PAGE} and placing output into ${GLOBALS_PY}..
 #     sequence.
 #   * 'MAN_KEEP_FORMATTING' preserves the backspace-overwrite sequence when 
 #     redirected to a file or a pipe.
-#   * The 'ul' command converts the backspace-overwrite sequence to an ANSI escape 
-#     sequence.
+#   * sed converts unicode hyphens into an ASCI equivalent.
+#   * The 'ul' command converts the backspace-overwrite sequence to an ANSI 
+#     escape sequence. Not required under Cygwin because man outputs ANSI escape 
+#     codes automatically.
+
 echo WINDOWS_MAN_PAGE = '"""' >> "$GLOBALS_PY"
-# The 'ul' tool would be necessary if running under Linux to convert the overstrike characters into ANSI escape sequences.
-# MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | ul >> "$GLOBALS_PY"
-MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "./$MAN_PAGE" | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
+
+if [[ "$PLATFORM" = CYGWIN* ]]; then
+	MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
+else
+	MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | ul | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
+fi
+
 echo '"""' >> "$GLOBALS_PY"
 
 echo "Done."
