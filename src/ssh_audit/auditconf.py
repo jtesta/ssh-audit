@@ -43,7 +43,7 @@ class AuditConf:
         self.json = False
         self.verbose = False
         self.level = 'info'
-        self.ipvo: Sequence[int] = ()
+        self.ip_version_preference: List[int] = []  # Holds only 5 possible values: [] (no preference), [4] (use IPv4 only), [6] (use IPv6 only), [46] (use both IPv4 and IPv6, but prioritize v4), and [64] (use both IPv4 and IPv6, but prioritize v6).
         self.ipv4 = False
         self.ipv6 = False
         self.make_policy = False  # When True, creates a policy file from an audit scan.
@@ -60,28 +60,14 @@ class AuditConf:
 
     def __setattr__(self, name: str, value: Union[str, int, float, bool, Sequence[int]]) -> None:
         valid = False
-        if name in ['ssh1', 'ssh2', 'batch', 'client_audit', 'colors', 'verbose', 'timeout_set', 'json', 'make_policy', 'list_policies', 'manual']:
+        if name in ['batch', 'client_audit', 'colors', 'json', 'list_policies', 'manual', 'make_policy', 'ssh1', 'ssh2', 'timeout_set', 'verbose']:
             valid, value = True, bool(value)
         elif name in ['ipv4', 'ipv6']:
-            valid = False
-            value = bool(value)
-            ipv = 4 if name == 'ipv4' else 6
-            if value:
-                value = tuple(list(self.ipvo) + [ipv])
-            else:  # pylint: disable=else-if-used
-                if len(self.ipvo) == 0:
-                    value = (6,) if ipv == 4 else (4,)
-                else:
-                    value = tuple([x for x in self.ipvo if x != ipv])
-            self.__setattr__('ipvo', value)
-        elif name == 'ipvo':
-            if isinstance(value, (tuple, list)):
-                uniq_value = Utils.unique_seq(value)
-                value = tuple([x for x in uniq_value if x in (4, 6)])
-                valid = True
-                ipv_both = len(value) == 0
-                object.__setattr__(self, 'ipv4', ipv_both or 4 in value)
-                object.__setattr__(self, 'ipv6', ipv_both or 6 in value)
+            valid, value = True, bool(value)
+            if len(self.ip_version_preference) == 2:  # Being called more than twice is not valid.
+                valid = False
+            elif value:
+                self.ip_version_preference.append(4 if name == 'ipv4' else 6)
         elif name == 'port':
             valid, port = True, Utils.parse_int(value)
             if port < 1 or port > 65535:
@@ -98,7 +84,7 @@ class AuditConf:
             if value == -1.0:
                 raise ValueError('invalid timeout: {}'.format(value))
             valid = True
-        elif name in ['policy_file', 'policy', 'target_file', 'target_list', 'lookup']:
+        elif name in ['ip_version_preference', 'lookup', 'policy_file', 'policy', 'target_file', 'target_list']:
             valid = True
         elif name == "threads":
             valid, num_threads = True, Utils.parse_int(value)
