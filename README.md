@@ -161,7 +161,7 @@ $ docker pull positronsecurity/ssh-audit
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
-### v2.4.0-dev (???)
+### v2.4.0 (2021-02-23)
  - Added multi-threaded scanning support.
  - Added built-in Windows manual page (see `-m`/`--manual`); credit [Adam Russell](https://github.com/thecliguy).
  - Added version check for OpenSSH user enumeration (CVE-2018-15473).
