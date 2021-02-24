@@ -2,7 +2,9 @@
 
 An executable can only be made on a Windows host because the PyInstaller tool (https://www.pyinstaller.org/) does not support cross-compilation.
 
-On a Windows machine, do the following:
+**NOTE**: PyInstaller v4.2 is known to generate executables with broken PE checksums.  As a result, this triggers several anti-virus programs, including Microsoft Defender.  This issue has been [fixed here](https://github.com/pyinstaller/pyinstaller/pull/5580), but as of this writing, it has not been shipped in a stable release.  One workaround is to use the PyInstaller master branch instead of the version on PyPI.
+
+First, clone PyInstaller onto a Linux machine with MinGW tools installed (`apt install mingw-w64`).  In its `booloader` directory, compile with `python3 waf all`.  Copy the *entire* pyinstaller directory to a Windows machine.  From an elevated command prompt, install it with `python setup.py install`.  Check that it was successfully installed by running `pyinstaller`.  If so, follow the instructions below, but do not install pyinstaller using pip in step #2.
 
 1.) Install Python v3.9.x from https://www.python.org/.  To make life easier, check the option to add Python to the PATH environment variable.
 
@@ -12,13 +14,14 @@ On a Windows machine, do the following:
     pip install pyinstaller colorama
 ```
 
-3.) Create the executable with:
+3.) Install Cygwin (https://www.cygwin.com/).
+
+4.) Create the executable with:
 
 ```
-    cd src\ssh_audit
-    rename ssh_audit.py ssh-audit.py
-    pyinstaller -F --icon ..\..\windows_icon.ico ssh-audit.py
+    $ ./build_windows_executable.sh
 ```
+
 
 # PyPI
 
@@ -38,7 +41,7 @@ To download from test server and verify:
     $ pip3 install --index-url https://test.pypi.org/simple ssh-audit
 ```
 
-To upload to production server (hint: use username '__token__' and API token):
+To upload to production server (hint: use username '\_\_token\_\_' and API token):
 
 ```
     $ make -f Makefile.pypi uploadprod
@@ -60,7 +63,7 @@ Install pre-requisites with:
 
 ```
     $ sudo apt install make snapcraft
-    $ sudo snap install review-tools
+    $ sudo snap install review-tools lxd
 ```
 
 Initialize LXD (leave all options default):
@@ -91,7 +94,7 @@ Build image with:
     $ make -f Makefile.docker
 ```
 
-Then upload them to Dockerhub with:
+Then upload it to Dockerhub with:
 
 ```
     $ make -f Makefile.docker upload
