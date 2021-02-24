@@ -98,6 +98,9 @@ fi
 # Check that the 'sed' (stream editor) binary exists.
 command -v sed >/dev/null 2>&1 || { echo >&2 "sed not found."; exit 1; }
 
+# Reset the globals.py file, in case it was modified from a prior run.
+git checkout $GLOBALS_PY > /dev/null 2>&1
+
 # Remove the Windows man page placeholder from 'globals.py'.
 sed -i '/^WINDOWS_MAN_PAGE/d' "$GLOBALS_PY"
 
