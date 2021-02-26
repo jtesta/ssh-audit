@@ -125,8 +125,8 @@ class HostKeyTest:
 
                 # Do the initial DH exchange.  The server responds back
                 # with the host key and its length.  Bingo.  We also get back the host key fingerprint.
-                kex_group.send_init(s)
                 try:
+                    kex_group.send_init(s)
                     host_key = kex_group.recv_reply(s, variable_key_len)
                     if host_key is not None:
                         server_kex.set_host_key(host_key_type, host_key)
