@@ -8,6 +8,7 @@ class TestResolve:
     def init(self, ssh_audit):
         self.AuditConf = ssh_audit.AuditConf
         self.audit = ssh_audit.audit
+        self.OutputBuffer = ssh_audit.OutputBuffer
         self.ssh_socket = ssh_audit.SSH_Socket
 
     def _conf(self):
@@ -20,7 +21,7 @@ class TestResolve:
         vsocket = virtual_socket
         vsocket.gsock.addrinfodata['localhost#22'] = socket.gaierror(8, 'hostname nor servname provided, or not known')
         conf = self._conf()
-        s = self.ssh_socket('localhost', 22, conf.ip_version_preference)
+        s = self.ssh_socket(self.OutputBuffer(), 'localhost', 22, conf.ip_version_preference)
         output_spy.begin()
         with pytest.raises(SystemExit):
             list(s._resolve())
@@ -32,7 +33,7 @@ class TestResolve:
         vsocket = virtual_socket
         vsocket.gsock.addrinfodata['localhost#22'] = []
         conf = self._conf()
-        s = self.ssh_socket('localhost', 22, conf.ip_version_preference)
+        s = self.ssh_socket(self.OutputBuffer(), 'localhost', 22, conf.ip_version_preference)
         output_spy.begin()
         r = list(s._resolve())
         assert len(r) == 0
@@ -40,7 +41,7 @@ class TestResolve:
     def test_resolve_ipv4(self, virtual_socket):
         conf = self._conf()
         conf.ipv4 = True
-        s = self.ssh_socket('localhost', 22, conf.ip_version_preference)
+        s = self.ssh_socket(self.OutputBuffer(), 'localhost', 22, conf.ip_version_preference)
         r = list(s._resolve())
         assert len(r) == 1
         assert r[0] == (socket.AF_INET, ('127.0.0.1', 22))
@@ -48,14 +49,14 @@ class TestResolve:
     def test_resolve_ipv6(self, virtual_socket):
         conf = self._conf()
         conf.ipv6 = True
-        s = self.ssh_socket('localhost', 22, conf.ip_version_preference)
+        s = self.ssh_socket(self.OutputBuffer(), 'localhost', 22, conf.ip_version_preference)
         r = list(s._resolve())
         assert len(r) == 1
         assert r[0] == (socket.AF_INET6, ('::1', 22))
 
     def test_resolve_ipv46_both(self, virtual_socket):
         conf = self._conf()
-        s = self.ssh_socket('localhost', 22, conf.ip_version_preference)
+        s = self.ssh_socket(self.OutputBuffer(), 'localhost', 22, conf.ip_version_preference)
         r = list(s._resolve())
         assert len(r) == 2
         assert r[0] == (socket.AF_INET, ('127.0.0.1', 22))
@@ -65,7 +66,7 @@ class TestResolve:
         conf = self._conf()
         conf.ipv4 = True
         conf.ipv6 = True
-        s = self.ssh_socket('localhost', 22, conf.ip_version_preference)
+        s = self.ssh_socket(self.OutputBuffer(), 'localhost', 22, conf.ip_version_preference)
         r = list(s._resolve())
         assert len(r) == 2
         assert r[0] == (socket.AF_INET, ('127.0.0.1', 22))
@@ -73,7 +74,7 @@ class TestResolve:
         conf = self._conf()
         conf.ipv6 = True
         conf.ipv4 = True
-        s = self.ssh_socket('localhost', 22, conf.ip_version_preference)
+        s = self.ssh_socket(self.OutputBuffer(), 'localhost', 22, conf.ip_version_preference)
         r = list(s._resolve())
         assert len(r) == 2
         assert r[0] == (socket.AF_INET6, ('::1', 22))

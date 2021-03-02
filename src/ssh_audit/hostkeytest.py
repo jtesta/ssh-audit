@@ -109,19 +109,19 @@ class HostKeyTest:
 
                 # If the connection is closed, re-open it and get the kex again.
                 if not s.is_connected():
-                    err = s.connect(out)
+                    err = s.connect()
                     if err is not None:
                         out.v(err, write_now=True)
                         return
 
-                    _, _, err = s.get_banner(out)
+                    _, _, err = s.get_banner()
                     if err is not None:
                         out.v(err, write_now=True)
                         s.close()
                         return
 
                     # Send our KEX using the specified group-exchange and most of the server's own values.
-                    s.send_kexinit(out, key_exchanges=[kex_str], hostkeys=[host_key_type], ciphers=server_kex.server.encryption, macs=server_kex.server.mac, compressions=server_kex.server.compression, languages=server_kex.server.languages)
+                    s.send_kexinit(key_exchanges=[kex_str], hostkeys=[host_key_type], ciphers=server_kex.server.encryption, macs=server_kex.server.mac, compressions=server_kex.server.compression, languages=server_kex.server.languages)
 
                     # Parse the server's KEX.
                     _, payload = s.read_packet()

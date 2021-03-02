@@ -43,12 +43,12 @@ class GEXTest:
         if s.is_connected():
             return True
 
-        err = s.connect(out)
+        err = s.connect()
         if err is not None:
             out.v(err, write_now=True)
             return False
 
-        _, _, err = s.get_banner(out)
+        _, _, err = s.get_banner()
         if err is not None:
             out.v(err, write_now=True)
             s.close()
@@ -56,7 +56,7 @@ class GEXTest:
 
         # Send our KEX using the specified group-exchange and most of the
         # server's own values.
-        s.send_kexinit(out, key_exchanges=[gex_alg], hostkeys=kex.key_algorithms, ciphers=kex.server.encryption, macs=kex.server.mac, compressions=kex.server.compression, languages=kex.server.languages)
+        s.send_kexinit(key_exchanges=[gex_alg], hostkeys=kex.key_algorithms, ciphers=kex.server.encryption, macs=kex.server.mac, compressions=kex.server.compression, languages=kex.server.languages)
 
         # Parse the server's KEX.
         _, payload = s.read_packet(2)

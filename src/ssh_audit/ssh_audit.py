@@ -820,14 +820,14 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
     out.debug = aconf.debug
     out.level = aconf.level
     out.use_colors = aconf.colors
-    s = SSH_Socket(aconf.host, aconf.port, aconf.ip_version_preference, aconf.timeout, aconf.timeout_set)
+    s = SSH_Socket(out, aconf.host, aconf.port, aconf.ip_version_preference, aconf.timeout, aconf.timeout_set)
 
     if aconf.client_audit:
         out.v("Listening for client connection on port %d..." % aconf.port, write_now=True)
         s.listen_and_accept()
     else:
         out.v("Starting audit of %s:%d..." % ('[%s]' % aconf.host if Utils.is_ipv6_address(aconf.host) else aconf.host, aconf.port), write_now=True)
-        err = s.connect(out)
+        err = s.connect()
 
         if err is not None:
             out.fail(err)
@@ -842,14 +842,14 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
     if sshv is None:
         sshv = 2 if aconf.ssh2 else 1
     err = None
-    banner, header, err = s.get_banner(out, sshv)
+    banner, header, err = s.get_banner(sshv)
     if banner is None:
         if err is None:
             err = '[exception] did not receive banner.'
         else:
             err = '[exception] did not receive banner: {}'.format(err)
     if err is None:
-        s.send_kexinit(out)  # Send the algorithms we support (except we don't since this isn't a real SSH connection).
+        s.send_kexinit()  # Send the algorithms we support (except we don't since this isn't a real SSH connection).
 
         packet_type, payload = s.read_packet(sshv)
         if packet_type < 0:
