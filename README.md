@@ -37,6 +37,7 @@ usage: ssh-audit.py [options] <host>
    -c,  --client-audit     starts a server on port 2222 to audit client
                                software config (use -p to change port;
                                use -t to change timeout)
+   -d,  --debug            Enable debug output.
    -j,  --json             JSON output
    -l,  --level=<level>    minimum output level (info|warn|fail)
    -L,  --list-policies    list all the official, built-in policies
@@ -163,6 +164,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 ### v2.5.0-dev (???)
  - Fixed crash when running host key tests.
+ - Added `-d`/`--debug` option for getting debugging output; credit [Adam Russell](https://github.com/thecliguy).
 
 ### v2.4.0 (2021-02-23)
  - Added multi-threaded scanning support.
