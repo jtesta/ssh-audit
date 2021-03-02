@@ -84,6 +84,7 @@ def usage(err: Optional[str] = None) -> None:
     uout.info('   -6,  --ipv6             enable IPv6 (order of precedence)')
     uout.info('   -b,  --batch            batch output')
     uout.info('   -c,  --client-audit     starts a server on port 2222 to audit client\n                               software config (use -p to change port;\n                               use -t to change timeout)')
+    uout.info('   -d,  --debug            debug output')
     uout.info('   -j,  --json             JSON output')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies')
@@ -575,8 +576,8 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     # pylint: disable=too-many-branches
     aconf = AuditConf()
     try:
-        sopts = 'h1246M:p:P:jbcnvl:t:T:Lm'
-        lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=', 'threads=', 'manual']
+        sopts = 'h1246M:p:P:jbcnvl:t:T:Lmd'
+        lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=', 'threads=', 'manual', 'debug']
         opts, args = getopt.gnu_getopt(args, sopts, lopts)
     except getopt.GetoptError as err:
         usage_cb(str(err))
@@ -632,6 +633,9 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.lookup = a
         elif o in ('-m', '--manual'):
             aconf.manual = True
+        elif o in ('-d', '--debug'):
+            aconf.debug = True
+            out.debug = True
 
     if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '' and aconf.manual is False:
         usage_cb()
@@ -813,15 +817,18 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
     program_retval = exitcodes.GOOD
     out.batch = aconf.batch
     out.verbose = aconf.verbose
+    out.debug = aconf.debug
     out.level = aconf.level
     out.use_colors = aconf.colors
     s = SSH_Socket(aconf.host, aconf.port, aconf.ip_version_preference, aconf.timeout, aconf.timeout_set)
+
     if aconf.client_audit:
         out.v("Listening for client connection on port %d..." % aconf.port, write_now=True)
         s.listen_and_accept()
     else:
-        out.v("Connecting to %s:%d..." % ('[%s]' % aconf.host if Utils.is_ipv6_address(aconf.host) else aconf.host, aconf.port), write_now=True)
-        err = s.connect()
+        out.v("Starting audit of %s:%d..." % ('[%s]' % aconf.host if Utils.is_ipv6_address(aconf.host) else aconf.host, aconf.port), write_now=True)
+        err = s.connect(out)
+
         if err is not None:
             out.fail(err)
 
@@ -835,14 +842,14 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
     if sshv is None:
         sshv = 2 if aconf.ssh2 else 1
     err = None
-    banner, header, err = s.get_banner(sshv)
+    banner, header, err = s.get_banner(out, sshv)
     if banner is None:
         if err is None:
             err = '[exception] did not receive banner.'
         else:
             err = '[exception] did not receive banner: {}'.format(err)
     if err is None:
-        s.send_kexinit()  # Send the algorithms we support (except we don't since this isn't a real SSH connection).
+        s.send_kexinit(out)  # Send the algorithms we support (except we don't since this isn't a real SSH connection).
 
         packet_type, payload = s.read_packet(sshv)
         if packet_type < 0:
@@ -878,8 +885,8 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
     elif sshv == 2:
         kex = SSH2_Kex.parse(payload)
         if aconf.client_audit is False:
-            HostKeyTest.run(s, kex)
-            GEXTest.run(s, kex)
+            HostKeyTest.run(out, s, kex)
+            GEXTest.run(out, s, kex)
 
         # This is a standard audit scan.
         if (aconf.policy is None) and (aconf.make_policy is False):

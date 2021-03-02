@@ -47,6 +47,7 @@ class OutputBuffer:
         self.section: List[str] = []
         self.batch = False
         self.verbose = False
+        self.debug = False
         self.use_colors = True
         self.json = False
         self.__level = 0
@@ -167,7 +168,16 @@ class OutputBuffer:
 
     def v(self, s: str, write_now: bool = False) -> 'OutputBuffer':
         '''Prints a message if verbose output is enabled.'''
-        if self.verbose:
+        if self.verbose or self.debug:
+            self.info(s)
+            if write_now:
+                self.write()
+
+        return self
+
+    def d(self, s: str, write_now: bool = False) -> 'OutputBuffer':
+        '''Prints a message if verbose output is enabled.'''
+        if self.debug:
             self.info(s)
             if write_now:
                 self.write()

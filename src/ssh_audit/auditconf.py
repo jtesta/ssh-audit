@@ -57,10 +57,11 @@ class AuditConf:
         self.list_policies = False
         self.lookup = ''
         self.manual = False
+        self.debug = False
 
     def __setattr__(self, name: str, value: Union[str, int, float, bool, Sequence[int]]) -> None:
         valid = False
-        if name in ['batch', 'client_audit', 'colors', 'json', 'list_policies', 'manual', 'make_policy', 'ssh1', 'ssh2', 'timeout_set', 'verbose']:
+        if name in ['batch', 'client_audit', 'colors', 'json', 'list_policies', 'manual', 'make_policy', 'ssh1', 'ssh2', 'timeout_set', 'verbose', 'debug']:
             valid, value = True, bool(value)
         elif name in ['ipv4', 'ipv6']:
             valid, value = True, bool(value)
