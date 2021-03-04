@@ -9,6 +9,17 @@
 
 [jtesta/ssh-audit](https://github.com/jtesta/ssh-audit/) (v2.0+) is the updated and maintained version of ssh-audit forked from [arthepsy/ssh-audit](https://github.com/arthepsy/ssh-audit) (v1.x) due to inactivity.
 
+- [Features](#features)
+- [Usage](#usage)
+- [Screenshots](#screenshots)
+    - [Server Standard Audit Example](#server-standard-audit-example)
+    - [Server Policy Audit Example](#server-policy-audit-example)
+    - [Client Standard Audit Example](#client-standard-audit-example)
+- [Hardening Guides](#hardening-guides)
+- [Pre-Built Packages](#pre-built-packages)
+- [Web Front-End](#web-front-end)
+- [ChangeLog](#changelog)
+
 ## Features
 - SSH1 and SSH2 protocol server support;
 - analyze SSH client configuration;
@@ -116,6 +127,8 @@ To create a policy based on a target server (which can be manually edited):
 ssh-audit -M new_policy.txt targetserver
 ```
 
+## Screenshots
+
 ### Server Standard Audit Example
 Below is a screen shot of the standard server-auditing output when connecting to an unhardened OpenSSH v5.3 service:
 ![screenshot](https://user-images.githubusercontent.com/2982011/64388792-317e6f80-d00e-11e9-826e-a4934769bb07.png)
@@ -131,10 +144,10 @@ After applying the steps in the hardening guide (see below), the output changes 
 Below is a screen shot of the client-auditing output when an unhardened OpenSSH v7.2 client connects:
 ![client_screenshot](https://user-images.githubusercontent.com/2982011/68867998-b946c100-06c4-11ea-975f-1f47e4178a74.png)
 
-### Hardening Guides
+## Hardening Guides
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
-### Pre-Built Packages
+## Pre-Built Packages
 Pre-built packages are available for Windows (see the releases page), on PyPI, Snap, and Homebrew.
 
 To install from PyPI:
@@ -158,7 +171,7 @@ $ docker pull positronsecurity/ssh-audit
 ```
 (Then run with: `docker run -it -p 2222:2222 positronsecurity/ssh-audit 10.1.1.1`)
 
-### Web Front-End
+## Web Front-End
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
