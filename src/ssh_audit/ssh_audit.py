@@ -264,7 +264,7 @@ def output_security(out: OutputBuffer, banner: Optional[Banner], client_audit: b
         out.sep()
 
 
-def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: bool, sha256: bool = True) -> None:
+def output_fingerprints(out: OutputBuffer, algs: Algorithms, fp_hash_types: List[Dict[str, object]], is_json_output: bool, alg_max_len: int, sha256: bool = True) -> None:
     with out:
         fps = []
         if algs.ssh1kex is not None:
@@ -274,7 +274,7 @@ def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: boo
             fps.append((name, fp))
         if algs.ssh2kex is not None:
             host_keys = algs.ssh2kex.host_keys()
-            for host_key_type in algs.ssh2kex.host_keys():
+            for host_key_type in host_keys:
                 if host_keys[host_key_type] is None:
                     continue
 
@@ -289,12 +289,42 @@ def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: boo
                     fps.append((host_key_type, fp))
         # Similarly, the host keys can be processed in random order due to Python's order-indifference in dicts.  So we sort this list before printing; this makes automated testing possible.
         fps = sorted(fps)
+
+        fp_prefix = '(fin)'
+
         for fpp in fps:
-            name, fp = fpp
-            fpo = fp.sha256 if sha256 else fp.md5
-            # p = '' if out.batch else ' ' * (padlen - len(name))
-            # out.good('(fin) {0}{1} -- {2} {3}'.format(name, p, bits, fpo))
-            out.good('(fin) {}: {}'.format(name, fpo))
+            i = 1
+            for fp_hash_type in fp_hash_types:
+                name, fp = fpp
+                fpo = getattr(fp, str(fp_hash_type['name']))
+
+                # To keep the fingerprint output in alignment with the algorithm
+                # output, the padding between the name and the value takes into
+                # consideration the length of the longest algorithm name.
+                #
+                # This ought not to happen but in the event that the length of
+                # the fingerprint name exceeds the length of the longest
+                # algorithm name then the difference between the longest alg
+                # name and the length of the fingerprint name will be a negative
+                # number. This isn't a problem because multiplying the padding
+                # value string with a negative number results in a zero length
+                # string, meaning there will be no padding.
+                padding = '' if out.batch else ' ' * (alg_max_len - (len(name)))
+
+                if i == 1 or out.batch or out.verbose:
+                    fp_formatted = '{} {}{} -- {}'.format(fp_prefix, name, padding, fpo)
+                else:
+                    padding = (len(padding) + len(name) + len(fp_prefix) + 1) * ' '
+                    fp_formatted = '{} `- {}'.format(padding, fpo)
+
+                if fp_hash_type['verbose']:
+                    if out.verbose:
+                        out.v(fp_formatted)
+                        i = i + 1
+                else:
+                    out.good(fp_formatted)
+                    i = i + 1
+
     if not out.is_section_empty() and not is_json_output:
         out.head('# fingerprints')
         out.flush_section()
@@ -397,6 +427,9 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
     client_audit = client_host is not None  # If set, this is a client audit.
     sshv = 1 if pkm is not None else 2
     algs = Algorithms(pkm, kex)
+    fingerprint_hash_types_all = [elem for elem in dir(Fingerprint) if not elem.startswith('__')]
+    fingerprint_hash_types_verbose = ['md5']
+
     with out:
         if print_target:
             host = aconf.host
@@ -468,14 +501,23 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
         program_retval = output_algorithms(out, title, adb, atype, kex.server.encryption, unknown_algorithms, aconf.json, program_retval, maxlen)
         title, atype = 'message authentication code algorithms', 'mac'
         program_retval = output_algorithms(out, title, adb, atype, kex.server.mac, unknown_algorithms, aconf.json, program_retval, maxlen)
-    output_fingerprints(out, algs, aconf.json, True)
+
+    fp_hash_types = []
+    for fingerprint_hash_type in fingerprint_hash_types_all:
+        if fingerprint_hash_type in fingerprint_hash_types_verbose:
+            fp_hash_types.append({'name': fingerprint_hash_type, 'verbose': True})
+        else:
+            fp_hash_types.append({'name': fingerprint_hash_type, 'verbose': False})
+    output_fingerprints(out, algs, fp_hash_types, aconf.json, maxlen, True)
+
     perfect_config = output_recommendations(out, algs, software, aconf.json, maxlen)
     output_info(out, software, client_audit, not perfect_config, aconf.json)
 
     if aconf.json:
         out.reset()
         # Build & write the JSON struct.
-        out.info(json.dumps(build_struct(aconf.host, banner, kex=kex, client_host=client_host), sort_keys=True))
+        fp_hash_types_name = fingerprint_hash_types_all if out.verbose else [x for x in fingerprint_hash_types_all if x not in fingerprint_hash_types_verbose]
+        out.info(json.dumps(build_struct(aconf.host, banner, fp_hash_types_name, kex=kex, client_host=client_host), sort_keys=True))
     elif len(unknown_algorithms) > 0:  # If we encountered any unknown algorithms, ask the user to report them.
         out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at <https://github.com/jtesta/ssh-audit/issues>.\n" % ','.join(unknown_algorithms))
 
@@ -710,7 +752,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     return aconf
 
 
-def build_struct(target_host: str, banner: Optional['Banner'], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None) -> Any:
+def build_struct(target_host: str, banner: Optional['Banner'], fp_hash_types: List[str], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None) -> Any:
 
     banner_str = ''
     banner_protocol = None
@@ -782,16 +824,19 @@ def build_struct(target_host: str, banner: Optional['Banner'], kex: Optional['SS
             if host_keys[host_key_type] is None:
                 continue
 
-            fp = Fingerprint(host_keys[host_key_type])
+            for fp_hash_type in fp_hash_types:
+                fp = Fingerprint(host_keys[host_key_type])
 
-            # Skip over certificate host types (or we would return invalid fingerprints).
-            if '-cert-' in host_key_type:
-                continue
-            entry = {
-                'type': host_key_type,
-                'fp': fp.sha256,
-            }
-            res['fingerprints'].append(entry)
+                # Skip over certificate host types (or we would return invalid fingerprints).
+                if '-cert-' in host_key_type:
+                    continue
+
+                entry = {
+                    'type': host_key_type,
+                    'fp': getattr(fp, fp_hash_type),
+                    'hashtype': fp_hash_type,
+                }
+                res['fingerprints'].append(entry)
     else:
         pkm_supported_ciphers = None
         pkm_supported_authentications = None
