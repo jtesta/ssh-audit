@@ -9,6 +9,17 @@
 
 [jtesta/ssh-audit](https://github.com/jtesta/ssh-audit/) (v2.0+) is the updated and maintained version of ssh-audit forked from [arthepsy/ssh-audit](https://github.com/arthepsy/ssh-audit) (v1.x) due to inactivity.
 
+- [Features](#features)
+- [Usage](#usage)
+- [Screenshots](#screenshots)
+    - [Server Standard Audit Example](#server-standard-audit-example)
+    - [Server Policy Audit Example](#server-policy-audit-example)
+    - [Client Standard Audit Example](#client-standard-audit-example)
+- [Hardening Guides](#hardening-guides)
+- [Pre-Built Packages](#pre-built-packages)
+- [Web Front-End](#web-front-end)
+- [ChangeLog](#changelog)
+
 ## Features
 - SSH1 and SSH2 protocol server support;
 - analyze SSH client configuration;
@@ -21,6 +32,7 @@
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - policy scans to ensure adherence to a hardened/standard configuration;
 - runs on Linux and Windows;
+- supports Python 3.6 - 3.9;
 - no dependencies
 
 ## Usage
@@ -36,11 +48,13 @@ usage: ssh-audit.py [options] <host>
    -c,  --client-audit     starts a server on port 2222 to audit client
                                software config (use -p to change port;
                                use -t to change timeout)
+   -d,  --debug            Enable debug output.
    -j,  --json             JSON output
    -l,  --level=<level>    minimum output level (info|warn|fail)
    -L,  --list-policies    list all the official, built-in policies
         --lookup=<alg1,alg2,...>    looks up an algorithm(s) without
                                     connecting to a server
+   -m,  --manual           print the man page (Windows only)
    -M,  --make-policy=<policy.txt>  creates a policy based on the target server
                                     (i.e.: the target server has the ideal
                                     configuration that other servers should
@@ -53,6 +67,8 @@ usage: ssh-audit.py [options] <host>
                                (default: 5)
    -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one
                                    per line, format HOST[:PORT])
+        --threads=<threads>    number of threads to use when scanning multiple
+                                   targets (-T/--targets) (default: 32)
    -v,  --verbose          verbose output
 ```
 * if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.  
@@ -86,7 +102,7 @@ To audit a client configuration, with a listener on port 4567:
 ssh-audit -c -p 4567
 ```
 
-To  list all official built-in policies (hint: use resulting file paths with `-P`/`--policy`):
+To  list all official built-in policies (hint: use resulting policy names with `-P`/`--policy`):
 ```
 ssh-audit -L
 ```
@@ -106,17 +122,19 @@ To run a policy audit against many servers:
 ssh-audit -T servers.txt -P ["policy name" | path/to/server_policy.txt]
 ```
 
-To create a policy based on a target server (which can be manually edited; see official built-in policies for syntax examples):
+To create a policy based on a target server (which can be manually edited):
 ```
 ssh-audit -M new_policy.txt targetserver
 ```
+
+## Screenshots
 
 ### Server Standard Audit Example
 Below is a screen shot of the standard server-auditing output when connecting to an unhardened OpenSSH v5.3 service:
 ![screenshot](https://user-images.githubusercontent.com/2982011/64388792-317e6f80-d00e-11e9-826e-a4934769bb07.png)
 
 ### Server Policy Audit Example
-Below is a screen shot of the policy auditing output when connecting to an un-hardened Ubuntu Server 20.04 machine:
+Below is a screen shot of the policy auditing output when connecting to an un-hardened Ubuntu Server 20.04 machine (hint: use `-L`/`--list-policies` to see names of built-in policies to use with `-P`/`--policy`):
 ![screenshot](https://user-images.githubusercontent.com/2982011/94370881-95178700-00c0-11eb-8705-3157a4669dc0.png)
 
 After applying the steps in the hardening guide (see below), the output changes to the following:
@@ -126,10 +144,10 @@ After applying the steps in the hardening guide (see below), the output changes 
 Below is a screen shot of the client-auditing output when an unhardened OpenSSH v7.2 client connects:
 ![client_screenshot](https://user-images.githubusercontent.com/2982011/68867998-b946c100-06c4-11ea-975f-1f47e4178a74.png)
 
-### Hardening Guides
+## Hardening Guides
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
-### Pre-Built Packages
+## Pre-Built Packages
 Pre-built packages are available for Windows (see the releases page), on PyPI, Snap, and Homebrew.
 
 To install from PyPI:
@@ -153,15 +171,27 @@ $ docker pull positronsecurity/ssh-audit
 ```
 (Then run with: `docker run -it -p 2222:2222 positronsecurity/ssh-audit 10.1.1.1`)
 
-### Web Front-End
+## Web Front-End
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
-### v2.4.0-dev (???)
+### v2.5.0-dev (???)
+ - Fixed crash when running host key tests.
+ - Added `-d`/`--debug` option for getting debugging output; credit [Adam Russell](https://github.com/thecliguy).
+
+### v2.4.0 (2021-02-23)
+ - Added multi-threaded scanning support.
+ - Added built-in Windows manual page (see `-m`/`--manual`); credit [Adam Russell](https://github.com/thecliguy).
  - Added version check for OpenSSH user enumeration (CVE-2018-15473).
+ - Added deprecation note to host key types based on SHA-1.
+ - Added extra warnings for SSHv1.
+ - Added built-in hardened OpenSSH v8.5 policy.
+ - Upgraded warnings to failures for host key types based on SHA-1.
  - Fixed crash when receiving unexpected response during host key test.
  - Fixed hang against older Cisco devices during host key test & gex test.
+ - Fixed improper termination while scanning multiple targets when one target returns an error.
  - Dropped support for Python 3.5 (which reached EOL in Sept. 2020).
+ - Added 1 new key exchange: `sntrup761x25519-sha512@openssh.com`.
 
 ### v2.3.1 (2020-10-28)
  - Now parses public key sizes for `rsa-sha2-256-cert-v01@openssh.com` and `rsa-sha2-512-cert-v01@openssh.com` host key types.

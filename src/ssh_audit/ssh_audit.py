@@ -2,7 +2,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,9 +23,12 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
+import concurrent.futures
+import copy
 import getopt
 import json
 import os
+import re
 import sys
 import traceback
 
@@ -34,6 +37,7 @@ from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
 from ssh_audit.globals import VERSION
+from ssh_audit.globals import WINDOWS_MAN_PAGE
 from ssh_audit.algorithm import Algorithm
 from ssh_audit.algorithms import Algorithms
 from ssh_audit.auditconf import AuditConf
@@ -42,7 +46,6 @@ from ssh_audit import exitcodes
 from ssh_audit.fingerprint import Fingerprint
 from ssh_audit.gextest import GEXTest
 from ssh_audit.hostkeytest import HostKeyTest
-from ssh_audit.output import Output
 from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.policy import Policy
 from ssh_audit.product import Product
@@ -56,17 +59,18 @@ from ssh_audit.ssh_socket import SSH_Socket
 from ssh_audit.utils import Utils
 from ssh_audit.versionvulnerabilitydb import VersionVulnerabilityDB
 
-
-try:  # pragma: nocover
-    from colorama import init as colorama_init
-    colorama_init(strip=False)  # pragma: nocover
-except ImportError:  # pragma: nocover
-    pass
+# Only import colorama under Windows.  Other OSes can natively handle terminal colors.
+if sys.platform == 'win32':
+    try:
+        from colorama import init as colorama_init
+        colorama_init()
+    except ImportError:
+        pass
 
 
 def usage(err: Optional[str] = None) -> None:
     retval = exitcodes.GOOD
-    uout = Output()
+    uout = OutputBuffer()
     p = os.path.basename(sys.argv[0])
     uout.head('# {} {}, https://github.com/jtesta/ssh-audit\n'.format(p, VERSION))
     if err is not None and len(err) > 0:
@@ -80,34 +84,38 @@ def usage(err: Optional[str] = None) -> None:
     uout.info('   -6,  --ipv6             enable IPv6 (order of precedence)')
     uout.info('   -b,  --batch            batch output')
     uout.info('   -c,  --client-audit     starts a server on port 2222 to audit client\n                               software config (use -p to change port;\n                               use -t to change timeout)')
+    uout.info('   -d,  --debug            debug output')
     uout.info('   -j,  --json             JSON output')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies')
     uout.info('        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without\n                                    connecting to a server')
     uout.info('   -M,  --make-policy=<policy.txt>  creates a policy based on the target server\n                                    (i.e.: the target server has the ideal\n                                    configuration that other servers should\n                                    adhere to)')
+    uout.info('   -m,  --manual           print the man page (Windows only)')
     uout.info('   -n,  --no-colors        disable colors')
     uout.info('   -p,  --port=<port>      port to connect')
     uout.info('   -P,  --policy=<policy.txt>  run a policy test using the specified policy')
     uout.info('   -t,  --timeout=<secs>   timeout (in seconds) for connection and reading\n                               (default: 5)')
-    uout.info('   -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one\n                                   per line, format HOST[:PORT])')
+    uout.info('   -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one\n                                   per line, format HOST[:PORT]).  Use --threads\n                                   to control concurrent scans.')
+    uout.info('        --threads=<threads>    number of threads to use when scanning multiple\n                                   targets (-T/--targets) (default: 32)')
     uout.info('   -v,  --verbose          verbose output')
     uout.sep()
+    uout.write()
     sys.exit(retval)
 
 
-def output_algorithms(title: str, alg_db: Dict[str, Dict[str, List[List[Optional[str]]]]], alg_type: str, algorithms: List[str], unknown_algs: List[str], is_json_output: bool, program_retval: int, maxlen: int = 0, alg_sizes: Optional[Dict[str, Tuple[int, int]]] = None) -> int:  # pylint: disable=too-many-arguments
-    with OutputBuffer() as obuf:
+def output_algorithms(out: OutputBuffer, title: str, alg_db: Dict[str, Dict[str, List[List[Optional[str]]]]], alg_type: str, algorithms: List[str], unknown_algs: List[str], is_json_output: bool, program_retval: int, maxlen: int = 0, alg_sizes: Optional[Dict[str, Tuple[int, int]]] = None) -> int:  # pylint: disable=too-many-arguments
+    with out:
         for algorithm in algorithms:
-            program_retval = output_algorithm(alg_db, alg_type, algorithm, unknown_algs, program_retval, maxlen, alg_sizes)
-    if len(obuf) > 0 and not is_json_output:
+            program_retval = output_algorithm(out, alg_db, alg_type, algorithm, unknown_algs, program_retval, maxlen, alg_sizes)
+    if not out.is_section_empty() and not is_json_output:
         out.head('# ' + title)
-        obuf.flush()
+        out.flush_section()
         out.sep()
 
     return program_retval
 
 
-def output_algorithm(alg_db: Dict[str, Dict[str, List[List[Optional[str]]]]], alg_type: str, alg_name: str, unknown_algs: List[str], program_retval: int, alg_max_len: int = 0, alg_sizes: Optional[Dict[str, Tuple[int, int]]] = None) -> int:
+def output_algorithm(out: OutputBuffer, alg_db: Dict[str, Dict[str, List[List[Optional[str]]]]], alg_type: str, alg_name: str, unknown_algs: List[str], program_retval: int, alg_max_len: int = 0, alg_sizes: Optional[Dict[str, Tuple[int, int]]] = None) -> int:
     prefix = '(' + alg_type + ') '
     if alg_max_len == 0:
         alg_max_len = len(alg_name)
@@ -175,7 +183,7 @@ def output_algorithm(alg_db: Dict[str, Dict[str, List[List[Optional[str]]]]], al
     return program_retval
 
 
-def output_compatibility(algs: Algorithms, client_audit: bool, for_server: bool = True) -> None:
+def output_compatibility(out: OutputBuffer, algs: Algorithms, client_audit: bool, for_server: bool = True) -> None:
 
     # Don't output any compatibility info if we're doing a client audit.
     if client_audit:
@@ -205,7 +213,7 @@ def output_compatibility(algs: Algorithms, client_audit: bool, for_server: bool 
         out.good('(gen) compatibility: ' + ', '.join(comp_text))
 
 
-def output_security_sub(sub: str, software: Optional[Software], client_audit: bool, padlen: int) -> None:
+def output_security_sub(out: OutputBuffer, sub: str, software: Optional[Software], client_audit: bool, padlen: int) -> None:
     secdb = VersionVulnerabilityDB.CVE if sub == 'cve' else VersionVulnerabilityDB.TXT
     if software is None or software.product not in secdb:
         return
@@ -241,20 +249,23 @@ def output_security_sub(sub: str, software: Optional[Software], client_audit: bo
             out.fail('(sec) {}{} -- {}'.format(name, p, descr))
 
 
-def output_security(banner: Optional[Banner], client_audit: bool, padlen: int, is_json_output: bool) -> None:
-    with OutputBuffer() as obuf:
+def output_security(out: OutputBuffer, banner: Optional[Banner], client_audit: bool, padlen: int, is_json_output: bool) -> None:
+    with out:
         if banner is not None:
             software = Software.parse(banner)
-            output_security_sub('cve', software, client_audit, padlen)
-            output_security_sub('txt', software, client_audit, padlen)
-    if len(obuf) > 0 and not is_json_output:
+            output_security_sub(out, 'cve', software, client_audit, padlen)
+            output_security_sub(out, 'txt', software, client_audit, padlen)
+            if banner.protocol[0] == 1:
+                p = '' if out.batch else ' ' * (padlen - 14)
+                out.fail('(sec) SSH v1 enabled{} -- SSH v1 can be exploited to recover plaintext passwords'.format(p))
+    if not out.is_section_empty() and not is_json_output:
         out.head('# security')
-        obuf.flush()
+        out.flush_section()
         out.sep()
 
 
-def output_fingerprints(algs: Algorithms, is_json_output: bool, sha256: bool = True) -> None:
-    with OutputBuffer() as obuf:
+def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: bool, sha256: bool = True) -> None:
+    with out:
         fps = []
         if algs.ssh1kex is not None:
             name = 'ssh-rsa1'
@@ -284,14 +295,14 @@ def output_fingerprints(algs: Algorithms, is_json_output: bool, sha256: bool = T
             # p = '' if out.batch else ' ' * (padlen - len(name))
             # out.good('(fin) {0}{1} -- {2} {3}'.format(name, p, bits, fpo))
             out.good('(fin) {}: {}'.format(name, fpo))
-    if len(obuf) > 0 and not is_json_output:
+    if not out.is_section_empty() and not is_json_output:
         out.head('# fingerprints')
-        obuf.flush()
+        out.flush_section()
         out.sep()
 
 
 # Returns True if no warnings or failures encountered in configuration.
-def output_recommendations(algs: Algorithms, software: Optional[Software], is_json_output: bool, padlen: int = 0) -> bool:
+def output_recommendations(out: OutputBuffer, algs: Algorithms, software: Optional[Software], is_json_output: bool, padlen: int = 0) -> bool:
 
     ret = True
     # PuTTY's algorithms cannot be modified, so there's no point in issuing recommendations.
@@ -323,7 +334,7 @@ def output_recommendations(algs: Algorithms, software: Optional[Software], is_js
         return ret
 
     for_server = True
-    with OutputBuffer() as obuf:
+    with out:
         software, alg_rec = algs.get_recommendations(software, for_server)
         for sshv in range(2, 0, -1):
             if sshv not in alg_rec:
@@ -351,20 +362,20 @@ def output_recommendations(algs: Algorithms, software: Optional[Software], is_js
                         b = '(SSH{})'.format(sshv) if sshv == 1 else ''
                         fm = '(rec) {0}{1}{2}-- {3} algorithm to {4}{5} {6}'
                         fn(fm.format(sg, name, p, alg_type, an, chg_additional_info, b))
-    if len(obuf) > 0 and not is_json_output:
+    if not out.is_section_empty() and not is_json_output:
         if software is not None:
             title = '(for {})'.format(software.display(False))
         else:
             title = ''
         out.head('# algorithm recommendations {}'.format(title))
-        obuf.flush(True)  # Sort the output so that it is always stable (needed for repeatable testing).
+        out.flush_section(sort_section=True)  # Sort the output so that it is always stable (needed for repeatable testing).
         out.sep()
     return ret
 
 
 # Output additional information & notes.
-def output_info(software: Optional['Software'], client_audit: bool, any_problems: bool, is_json_output: bool) -> None:
-    with OutputBuffer() as obuf:
+def output_info(out: OutputBuffer, software: Optional['Software'], client_audit: bool, any_problems: bool, is_json_output: bool) -> None:
+    with out:
         # Tell user that PuTTY cannot be hardened at the protocol-level.
         if client_audit and (software is not None) and (software.product == Product.PuTTY):
             out.warn('(nfo) PuTTY does not have the option of restricting any algorithms during the SSH handshake.')
@@ -373,20 +384,20 @@ def output_info(software: Optional['Software'], client_audit: bool, any_problems
         if any_problems:
             out.warn('(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>')
 
-    if len(obuf) > 0 and not is_json_output:
+    if not out.is_section_empty() and not is_json_output:
         out.head('# additional info')
-        obuf.flush()
+        out.flush_section()
         out.sep()
 
 
 # Returns a exitcodes.* flag to denote if any failures or warnings were encountered.
-def output(aconf: AuditConf, banner: Optional[Banner], header: List[str], client_host: Optional[str] = None, kex: Optional[SSH2_Kex] = None, pkm: Optional[SSH1_PublicKeyMessage] = None, print_target: bool = False) -> int:
+def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header: List[str], client_host: Optional[str] = None, kex: Optional[SSH2_Kex] = None, pkm: Optional[SSH1_PublicKeyMessage] = None, print_target: bool = False) -> int:
 
     program_retval = exitcodes.GOOD
     client_audit = client_host is not None  # If set, this is a client audit.
     sshv = 1 if pkm is not None else 2
     algs = Algorithms(pkm, kex)
-    with OutputBuffer() as obuf:
+    with out:
         if print_target:
             host = aconf.host
 
@@ -405,18 +416,23 @@ def output(aconf: AuditConf, banner: Optional[Banner], header: List[str], client
         if len(header) > 0:
             out.info('(gen) header: ' + '\n'.join(header))
         if banner is not None:
-            out.good('(gen) banner: {}'.format(banner))
+            banner_line = '(gen) banner: {}'.format(banner)
+            if sshv == 1 or banner.protocol[0] == 1:
+                out.fail(banner_line)
+                out.fail('(gen) protocol SSH1 enabled')
+            else:
+                out.good(banner_line)
+
             if not banner.valid_ascii:
                 # NOTE: RFC 4253, Section 4.2
                 out.warn('(gen) banner contains non-printable ASCII')
-            if sshv == 1 or banner.protocol[0] == 1:
-                out.fail('(gen) protocol SSH1 enabled')
+
             software = Software.parse(banner)
             if software is not None:
                 out.good('(gen) software: {}'.format(software))
         else:
             software = None
-        output_compatibility(algs, client_audit)
+        output_compatibility(out, algs, client_audit)
         if kex is not None:
             compressions = [x for x in kex.server.compression if x != 'none']
             if len(compressions) > 0:
@@ -424,12 +440,12 @@ def output(aconf: AuditConf, banner: Optional[Banner], header: List[str], client
             else:
                 cmptxt = 'disabled'
             out.good('(gen) compression: {}'.format(cmptxt))
-    if len(obuf) > 0 and not aconf.json:  # Print output when it exists and JSON output isn't requested.
+    if not out.is_section_empty() and not aconf.json:  # Print output when it exists and JSON output isn't requested.
         out.head('# general')
-        obuf.flush()
+        out.flush_section()
         out.sep()
     maxlen = algs.maxlen + 1
-    output_security(banner, client_audit, maxlen, aconf.json)
+    output_security(out, banner, client_audit, maxlen, aconf.json)
     # Filled in by output_algorithms() with unidentified algs.
     unknown_algorithms: List[str] = []
     if pkm is not None:
@@ -437,34 +453,36 @@ def output(aconf: AuditConf, banner: Optional[Banner], header: List[str], client
         ciphers = pkm.supported_ciphers
         auths = pkm.supported_authentications
         title, atype = 'SSH1 host-key algorithms', 'key'
-        program_retval = output_algorithms(title, adb, atype, ['ssh-rsa1'], unknown_algorithms, aconf.json, program_retval, maxlen)
+        program_retval = output_algorithms(out, title, adb, atype, ['ssh-rsa1'], unknown_algorithms, aconf.json, program_retval, maxlen)
         title, atype = 'SSH1 encryption algorithms (ciphers)', 'enc'
-        program_retval = output_algorithms(title, adb, atype, ciphers, unknown_algorithms, aconf.json, program_retval, maxlen)
+        program_retval = output_algorithms(out, title, adb, atype, ciphers, unknown_algorithms, aconf.json, program_retval, maxlen)
         title, atype = 'SSH1 authentication types', 'aut'
-        program_retval = output_algorithms(title, adb, atype, auths, unknown_algorithms, aconf.json, program_retval, maxlen)
+        program_retval = output_algorithms(out, title, adb, atype, auths, unknown_algorithms, aconf.json, program_retval, maxlen)
     if kex is not None:
         adb = SSH2_KexDB.ALGORITHMS
         title, atype = 'key exchange algorithms', 'kex'
-        program_retval = output_algorithms(title, adb, atype, kex.kex_algorithms, unknown_algorithms, aconf.json, program_retval, maxlen, kex.dh_modulus_sizes())
+        program_retval = output_algorithms(out, title, adb, atype, kex.kex_algorithms, unknown_algorithms, aconf.json, program_retval, maxlen, kex.dh_modulus_sizes())
         title, atype = 'host-key algorithms', 'key'
-        program_retval = output_algorithms(title, adb, atype, kex.key_algorithms, unknown_algorithms, aconf.json, program_retval, maxlen, kex.rsa_key_sizes())
+        program_retval = output_algorithms(out, title, adb, atype, kex.key_algorithms, unknown_algorithms, aconf.json, program_retval, maxlen, kex.rsa_key_sizes())
         title, atype = 'encryption algorithms (ciphers)', 'enc'
-        program_retval = output_algorithms(title, adb, atype, kex.server.encryption, unknown_algorithms, aconf.json, program_retval, maxlen)
+        program_retval = output_algorithms(out, title, adb, atype, kex.server.encryption, unknown_algorithms, aconf.json, program_retval, maxlen)
         title, atype = 'message authentication code algorithms', 'mac'
-        program_retval = output_algorithms(title, adb, atype, kex.server.mac, unknown_algorithms, aconf.json, program_retval, maxlen)
-    output_fingerprints(algs, aconf.json, True)
-    perfect_config = output_recommendations(algs, software, aconf.json, maxlen)
-    output_info(software, client_audit, not perfect_config, aconf.json)
+        program_retval = output_algorithms(out, title, adb, atype, kex.server.mac, unknown_algorithms, aconf.json, program_retval, maxlen)
+    output_fingerprints(out, algs, aconf.json, True)
+    perfect_config = output_recommendations(out, algs, software, aconf.json, maxlen)
+    output_info(out, software, client_audit, not perfect_config, aconf.json)
 
     if aconf.json:
-        print(json.dumps(build_struct(banner, kex=kex, client_host=client_host), sort_keys=True), end='' if len(aconf.target_list) > 0 else "\n")  # Print the JSON of the audit info.  Skip the newline at the end if multiple targets were given (since each audit dump will go into its own list entry).
+        out.reset()
+        # Build & write the JSON struct.
+        out.info(json.dumps(build_struct(aconf.host, banner, kex=kex, client_host=client_host), sort_keys=True))
     elif len(unknown_algorithms) > 0:  # If we encountered any unknown algorithms, ask the user to report them.
         out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at <https://github.com/jtesta/ssh-audit/issues>.\n" % ','.join(unknown_algorithms))
 
     return program_retval
 
 
-def evaluate_policy(aconf: AuditConf, banner: Optional['Banner'], client_host: Optional[str], kex: Optional['SSH2_Kex'] = None) -> bool:
+def evaluate_policy(out: OutputBuffer, aconf: AuditConf, banner: Optional['Banner'], client_host: Optional[str], kex: Optional['SSH2_Kex'] = None) -> bool:
 
     if aconf.policy is None:
         raise RuntimeError('Internal error: cannot evaluate against null Policy!')
@@ -472,11 +490,11 @@ def evaluate_policy(aconf: AuditConf, banner: Optional['Banner'], client_host: O
     passed, error_struct, error_str = aconf.policy.evaluate(banner, kex)
     if aconf.json:
         json_struct = {'host': aconf.host, 'policy': aconf.policy.get_name_and_version(), 'passed': passed, 'errors': error_struct}
-        print(json.dumps(json_struct, sort_keys=True))
+        out.info(json.dumps(json_struct, sort_keys=True))
     else:
         spacing = ''
         if aconf.client_audit:
-            print("Client IP: %s" % client_host)
+            out.info("Client IP: %s" % client_host)
             spacing = "   "  # So the fields below line up with 'Client IP: '.
         else:
             host = aconf.host
@@ -487,9 +505,9 @@ def evaluate_policy(aconf: AuditConf, banner: Optional['Banner'], client_host: O
                 else:
                     host = '%s:%d' % (aconf.host, aconf.port)
 
-            print("Host:   %s" % host)
-        print("Policy: %s%s" % (spacing, aconf.policy.get_name_and_version()))
-        print("Result: %s" % spacing, end='')
+            out.info("Host:   %s" % host)
+        out.info("Policy: %s%s" % (spacing, aconf.policy.get_name_and_version()))
+        out.info("Result: %s" % spacing, line_ended=False)
 
         # Use these nice unicode characters in the result message, unless we're on Windows (the cmd.exe terminal doesn't display them properly).
         icon_good = "✔ "
@@ -507,23 +525,25 @@ def evaluate_policy(aconf: AuditConf, banner: Optional['Banner'], client_host: O
     return passed
 
 
-def list_policies() -> None:
+def list_policies(out: OutputBuffer) -> None:
     '''Prints a list of server & client policies.'''
 
     server_policy_names, client_policy_names = Policy.list_builtin_policies()
 
     if len(server_policy_names) > 0:
         out.head('\nServer policies:\n')
-        print("  * \"%s\"" % "\"\n  * \"".join(server_policy_names))
+        out.info("  * \"%s\"" % "\"\n  * \"".join(server_policy_names))
 
     if len(client_policy_names) > 0:
         out.head('\nClient policies:\n')
-        print("  * \"%s\"" % "\"\n  * \"".join(client_policy_names))
+        out.info("  * \"%s\"" % "\"\n  * \"".join(client_policy_names))
 
+    out.sep()
     if len(server_policy_names) == 0 and len(client_policy_names) == 0:
-        print("Error: no built-in policies found!")
+        out.fail("Error: no built-in policies found!")
     else:
-        print("\nHint: Use -P and provide the full name of a policy to run a policy scan with.\n")
+        out.info("\nHint: Use -P and provide the full name of a policy to run a policy scan with.\n")
+    out.write()
 
 
 def make_policy(aconf: AuditConf, banner: Optional['Banner'], kex: Optional['SSH2_Kex'], client_host: Optional[str]) -> None:
@@ -552,12 +572,12 @@ def make_policy(aconf: AuditConf, banner: Optional['Banner'], kex: Optional['SSH
         print("Error: file already exists: %s" % aconf.policy_file)
 
 
-def process_commandline(args: List[str], usage_cb: Callable[..., None]) -> 'AuditConf':  # pylint: disable=too-many-statements
+def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[..., None]) -> 'AuditConf':  # pylint: disable=too-many-statements
     # pylint: disable=too-many-branches
     aconf = AuditConf()
     try:
-        sopts = 'h1246M:p:P:jbcnvl:t:T:L'
-        lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=']
+        sopts = 'h1246M:p:P:jbcnvl:t:T:Lmd'
+        lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=', 'threads=', 'manual', 'debug']
         opts, args = getopt.gnu_getopt(args, sopts, lopts)
     except getopt.GetoptError as err:
         usage_cb(str(err))
@@ -585,10 +605,12 @@ def process_commandline(args: List[str], usage_cb: Callable[..., None]) -> 'Audi
             aconf.client_audit = True
         elif o in ('-n', '--no-colors'):
             aconf.colors = False
+            out.use_colors = False
         elif o in ('-j', '--json'):
             aconf.json = True
         elif o in ('-v', '--verbose'):
             aconf.verbose = True
+            out.verbose = True
         elif o in ('-l', '--level'):
             if a not in ('info', 'warn', 'fail'):
                 usage_cb('level {} is not valid'.format(a))
@@ -603,19 +625,29 @@ def process_commandline(args: List[str], usage_cb: Callable[..., None]) -> 'Audi
             aconf.policy_file = a
         elif o in ('-T', '--targets'):
             aconf.target_file = a
+        elif o == '--threads':
+            aconf.threads = int(a)
         elif o in ('-L', '--list-policies'):
             aconf.list_policies = True
         elif o == '--lookup':
             aconf.lookup = a
+        elif o in ('-m', '--manual'):
+            aconf.manual = True
+        elif o in ('-d', '--debug'):
+            aconf.debug = True
+            out.debug = True
 
-    if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '':
+    if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '' and aconf.manual is False:
         usage_cb()
+
+    if aconf.manual:
+        return aconf
 
     if aconf.lookup != '':
         return aconf
 
     if aconf.list_policies:
-        list_policies()
+        list_policies(out)
         sys.exit(exitcodes.GOOD)
 
     if aconf.client_audit is False and aconf.target_file is None:
@@ -659,23 +691,26 @@ def process_commandline(args: List[str], usage_cb: Callable[..., None]) -> 'Audi
             try:
                 aconf.policy = Policy(policy_file=aconf.policy_file)
             except Exception as e:
-                print("Error while loading policy file: %s: %s" % (str(e), traceback.format_exc()))
+                out.fail("Error while loading policy file: %s: %s" % (str(e), traceback.format_exc()))
+                out.write()
                 sys.exit(exitcodes.UNKNOWN_ERROR)
 
         # If the user wants to do a client audit, but provided a server policy, terminate.
         if aconf.client_audit and aconf.policy.is_server_policy():
-            print("Error: client audit selected, but server policy provided.")
+            out.fail("Error: client audit selected, but server policy provided.")
+            out.write()
             sys.exit(exitcodes.UNKNOWN_ERROR)
 
         # If the user wants to do a server audit, but provided a client policy, terminate.
         if aconf.client_audit is False and aconf.policy.is_server_policy() is False:
-            print("Error: server audit selected, but client policy provided.")
+            out.fail("Error: server audit selected, but client policy provided.")
+            out.write()
             sys.exit(exitcodes.UNKNOWN_ERROR)
 
     return aconf
 
 
-def build_struct(banner: Optional['Banner'], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None) -> Any:
+def build_struct(target_host: str, banner: Optional['Banner'], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None) -> Any:
 
     banner_str = ''
     banner_protocol = None
@@ -695,8 +730,13 @@ def build_struct(banner: Optional['Banner'], kex: Optional['SSH2_Kex'] = None, p
             "comments": banner_comments,
         },
     }
+
+    # If we're scanning a client host, put the client's IP into the results.  Otherwise, include the target host.
     if client_host is not None:
         res['client_ip'] = client_host
+    else:
+        res['target'] = target_host
+
     if kex is not None:
         res['compression'] = kex.server.compression
 
@@ -773,20 +813,31 @@ def build_struct(banner: Optional['Banner'], kex: Optional['SSH2_Kex'] = None, p
 
 
 # Returns one of the exitcodes.* flags.
-def audit(aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = False) -> int:
+def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = False) -> int:
     program_retval = exitcodes.GOOD
     out.batch = aconf.batch
     out.verbose = aconf.verbose
+    out.debug = aconf.debug
     out.level = aconf.level
     out.use_colors = aconf.colors
-    s = SSH_Socket(aconf.host, aconf.port, aconf.ipvo, aconf.timeout, aconf.timeout_set)
+    s = SSH_Socket(out, aconf.host, aconf.port, aconf.ip_version_preference, aconf.timeout, aconf.timeout_set)
+
     if aconf.client_audit:
+        out.v("Listening for client connection on port %d..." % aconf.port, write_now=True)
         s.listen_and_accept()
     else:
+        out.v("Starting audit of %s:%d..." % ('[%s]' % aconf.host if Utils.is_ipv6_address(aconf.host) else aconf.host, aconf.port), write_now=True)
         err = s.connect()
+
         if err is not None:
             out.fail(err)
-            sys.exit(exitcodes.CONNECTION_ERROR)
+
+            # If we're running against multiple targets, return a connection error to the calling worker thread.  Otherwise, write the error message to the console and exit.
+            if len(aconf.target_list) > 0:
+                return exitcodes.CONNECTION_ERROR
+            else:
+                out.write()
+                sys.exit(exitcodes.CONNECTION_ERROR)
 
     if sshv is None:
         sshv = 2 if aconf.ssh2 else 1
@@ -811,7 +862,9 @@ def audit(aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = Fal
                 payload_txt = u'"{}"'.format(repr(payload).lstrip('b')[1:-1])
             if payload_txt == u'Protocol major versions differ.':
                 if sshv == 2 and aconf.ssh1:
-                    return audit(aconf, 1)
+                    ret = audit(out, aconf, 1)
+                    out.write()
+                    return ret
             err = '[exception] error reading packet ({})'.format(payload_txt)
         else:
             err_pair = None
@@ -824,24 +877,24 @@ def audit(aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = Fal
                       'instead received unknown message ({2})'
                 err = fmt.format(err_pair[0], err_pair[1], packet_type)
     if err is not None:
-        output(aconf, banner, header)
+        output(out, aconf, banner, header)
         out.fail(err)
         return exitcodes.CONNECTION_ERROR
     if sshv == 1:
-        program_retval = output(aconf, banner, header, pkm=SSH1_PublicKeyMessage.parse(payload))
+        program_retval = output(out, aconf, banner, header, pkm=SSH1_PublicKeyMessage.parse(payload))
     elif sshv == 2:
         kex = SSH2_Kex.parse(payload)
         if aconf.client_audit is False:
-            HostKeyTest.run(s, kex)
-            GEXTest.run(s, kex)
+            HostKeyTest.run(out, s, kex)
+            GEXTest.run(out, s, kex)
 
         # This is a standard audit scan.
         if (aconf.policy is None) and (aconf.make_policy is False):
-            program_retval = output(aconf, banner, header, client_host=s.client_host, kex=kex, print_target=print_target)
+            program_retval = output(out, aconf, banner, header, client_host=s.client_host, kex=kex, print_target=print_target)
 
         # This is a policy test.
         elif (aconf.policy is not None) and (aconf.make_policy is False):
-            program_retval = exitcodes.GOOD if evaluate_policy(aconf, banner, s.client_host, kex=kex) else exitcodes.FAILURE
+            program_retval = exitcodes.GOOD if evaluate_policy(out, aconf, banner, s.client_host, kex=kex) else exitcodes.FAILURE
 
         # A new policy should be made from this scan.
         elif (aconf.policy is None) and (aconf.make_policy is True):
@@ -853,7 +906,7 @@ def audit(aconf: AuditConf, sshv: Optional[int] = None, print_target: bool = Fal
     return program_retval
 
 
-def algorithm_lookup(alg_names: str) -> int:
+def algorithm_lookup(out: OutputBuffer, alg_names: str) -> int:
     '''Looks up a comma-separated list of algorithms and outputs their security properties.  Returns an exitcodes.* flag.'''
     retval = exitcodes.GOOD
     alg_types = {
@@ -885,7 +938,7 @@ def algorithm_lookup(alg_names: str) -> int:
     for alg_type in alg_types:
         if len(algorithms_dict[alg_type]) > 0:
             title = str(alg_types.get(alg_type))
-            retval = output_algorithms(title, adb, alg_type, list(algorithms_dict[alg_type]), unknown_algorithms, False, retval, padding)
+            retval = output_algorithms(out, title, adb, alg_type, list(algorithms_dict[alg_type]), unknown_algorithms, False, retval, padding)
 
     algorithms_dict_flattened = [
         alg_name
@@ -915,7 +968,7 @@ def algorithm_lookup(alg_names: str) -> int:
         for algorithm_not_found in algorithms_not_found:
             out.fail(algorithm_not_found)
 
-    print()
+    out.sep()
 
     if len(similar_algorithms) > 0:
         retval = exitcodes.FAILURE
@@ -926,14 +979,77 @@ def algorithm_lookup(alg_names: str) -> int:
     return retval
 
 
-out = Output()
+# Worker thread for scanning multiple targets concurrently.
+def target_worker_thread(host: str, port: int, shared_aconf: AuditConf) -> Tuple[int, str]:
+    ret = -1
+    string_output = ''
+
+    out = OutputBuffer()
+    out.verbose = shared_aconf.verbose
+    my_aconf = copy.deepcopy(shared_aconf)
+    my_aconf.host = host
+    my_aconf.port = port
+
+    # If we're outputting JSON, turn off colors and ensure 'info' level messages go through.
+    if my_aconf.json:
+        out.json = True
+        out.use_colors = False
+
+    out.v("Running against: %s:%d..." % (my_aconf.host, my_aconf.port), write_now=True)
+    try:
+        ret = audit(out, my_aconf, print_target=True)
+        string_output = out.get_buffer()
+    except Exception:
+        ret = -1
+        string_output = "An exception occurred while scanning %s:%d:\n%s" % (host, port, str(traceback.format_exc()))
+
+    return ret, string_output
+
+
+def windows_manual(out: OutputBuffer) -> int:
+    '''Prints the man page on Windows.  Returns an exitcodes.* flag.'''
+
+    retval = exitcodes.GOOD
+
+    if sys.platform != 'win32':
+        out.fail("The '-m' and '--manual' parameters are reserved for use on Windows only.\nUsers of other operating systems should read the man page.")
+        retval = exitcodes.FAILURE
+        return retval
+
+    # If colors are disabled, strip the ANSI color codes from the man page.
+    windows_man_page = WINDOWS_MAN_PAGE
+    if not out.use_colors:
+        windows_man_page = re.sub(r'\x1b\[\d+?m', '', windows_man_page)
+
+    out.info(windows_man_page)
+    return retval
 
 
 def main() -> int:
-    aconf = process_commandline(sys.argv[1:], usage)
+    out = OutputBuffer()
+    aconf = process_commandline(out, sys.argv[1:], usage)
+
+    # If we're on Windows, but the colorama module could not be imported, print a warning if we're in verbose mode.
+    if (sys.platform == 'win32') and ('colorama' not in sys.modules):
+        out.v("WARNING: colorama module not found.  Colorized output will be disabled.", write_now=True)
+
+    # If we're outputting JSON, turn off colors and ensure 'info' level messages go through.
+    if aconf.json:
+        out.json = True
+        out.use_colors = False
+
+    if aconf.manual:
+        # If the colorama module was not be imported, turn off colors in order
+        # to output a plain text version of the man page.
+        if (sys.platform == 'win32') and ('colorama' not in sys.modules):
+            out.use_colors = False
+        retval = windows_manual(out)
+        out.write()
+        sys.exit(retval)
 
     if aconf.lookup != '':
-        retval = algorithm_lookup(aconf.lookup)
+        retval = algorithm_lookup(out, aconf.lookup)
+        out.write()
         sys.exit(retval)
 
     # If multiple targets were specified...
@@ -945,31 +1061,46 @@ def main() -> int:
             print('[', end='')
 
         # Loop through each target in the list.
-        for i, target in enumerate(aconf.target_list):
-            aconf.host, port = Utils.parse_host_and_port(target)
-            if port == 0:
-                port = 22
-            aconf.port = port
+        target_servers = []
+        for _, target in enumerate(aconf.target_list):
+            host, port = Utils.parse_host_and_port(target, default_port=22)
+            target_servers.append((host, port))
 
-            new_ret = audit(aconf, print_target=True)
+        # A ranked list of return codes.  Those with higher indices will take precendence over lower ones.  For example, if three servers are scanned, yielding WARNING, GOOD, and UNKNOWN_ERROR, the overall result will be UNKNOWN_ERROR, since its index is the highest.  Errors have highest priority, followed by failures, then warnings.
+        ranked_return_codes = [exitcodes.GOOD, exitcodes.WARNING, exitcodes.FAILURE, exitcodes.CONNECTION_ERROR, exitcodes.UNKNOWN_ERROR]
 
-            # Set the return value only if an unknown error occurred, a failure occurred, or if a warning occurred and the previous value was good.
-            if (new_ret == exitcodes.UNKNOWN_ERROR) or (new_ret == exitcodes.FAILURE) or ((new_ret == exitcodes.WARNING) and (ret == exitcodes.GOOD)):
-                ret = new_ret
+        # Queue all worker threads.
+        num_target_servers = len(target_servers)
+        num_processed = 0
+        out.v("Scanning %u targets with %s%u threads..." % (num_target_servers, '(at most) ' if aconf.threads > num_target_servers else '',  aconf.threads), write_now=True)
+        with concurrent.futures.ThreadPoolExecutor(max_workers=aconf.threads) as executor:
+            future_to_server = {executor.submit(target_worker_thread, target_server[0], target_server[1], aconf): target_server for target_server in target_servers}
+            for future in concurrent.futures.as_completed(future_to_server):
+                worker_ret, worker_output = future.result()
 
-            # Don't print a delimiter after the last target was handled.
-            if i + 1 != len(aconf.target_list):
-                if aconf.json:
-                    print(", ", end='')
-                else:
-                    print(("-" * 80) + "\n")
+                # If this worker's return code is ranked higher that what we've cached so far, update our cache.
+                if ranked_return_codes.index(worker_ret) > ranked_return_codes.index(ret):
+                    ret = worker_ret
+
+                # print("Worker for %s:%d returned %d: [%s]" % (target_server[0], target_server[1], worker_ret, worker_output))
+                print(worker_output, end='' if aconf.json else "\n")
+
+                # Don't print a delimiter after the last target was handled.
+                num_processed += 1
+                if num_processed < num_target_servers:
+                    if aconf.json:
+                        print(", ", end='')
+                    else:
+                        print(("-" * 80) + "\n")
 
         if aconf.json:
             print(']')
 
-        return ret
-    else:
-        return audit(aconf)
+    else:  # Just a scan against a single target.
+        ret = audit(out, aconf)
+        out.write()
+
+    return ret
 
 
 if __name__ == '__main__':  # pragma: nocover

@@ -30,6 +30,7 @@ from ssh_audit.kexdh import KexGroupExchange_SHA1, KexGroupExchange_SHA256
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh_socket import SSH_Socket
+from ssh_audit.outputbuffer import OutputBuffer
 
 
 # Performs DH group exchanges to find what moduli are supported, and checks
@@ -38,16 +39,18 @@ class GEXTest:
 
     # Creates a new connection to the server.  Returns True on success, or False.
     @staticmethod
-    def reconnect(s: 'SSH_Socket', kex: 'SSH2_Kex', gex_alg: str) -> bool:
+    def reconnect(out: 'OutputBuffer', s: 'SSH_Socket', kex: 'SSH2_Kex', gex_alg: str) -> bool:
         if s.is_connected():
             return True
 
         err = s.connect()
         if err is not None:
+            out.v(err, write_now=True)
             return False
 
         _, _, err = s.get_banner()
         if err is not None:
+            out.v(err, write_now=True)
             s.close()
             return False
 
@@ -63,7 +66,7 @@ class GEXTest:
 
     # Runs the DH moduli test against the specified target.
     @staticmethod
-    def run(s: 'SSH_Socket', kex: 'SSH2_Kex') -> None:
+    def run(out: 'OutputBuffer', s: 'SSH_Socket', kex: 'SSH2_Kex') -> None:
         GEX_ALGS = {
             'diffie-hellman-group-exchange-sha1': KexGroupExchange_SHA1,
             'diffie-hellman-group-exchange-sha256': KexGroupExchange_SHA256,
@@ -79,8 +82,9 @@ class GEXTest:
         # algorithms.  If so, test each one.
         for gex_alg in GEX_ALGS:
             if gex_alg in kex.kex_algorithms:
+                out.d('Preparing to perform DH group exchange using ' + gex_alg + '...', write_now=True)
 
-                if GEXTest.reconnect(s, kex, gex_alg) is False:
+                if GEXTest.reconnect(out, s, kex, gex_alg) is False:
                     break
 
                 kex_group = GEX_ALGS[gex_alg]()
@@ -110,7 +114,9 @@ class GEXTest:
                     if bits >= smallest_modulus > 0:
                         break
 
-                    if GEXTest.reconnect(s, kex, gex_alg) is False:
+                    out.d('Preparing to perform DH group exchange using ' + gex_alg + ' with modulus size ' + str(bits) + '...', write_now=True)
+
+                    if GEXTest.reconnect(out, s, kex, gex_alg) is False:
                         reconnect_failed = True
                         break
 

@@ -327,7 +327,7 @@ class KexGroupExchange(KexDH):
         s.send_packet()
 
         packet_type, payload = s.read_packet(2)
-        if (packet_type != Protocol.MSG_KEXDH_GEX_GROUP) and (packet_type != Protocol.MSG_DEBUG):  # pylint: disable=consider-using-in
+        if packet_type not in [Protocol.MSG_KEXDH_GEX_GROUP, Protocol.MSG_DEBUG]:
             # TODO: replace with a better exception type.
             raise Exception('Expected MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
 

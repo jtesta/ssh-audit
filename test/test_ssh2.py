@@ -3,6 +3,7 @@ import struct
 import pytest
 
 from ssh_audit.auditconf import AuditConf
+from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.protocol import Protocol
 from ssh_audit.readbuf import ReadBuf
 from ssh_audit.ssh2_kex import SSH2_Kex
@@ -15,6 +16,7 @@ from ssh_audit.writebuf import WriteBuf
 class TestSSH2:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
+        self.OutputBuffer = OutputBuffer
         self.protocol = Protocol
         self.ssh2_kex = SSH2_Kex
         self.ssh2_kexparty = SSH2_KexParty
@@ -141,9 +143,11 @@ class TestSSH2:
         vsocket.rdata.append(b'SSH-2.0-OpenSSH_7.3 ssh-audit-test\r\n')
         vsocket.rdata.append(self._create_ssh2_packet(w.write_flush()))
         output_spy.begin()
-        self.audit(self._conf())
+        out = self.OutputBuffer()
+        self.audit(out, self._conf())
+        out.write()
         lines = output_spy.flush()
-        assert len(lines) == 68
+        assert len(lines) == 70
 
     def test_ssh2_server_invalid_first_packet(self, output_spy, virtual_socket):
         vsocket = virtual_socket
@@ -152,8 +156,10 @@ class TestSSH2:
         vsocket.rdata.append(b'SSH-2.0-OpenSSH_7.3 ssh-audit-test\r\n')
         vsocket.rdata.append(self._create_ssh2_packet(w.write_flush()))
         output_spy.begin()
-        ret = self.audit(self._conf())
+        out = self.OutputBuffer()
+        ret = self.audit(out, self._conf())
+        out.write()
         assert ret != 0
         lines = output_spy.flush()
-        assert len(lines) == 4
+        assert len(lines) == 5
         assert 'unknown message' in lines[-1]

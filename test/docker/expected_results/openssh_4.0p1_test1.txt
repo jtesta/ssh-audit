@@ -1,5 +1,5 @@
 [0;36m# general[0m
-[0;32m(gen) banner: SSH-1.99-OpenSSH_4.0[0m
+[0;31m(gen) banner: SSH-1.99-OpenSSH_4.0[0m
 [0;31m(gen) protocol SSH1 enabled[0m
 [0;32m(gen) software: OpenSSH 4.0[0m
 [0;32m(gen) compatibility: OpenSSH 3.9-6.6, Dropbear SSH 0.53+ (some functionality from 0.52)[0m
@@ -25,6 +25,7 @@
 [0;33m(cve) CVE-2006-4924                       -- (CVSSv2: 7.8) cause DoS via crafted packet (CPU consumption)[0m
 [0;33m(cve) CVE-2006-0225                       -- (CVSSv2: 4.6) execute arbitrary code[0m
 [0;33m(cve) CVE-2005-2798                       -- (CVSSv2: 5.0) leak data about authentication credentials[0m
+[0;31m(sec) SSH v1 enabled                      -- SSH v1 can be exploited to recover plaintext passwords[0m
 
 [0;36m# key exchange algorithms[0m
 [0;31m(kex) diffie-hellman-group-exchange-sha1 (1024-bit) -- [fail] using small 1024-bit modulus[0m
@@ -40,8 +41,9 @@
 
 [0;36m# host-key algorithms[0m
 [0;31m(key) ssh-rsa (1024-bit)                  -- [fail] using weak hashing algorithm[0m
-[0;33m                                          `- [warn] using small 1024-bit modulus[0m
+[0;31m                                          `- [fail] using small 1024-bit modulus[0m
                                           `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28
+                                          `- [info] a future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2
 [0;31m(key) ssh-dss                             -- [fail] using small 1024-bit modulus[0m
 [0;31m                                          `- [fail] removed (in server) and disabled (in client) since OpenSSH 7.0, weak algorithm[0m
 [0;33m                                          `- [warn] using weak random number generator could reveal the key[0m

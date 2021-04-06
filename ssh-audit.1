@@ -1,4 +1,4 @@
-.TH SSH-AUDIT 1 "October 19, 2020"
+.TH SSH-AUDIT 1 "March 2, 2021"
 .SH NAME
 \fBssh-audit\fP \- SSH server & client configuration auditor
 .SH SYNOPSIS
@@ -47,6 +47,11 @@ Enables grepable output.
 Starts a server on port 2222 to audit client software configuration.  Use -p/--port=<port> to change port and -t/--timeout=<secs> to change listen timeout.
 
 .TP
+.B -d, \-\-debug
+.br
+Enable debug output.
+
+.TP
 .B -j, \-\-json
 .br
 Output results in JSON format.
@@ -65,6 +70,11 @@ List all official, built-in policies for common systems.  Their full names can t
 .B \-\-lookup=<alg1,alg2,...>
 .br
 Look up the security information of an algorithm(s) in the internal database.  Does not connect to a server.
+
+.TP
+.B -m, \-\-manual
+.br
+Print the man page (Windows only).
 
 .TP
 .B -M, \-\-make-policy=<custom_policy.txt>
@@ -94,7 +104,12 @@ The timeout, in seconds, for creating connections and reading data from the sock
 .TP
 .B -T, \-\-targets=<hosts.txt>
 .br
-A file containing a list of target hosts.  Each line must have one host, in the format of HOST[:PORT].
+A file containing a list of target hosts.  Each line must have one host, in the format of HOST[:PORT].  Use --threads to control concurrent scans.
+
+.TP
+.B     \-\-threads=<threads>
+.br
+The number of threads to use when scanning multiple targets (with -T/--targets).  Default is 32.
 
 .TP
 .B -v, \-\-verbose
