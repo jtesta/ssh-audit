@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,16 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
-import os
 
 # pylint: disable=unused-import
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
 from ssh_audit.kexdh import KexGroupExchange_SHA1, KexGroupExchange_SHA256
-from ssh_audit.protocol import Protocol
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh_socket import SSH_Socket
+from ssh_audit.outputbuffer import OutputBuffer
 
 
 # Performs DH group exchanges to find what moduli are supported, and checks
@@ -40,37 +39,34 @@ class GEXTest:
 
     # Creates a new connection to the server.  Returns True on success, or False.
     @staticmethod
-    def reconnect(s: 'SSH_Socket', gex_alg: str) -> bool:
+    def reconnect(out: 'OutputBuffer', s: 'SSH_Socket', kex: 'SSH2_Kex', gex_alg: str) -> bool:
         if s.is_connected():
             return True
 
         err = s.connect()
         if err is not None:
+            out.v(err, write_now=True)
             return False
 
-        unused = None  # pylint: disable=unused-variable
-        unused2 = None  # pylint: disable=unused-variable
-        unused, unused2, err = s.get_banner()
+        _, _, err = s.get_banner()
         if err is not None:
+            out.v(err, write_now=True)
             s.close()
             return False
 
-        # Parse the server's initial KEX.
-        packet_type = 0  # pylint: disable=unused-variable
-        packet_type, payload = s.read_packet(2)
-        kex = SSH2_Kex.parse(payload)
-
         # Send our KEX using the specified group-exchange and most of the
         # server's own values.
-        client_kex = SSH2_Kex(os.urandom(16), [gex_alg], kex.key_algorithms, kex.client, kex.server, False, 0)
-        s.write_byte(Protocol.MSG_KEXINIT)
-        client_kex.write(s)
-        s.send_packet()
+        s.send_kexinit(key_exchanges=[gex_alg], hostkeys=kex.key_algorithms, ciphers=kex.server.encryption, macs=kex.server.mac, compressions=kex.server.compression, languages=kex.server.languages)
+
+        # Parse the server's KEX.
+        _, payload = s.read_packet(2)
+        SSH2_Kex.parse(payload)
+
         return True
 
     # Runs the DH moduli test against the specified target.
     @staticmethod
-    def run(s: 'SSH_Socket', kex: 'SSH2_Kex') -> None:
+    def run(out: 'OutputBuffer', s: 'SSH_Socket', kex: 'SSH2_Kex') -> None:
         GEX_ALGS = {
             'diffie-hellman-group-exchange-sha1': KexGroupExchange_SHA1,
             'diffie-hellman-group-exchange-sha256': KexGroupExchange_SHA256,
@@ -86,8 +82,9 @@ class GEXTest:
         # algorithms.  If so, test each one.
         for gex_alg in GEX_ALGS:
             if gex_alg in kex.kex_algorithms:
+                out.d('Preparing to perform DH group exchange using ' + gex_alg + '...', write_now=True)
 
-                if GEXTest.reconnect(s, gex_alg) is False:
+                if GEXTest.reconnect(out, s, kex, gex_alg) is False:
                     break
 
                 kex_group = GEX_ALGS[gex_alg]()
@@ -117,7 +114,9 @@ class GEXTest:
                     if bits >= smallest_modulus > 0:
                         break
 
-                    if GEXTest.reconnect(s, gex_alg) is False:
+                    out.d('Preparing to perform DH group exchange using ' + gex_alg + ' with modulus size ' + str(bits) + '...', write_now=True)
+
+                    if GEXTest.reconnect(out, s, kex, gex_alg) is False:
                         reconnect_failed = True
                         break
 

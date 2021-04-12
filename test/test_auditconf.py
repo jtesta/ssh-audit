@@ -7,6 +7,7 @@ class TestAuditConf:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.AuditConf = ssh_audit.AuditConf
+        self.OutputBuffer = ssh_audit.OutputBuffer
         self.usage = ssh_audit.usage
         self.process_commandline = process_commandline
 
@@ -21,9 +22,8 @@ class TestAuditConf:
             'colors': True,
             'verbose': False,
             'level': 'info',
-            'ipv4': True,
-            'ipv6': True,
-            'ipvo': ()
+            'ipv4': False,
+            'ipv6': False
         }
         for k, v in kwargs.items():
             options[k] = v
@@ -37,7 +37,6 @@ class TestAuditConf:
         assert conf.level == options['level']
         assert conf.ipv4 == options['ipv4']
         assert conf.ipv6 == options['ipv6']
-        assert conf.ipvo == options['ipvo']
 
     def test_audit_conf_defaults(self):
         conf = self.AuditConf()
@@ -63,57 +62,38 @@ class TestAuditConf:
                 conf.port = port
             excinfo.match(r'.*invalid port.*')
 
-    def test_audit_conf_ipvo(self):
+    def test_audit_conf_ip_version_preference(self):
         # ipv4-only
         conf = self.AuditConf()
         conf.ipv4 = True
         assert conf.ipv4 is True
         assert conf.ipv6 is False
-        assert conf.ipvo == (4,)
+        assert conf.ip_version_preference == [4]
         # ipv6-only
         conf = self.AuditConf()
         conf.ipv6 = True
         assert conf.ipv4 is False
         assert conf.ipv6 is True
-        assert conf.ipvo == (6,)
-        # ipv4-only (by removing ipv6)
-        conf = self.AuditConf()
-        conf.ipv6 = False
-        assert conf.ipv4 is True
-        assert conf.ipv6 is False
-        assert conf.ipvo == (4, )
-        # ipv6-only (by removing ipv4)
-        conf = self.AuditConf()
-        conf.ipv4 = False
-        assert conf.ipv4 is False
-        assert conf.ipv6 is True
-        assert conf.ipvo == (6, )
+        assert conf.ip_version_preference == [6]
         # ipv4-preferred
         conf = self.AuditConf()
         conf.ipv4 = True
         conf.ipv6 = True
         assert conf.ipv4 is True
         assert conf.ipv6 is True
-        assert conf.ipvo == (4, 6)
+        assert conf.ip_version_preference == [4, 6]
         # ipv6-preferred
         conf = self.AuditConf()
         conf.ipv6 = True
         conf.ipv4 = True
         assert conf.ipv4 is True
         assert conf.ipv6 is True
-        assert conf.ipvo == (6, 4)
-        # ipvo empty
+        assert conf.ip_version_preference == [6, 4]
+        # defaults
         conf = self.AuditConf()
-        conf.ipvo = ()
-        assert conf.ipv4 is True
-        assert conf.ipv6 is True
-        assert conf.ipvo == ()
-        # ipvo validation
-        conf = self.AuditConf()
-        conf.ipvo = (1, 2, 3, 4, 5, 6)
-        assert conf.ipvo == (4, 6)
-        conf.ipvo = (4, 4, 4, 6, 6)
-        assert conf.ipvo == (4, 6)
+        assert conf.ipv4 is False
+        assert conf.ipv6 is False
+        assert conf.ip_version_preference == []
 
     def test_audit_conf_level(self):
         conf = self.AuditConf()
@@ -127,7 +107,7 @@ class TestAuditConf:
 
     def test_audit_conf_process_commandline(self):
         # pylint: disable=too-many-statements
-        c = lambda x: self.process_commandline(x.split(), self.usage)  # noqa
+        c = lambda x: self.process_commandline(self.OutputBuffer, x.split(), self.usage)  # noqa
         with pytest.raises(SystemExit):
             conf = c('')
         with pytest.raises(SystemExit):

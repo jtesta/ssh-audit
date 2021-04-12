@@ -443,6 +443,7 @@ function run_test {
     fi
 
     cid=`docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}`
+    #echo "Running: docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}"
     if [[ $? != 0 ]]; then
 	echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
 	exit 1

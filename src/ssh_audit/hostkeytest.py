@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -21,17 +21,16 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
-import os
 
 # pylint: disable=unused-import
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
 from ssh_audit.kexdh import KexDH, KexGroup1, KexGroup14_SHA1, KexGroup14_SHA256, KexCurve25519_SHA256, KexGroup16_SHA512, KexGroup18_SHA512, KexGroupExchange_SHA1, KexGroupExchange_SHA256, KexNISTP256, KexNISTP384, KexNISTP521
-from ssh_audit.protocol import Protocol
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh_socket import SSH_Socket
+from ssh_audit.outputbuffer import OutputBuffer
 
 
 # Obtains host keys, checks their size, and derives their fingerprints.
@@ -54,7 +53,7 @@ class HostKeyTest:
     }
 
     @staticmethod
-    def run(s: 'SSH_Socket', server_kex: 'SSH2_Kex') -> None:
+    def run(out: 'OutputBuffer', s: 'SSH_Socket', server_kex: 'SSH2_Kex') -> None:
         KEX_TO_DHGROUP = {
             'diffie-hellman-group1-sha1': KexGroup1,
             'diffie-hellman-group14-sha1': KexGroup14_SHA1,
@@ -82,10 +81,10 @@ class HostKeyTest:
                 break
 
         if kex_str is not None and kex_group is not None:
-            HostKeyTest.perform_test(s, server_kex, kex_str, kex_group, HostKeyTest.HOST_KEY_TYPES)
+            HostKeyTest.perform_test(out, s, server_kex, kex_str, kex_group, HostKeyTest.HOST_KEY_TYPES)
 
     @staticmethod
-    def perform_test(s: 'SSH_Socket', server_kex: 'SSH2_Kex', kex_str: str, kex_group: 'KexDH', host_key_types: Dict[str, Dict[str, bool]]) -> None:
+    def perform_test(out: 'OutputBuffer', s: 'SSH_Socket', server_kex: 'SSH2_Kex', kex_str: str, kex_group: 'KexDH', host_key_types: Dict[str, Dict[str, bool]]) -> None:
         hostkey_modulus_size = 0
         ca_modulus_size = 0
 
@@ -103,6 +102,8 @@ class HostKeyTest:
 
             # If this host key type is supported by the server, we test it.
             if host_key_type in server_kex.key_algorithms:
+                out.d('Preparing to obtain ' + host_key_type + ' host key...', write_now=True)
+
                 cert = host_key_types[host_key_type]['cert']
                 variable_key_len = host_key_types[host_key_type]['variable_key_len']
 
@@ -110,27 +111,22 @@ class HostKeyTest:
                 if not s.is_connected():
                     err = s.connect()
                     if err is not None:
+                        out.v(err, write_now=True)
                         return
 
                     _, _, err = s.get_banner()
                     if err is not None:
+                        out.v(err, write_now=True)
                         s.close()
                         return
 
-                    # Parse the server's initial KEX.
-                    packet_type = 0  # pylint: disable=unused-variable
-                    packet_type, payload = s.read_packet()
+                    # Send our KEX using the specified group-exchange and most of the server's own values.
+                    s.send_kexinit(key_exchanges=[kex_str], hostkeys=[host_key_type], ciphers=server_kex.server.encryption, macs=server_kex.server.mac, compressions=server_kex.server.compression, languages=server_kex.server.languages)
+
+                    # Parse the server's KEX.
+                    _, payload = s.read_packet()
                     SSH2_Kex.parse(payload)
 
-                # Send the server our KEXINIT message, using only our
-                # selected kex and host key type.  Send the server's own
-                # list of ciphers and MACs back to it (this doesn't
-                # matter, really).
-                client_kex = SSH2_Kex(os.urandom(16), [kex_str], [host_key_type], server_kex.client, server_kex.server, False, 0)
-
-                s.write_byte(Protocol.MSG_KEXINIT)
-                client_kex.write(s)
-                s.send_packet()
 
                 # Do the initial DH exchange.  The server responds back
                 # with the host key and its length.  Bingo.  We also get back the host key fingerprint.
@@ -164,12 +160,20 @@ class HostKeyTest:
                     if (cert is False) and (hostkey_modulus_size < 2048):
                         for rsa_type in HostKeyTest.RSA_FAMILY:
                             alg_list = SSH2_KexDB.ALGORITHMS['key'][rsa_type]
-                            alg_list.append(['using small %d-bit modulus' % hostkey_modulus_size])
+
+                            # If no failure list exists, add an empty failure list.
+                            if len(alg_list) < 2:
+                                alg_list.append([])
+                            alg_list[1].append('using small %d-bit modulus' % hostkey_modulus_size)
                     elif (cert is True) and ((hostkey_modulus_size < 2048) or (ca_modulus_size > 0 and ca_modulus_size < 2048)):  # pylint: disable=chained-comparison
                         alg_list = SSH2_KexDB.ALGORITHMS['key'][host_key_type]
                         min_modulus = min(hostkey_modulus_size, ca_modulus_size)
                         min_modulus = min_modulus if min_modulus > 0 else max(hostkey_modulus_size, ca_modulus_size)
-                        alg_list.append(['using small %d-bit modulus' % min_modulus])
+
+                        # If no failure list exists, add an empty failure list.
+                        if len(alg_list) < 2:
+                            alg_list.append([])
+                        alg_list[1].append('using small %d-bit modulus' % min_modulus)
 
                 # If this host key type is in the RSA family, then mark them all as parsed (since results in one are valid for them all).
                 if host_key_type in HostKeyTest.RSA_FAMILY:

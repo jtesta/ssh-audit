@@ -30,12 +30,12 @@ from ssh_audit.algorithm import Algorithm
 
 class Timeframe:
     def __init__(self) -> None:
-        self.__storage = {}  # type: Dict[str, List[Optional[str]]]
+        self.__storage: Dict[str, List[Optional[str]]] = {}
 
     def __contains__(self, product: str) -> bool:
         return product in self.__storage
 
-    def __getitem__(self, product):  # type: (str) -> Sequence[Optional[str]]
+    def __getitem__(self, product: str) -> Sequence[Optional[str]]:
         return tuple(self.__storage.get(product, [None] * 4))
 
     def __str__(self) -> str:
@@ -51,7 +51,7 @@ class Timeframe:
         return self[product][1 if bool(for_server) else 3]
 
     def _update(self, versions: Optional[str], pos: int) -> None:
-        ssh_versions = {}  # type: Dict[str, str]
+        ssh_versions: Dict[str, str] = {}
         for_srv, for_cli = pos < 2, pos > 1
         for v in (versions or '').split(','):
             ssh_prod, ssh_ver, is_cli = Algorithm.get_ssh_version(v)

@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -36,7 +36,7 @@ from typing import Callable, Optional, Union, Any  # noqa: F401
 from ssh_audit import exitcodes
 from ssh_audit.banner import Banner
 from ssh_audit.globals import SSH_HEADER
-from ssh_audit.output import Output
+from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.protocol import Protocol
 from ssh_audit.readbuf import ReadBuf
 from ssh_audit.ssh1 import SSH1
@@ -52,14 +52,15 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
     SM_BANNER_SENT = 1
 
-    def __init__(self, host: Optional[str], port: int, ipvo: Optional[Sequence[int]] = None, timeout: Union[int, float] = 5, timeout_set: bool = False) -> None:
+    def __init__(self, outputbuffer: 'OutputBuffer', host: Optional[str], port: int, ip_version_preference: List[int] = [], timeout: Union[int, float] = 5, timeout_set: bool = False) -> None:  # pylint: disable=dangerous-default-value
         super(SSH_Socket, self).__init__()
-        self.__sock = None  # type: Optional[socket.socket]
-        self.__sock_map = {}  # type: Dict[int, socket.socket]
+        self.__outputbuffer = outputbuffer
+        self.__sock: Optional[socket.socket] = None
+        self.__sock_map: Dict[int, socket.socket] = {}
         self.__block_size = 8
         self.__state = 0
-        self.__header = []  # type: List[str]
-        self.__banner = None  # type: Optional[Banner]
+        self.__header: List[str] = []
+        self.__banner: Optional[Banner] = None
         if host is None:
             raise ValueError('undefined host')
         nport = Utils.parse_int(port)
@@ -67,35 +68,30 @@ class SSH_Socket(ReadBuf, WriteBuf):
             raise ValueError('invalid port: {}'.format(port))
         self.__host = host
         self.__port = nport
-        if ipvo is not None:
-            self.__ipvo = ipvo
-        else:
-            self.__ipvo = ()
+        self.__ip_version_preference = ip_version_preference  # Holds only 5 possible values: [] (no preference), [4] (use IPv4 only), [6] (use IPv6 only), [46] (use both IPv4 and IPv6, but prioritize v4), and [64] (use both IPv4 and IPv6, but prioritize v6).
         self.__timeout = timeout
         self.__timeout_set = timeout_set
-        self.client_host = None  # type: Optional[str]
+        self.client_host: Optional[str] = None
         self.client_port = None
 
-    def _resolve(self, ipvo: Sequence[int]) -> Iterable[Tuple[int, Tuple[Any, ...]]]:
-        ipvo = tuple([x for x in Utils.unique_seq(ipvo) if x in (4, 6)])
-        ipvo_len = len(ipvo)
-        prefer_ipvo = ipvo_len > 0
-        prefer_ipv4 = prefer_ipvo and ipvo[0] == 4
-        if ipvo_len == 1:
-            family = socket.AF_INET if ipvo[0] == 4 else socket.AF_INET6
+    def _resolve(self) -> Iterable[Tuple[int, Tuple[Any, ...]]]:
+        # If __ip_version_preference has only one entry, then it means that ONLY that IP version should be used.
+        if len(self.__ip_version_preference) == 1:
+            family = socket.AF_INET if self.__ip_version_preference[0] == 4 else socket.AF_INET6
         else:
             family = socket.AF_UNSPEC
         try:
             stype = socket.SOCK_STREAM
             r = socket.getaddrinfo(self.__host, self.__port, family, stype)
-            if prefer_ipvo:
-                r = sorted(r, key=lambda x: x[0], reverse=not prefer_ipv4)
-            check = any(stype == rline[2] for rline in r)
+
+            # If the user has a preference for using IPv4 over IPv6 (or vice-versa), then sort the list returned by getaddrinfo() so that the preferred address type comes first.
+            if len(self.__ip_version_preference) == 2:
+                r = sorted(r, key=lambda x: x[0], reverse=(self.__ip_version_preference[0] == 6))
             for af, socktype, _proto, _canonname, addr in r:
-                if not check or socktype == socket.SOCK_STREAM:
+                if socktype == socket.SOCK_STREAM:
                     yield af, addr
         except socket.error as e:
-            Output().fail('[exception] {}'.format(e))
+            self.__outputbuffer.fail('[exception] {}'.format(e)).write()
             sys.exit(exitcodes.CONNECTION_ERROR)
 
     # Listens on a server socket and accepts one connection (used for
@@ -156,11 +152,12 @@ class SSH_Socket(ReadBuf, WriteBuf):
     def connect(self) -> Optional[str]:
         '''Returns None on success, or an error string.'''
         err = None
-        for af, addr in self._resolve(self.__ipvo):
+        for af, addr in self._resolve():
             s = None
             try:
                 s = socket.socket(af, socket.SOCK_STREAM)
                 s.settimeout(self.__timeout)
+                self.__outputbuffer.d(("Connecting to %s:%d..." % ('[%s]' % addr[0] if Utils.is_ipv6_address(addr[0]) else addr[0], addr[1])), write_now=True)
                 s.connect(addr)
                 self.__sock = s
                 return None
@@ -175,6 +172,8 @@ class SSH_Socket(ReadBuf, WriteBuf):
         return '[exception] {}'.format(errm)
 
     def get_banner(self, sshv: int = 2) -> Tuple[Optional['Banner'], List[str], Optional[str]]:
+        self.__outputbuffer.d('Getting banner...', write_now=True)
+
         if self.__sock is None:
             return self.__banner, self.__header, 'not connected'
         if self.__banner is not None:
@@ -230,15 +229,11 @@ class SSH_Socket(ReadBuf, WriteBuf):
         except socket.error as e:
             return -1, str(e.args[-1])
 
-    def send_algorithms(self) -> None:
+    # Send a KEXINIT with the lists of key exchanges, hostkeys, ciphers, MACs, compressions, and languages that we "support".
+    def send_kexinit(self, key_exchanges: List[str] = ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'ecdh-sha2-nistp256', 'ecdh-sha2-nistp384', 'ecdh-sha2-nistp521', 'diffie-hellman-group-exchange-sha256', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group14-sha256'], hostkeys: List[str] = ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa', 'ecdsa-sha2-nistp256', 'ssh-ed25519'], ciphers: List[str] = ['chacha20-poly1305@openssh.com', 'aes128-ctr', 'aes192-ctr', 'aes256-ctr', 'aes128-gcm@openssh.com', 'aes256-gcm@openssh.com'], macs: List[str] = ['umac-64-etm@openssh.com', 'umac-128-etm@openssh.com', 'hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'hmac-sha1-etm@openssh.com', 'umac-64@openssh.com', 'umac-128@openssh.com', 'hmac-sha2-256', 'hmac-sha2-512', 'hmac-sha1'], compressions: List[str] = ['none', 'zlib@openssh.com'], languages: List[str] = ['']) -> None:  # pylint: disable=dangerous-default-value
         '''Sends the list of supported host keys, key exchanges, ciphers, and MACs.  Emulates OpenSSH v8.2.'''
 
-        key_exchanges = ['curve25519-sha256', 'curve25519-sha256@libssh.org', 'ecdh-sha2-nistp256', 'ecdh-sha2-nistp384', 'ecdh-sha2-nistp521', 'diffie-hellman-group-exchange-sha256', 'diffie-hellman-group16-sha512', 'diffie-hellman-group18-sha512', 'diffie-hellman-group14-sha256']
-        hostkeys = ['rsa-sha2-512', 'rsa-sha2-256', 'ssh-rsa', 'ecdsa-sha2-nistp256', 'ssh-ed25519']
-        ciphers = ['chacha20-poly1305@openssh.com', 'aes128-ctr', 'aes192-ctr', 'aes256-ctr', 'aes128-gcm@openssh.com', 'aes256-gcm@openssh.com']
-        macs = ['umac-64-etm@openssh.com', 'umac-128-etm@openssh.com', 'hmac-sha2-256-etm@openssh.com', 'hmac-sha2-512-etm@openssh.com', 'hmac-sha1-etm@openssh.com', 'umac-64@openssh.com', 'umac-128@openssh.com', 'hmac-sha2-256', 'hmac-sha2-512', 'hmac-sha1']
-        compressions = ['none', 'zlib@openssh.com']
-        languages = ['']
+        self.__outputbuffer.d('KEX initialisation...', write_now=True)
 
         kexparty = SSH2_KexParty(ciphers, macs, compressions, languages)
         kex = SSH2_Kex(os.urandom(16), key_exchanges, hostkeys, kexparty, kexparty, False, 0)
@@ -279,7 +274,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
                 payload_length = packet_length - padding_length - 1
                 check_size = 4 + 1 + payload_length + padding_length
             if check_size % self.__block_size != 0:
-                Output().fail('[exception] invalid ssh packet (block size)')
+                self.__outputbuffer.fail('[exception] invalid ssh packet (block size)').write()
                 sys.exit(exitcodes.CONNECTION_ERROR)
             self.ensure_read(payload_length)
             if sshv == 1:
@@ -294,7 +289,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
             if sshv == 1:
                 rcrc = SSH1.crc32(padding + payload)
                 if crc != rcrc:
-                    Output().fail('[exception] packet checksum CRC32 mismatch.')
+                    self.__outputbuffer.fail('[exception] packet checksum CRC32 mismatch.').write()
                     sys.exit(exitcodes.CONNECTION_ERROR)
             else:
                 self.ensure_read(padding_length)

@@ -1,6 +1,6 @@
 [0;36m# general[0m
 [0;32m(gen) software: TinySSH noversion[0m
-[0;32m(gen) compatibility: OpenSSH 8.0+, Dropbear SSH 2018.76+[0m
+[0;32m(gen) compatibility: OpenSSH 8.0-8.4, Dropbear SSH 2018.76+[0m
 [0;32m(gen) compression: disabled[0m
 
 [0;36m# key exchange algorithms[0m

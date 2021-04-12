@@ -29,7 +29,7 @@ from ssh_audit.ssh1_crc32 import SSH1_CRC32
 
 
 class SSH1:
-    _crc32 = None  # type: Optional[SSH1_CRC32]
+    _crc32: Optional[SSH1_CRC32] = None
     CIPHERS = ['none', 'idea', 'des', '3des', 'tss', 'rc4', 'blowfish']
     AUTHS = ['none', 'rhosts', 'rsa', 'password', 'rhosts_rsa', 'tis', 'kerberos']
 

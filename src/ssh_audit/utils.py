@@ -96,7 +96,7 @@ class Utils:
 
     @classmethod
     def unique_seq(cls, seq: Sequence[Any]) -> Sequence[Any]:
-        seen = set()  # type: Set[Any]
+        seen: Set[Any] = set()
 
         def _seen_add(x: Any) -> bool:
             seen.add(x)
@@ -129,10 +129,10 @@ class Utils:
             return -1.0
 
     @staticmethod
-    def parse_host_and_port(host_and_port: str) -> Tuple[str, int]:
+    def parse_host_and_port(host_and_port: str, default_port: int = 0) -> Tuple[str, int]:
         '''Parses a string into a tuple of its host and port.  The port is 0 if not specified.'''
         host = host_and_port
-        port = 0
+        port = default_port
 
         mx = re.match(r'^\[([^\]]+)\](?::(\d+))?$', host_and_port)
         if mx is not None:

@@ -22,3 +22,6 @@ reports/
 /snap/
 /stage/
 /ssh-audit_*.snap
+
+# Your local server config
+servers.txt

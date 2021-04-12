@@ -46,8 +46,8 @@ class KexDH:  # pragma: nocover
         self.__e = 0
         self.set_params(g, p)
 
-        self.__ed25519_pubkey = None  # type: Optional[bytes]
-        self.__hostkey_type = None  # type: Optional[bytes]
+        self.__ed25519_pubkey: Optional[bytes] = None
+        self.__hostkey_type: Optional[bytes] = None
         self.__hostkey_e = 0
         self.__hostkey_n = 0
         self.__hostkey_n_len = 0  # Length of the host key modulus.
@@ -327,7 +327,7 @@ class KexGroupExchange(KexDH):
         s.send_packet()
 
         packet_type, payload = s.read_packet(2)
-        if (packet_type != Protocol.MSG_KEXDH_GEX_GROUP) and (packet_type != Protocol.MSG_DEBUG):  # pylint: disable=consider-using-in
+        if packet_type not in [Protocol.MSG_KEXDH_GEX_GROUP, Protocol.MSG_DEBUG]:
             # TODO: replace with a better exception type.
             raise Exception('Expected MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
 

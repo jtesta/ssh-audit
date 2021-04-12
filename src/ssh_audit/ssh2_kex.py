@@ -41,9 +41,9 @@ class SSH2_Kex:
         self.__follows = follows
         self.__unused = unused
 
-        self.__rsa_key_sizes = {}  # type: Dict[str, Tuple[int, int]]
-        self.__dh_modulus_sizes = {}  # type: Dict[str, Tuple[int, int]]
-        self.__host_keys = {}  # type: Dict[str, bytes]
+        self.__rsa_key_sizes: Dict[str, Tuple[int, int]] = {}
+        self.__dh_modulus_sizes: Dict[str, Tuple[int, int]] = {}
+        self.__host_keys: Dict[str, bytes] = {}
 
     @property
     def cookie(self) -> bytes:
