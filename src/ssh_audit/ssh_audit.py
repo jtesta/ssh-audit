@@ -264,7 +264,7 @@ def output_security(out: OutputBuffer, banner: Optional[Banner], client_audit: b
         out.sep()
 
 
-def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: bool, sha256: bool = True) -> None:
+def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: bool) -> None:
     with out:
         fps = []
         if algs.ssh1kex is not None:
@@ -291,10 +291,12 @@ def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: boo
         fps = sorted(fps)
         for fpp in fps:
             name, fp = fpp
-            fpo = fp.sha256 if sha256 else fp.md5
-            # p = '' if out.batch else ' ' * (padlen - len(name))
-            # out.good('(fin) {0}{1} -- {2} {3}'.format(name, p, bits, fpo))
-            out.good('(fin) {}: {}'.format(name, fpo))
+            out.good('(fin) {}: {}'.format(name, fp.sha256))
+
+            # Output the MD5 hash too if verbose mode is enabled.
+            if out.verbose:
+                out.info('(fin) {}: {} -- [info] do not rely on MD5 fingerprints for server identification; it is insecure for this use case'.format(name, fp.md5))
+
     if not out.is_section_empty() and not is_json_output:
         out.head('# fingerprints')
         out.flush_section()
@@ -468,7 +470,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
         program_retval = output_algorithms(out, title, adb, atype, kex.server.encryption, unknown_algorithms, aconf.json, program_retval, maxlen)
         title, atype = 'message authentication code algorithms', 'mac'
         program_retval = output_algorithms(out, title, adb, atype, kex.server.mac, unknown_algorithms, aconf.json, program_retval, maxlen)
-    output_fingerprints(out, algs, aconf.json, True)
+    output_fingerprints(out, algs, aconf.json)
     perfect_config = output_recommendations(out, algs, software, aconf.json, maxlen)
     output_info(out, software, client_audit, not perfect_config, aconf.json)
 
@@ -787,11 +789,18 @@ def build_struct(target_host: str, banner: Optional['Banner'], kex: Optional['SS
             # Skip over certificate host types (or we would return invalid fingerprints).
             if '-cert-' in host_key_type:
                 continue
-            entry = {
-                'type': host_key_type,
-                'fp': fp.sha256,
-            }
-            res['fingerprints'].append(entry)
+
+            # Add the SHA256 and MD5 fingerprints.
+            res['fingerprints'].append({
+                'hostkey': host_key_type,
+                'hash_alg': 'SHA256',
+                'hash': fp.sha256[7:]
+            })
+            res['fingerprints'].append({
+                'hostkey': host_key_type,
+                'hash_alg': 'MD5',
+                'hash': fp.md5[4:]
+            })
     else:
         pkm_supported_ciphers = None
         pkm_supported_authentications = None
