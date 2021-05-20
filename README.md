@@ -178,6 +178,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ### v2.5.0-dev (???)
  - Fixed crash when running host key tests.
  - Added `-d`/`--debug` option for getting debugging output; credit [Adam Russell](https://github.com/thecliguy).
+ - Added 1 new MAC: `hmac-ripemd160-96`.
 
 ### v2.4.0 (2021-02-23)
  - Added multi-threaded scanning support.
