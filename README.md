@@ -49,7 +49,7 @@ usage: ssh-audit.py [options] <host>
                                software config (use -p to change port;
                                use -t to change timeout)
    -d,  --debug            Enable debug output.
-   -j,  --json             JSON output
+   -j,  --json             JSON output (use -jj to enable indents)
    -l,  --level=<level>    minimum output level (info|warn|fail)
    -L,  --list-policies    list all the official, built-in policies
         --lookup=<alg1,alg2,...>    looks up an algorithm(s) without
@@ -177,6 +177,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 ### v2.5.0-dev (???)
  - Fixed crash when running host key tests.
+ - Now prints JSON with indents when `-jj` is used (useful for debugging).
  - Added MD5 fingerprints to verbose output.
  - Added `-d`/`--debug` option for getting debugging output; credit [Adam Russell](https://github.com/thecliguy).
  - Updated JSON output to include MD5 fingerprints.  Note that this results in a breaking change in the 'fingerprints' dictionary format.

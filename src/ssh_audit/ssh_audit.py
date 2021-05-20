@@ -85,7 +85,7 @@ def usage(err: Optional[str] = None) -> None:
     uout.info('   -b,  --batch            batch output')
     uout.info('   -c,  --client-audit     starts a server on port 2222 to audit client\n                               software config (use -p to change port;\n                               use -t to change timeout)')
     uout.info('   -d,  --debug            debug output')
-    uout.info('   -j,  --json             JSON output')
+    uout.info('   -j,  --json             JSON output (use -jj to enable indents)')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies')
     uout.info('        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without\n                                    connecting to a server')
@@ -477,7 +477,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
     if aconf.json:
         out.reset()
         # Build & write the JSON struct.
-        out.info(json.dumps(build_struct(aconf.host, banner, kex=kex, client_host=client_host), sort_keys=True))
+        out.info(json.dumps(build_struct(aconf.host, banner, kex=kex, client_host=client_host), indent=4 if aconf.json_print_indent else None, sort_keys=True))
     elif len(unknown_algorithms) > 0:  # If we encountered any unknown algorithms, ask the user to report them.
         out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at <https://github.com/jtesta/ssh-audit/issues>.\n" % ','.join(unknown_algorithms))
 
@@ -492,7 +492,7 @@ def evaluate_policy(out: OutputBuffer, aconf: AuditConf, banner: Optional['Banne
     passed, error_struct, error_str = aconf.policy.evaluate(banner, kex)
     if aconf.json:
         json_struct = {'host': aconf.host, 'policy': aconf.policy.get_name_and_version(), 'passed': passed, 'errors': error_struct}
-        out.info(json.dumps(json_struct, sort_keys=True))
+        out.info(json.dumps(json_struct, indent=4 if aconf.json_print_indent else None, sort_keys=True))
     else:
         spacing = ''
         if aconf.client_audit:
@@ -609,7 +609,10 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.colors = False
             out.use_colors = False
         elif o in ('-j', '--json'):
-            aconf.json = True
+            if aconf.json:  # If specified twice, enable indent printing.
+                aconf.json_print_indent = True
+            else:
+                aconf.json = True
         elif o in ('-v', '--verbose'):
             aconf.verbose = True
             out.verbose = True
