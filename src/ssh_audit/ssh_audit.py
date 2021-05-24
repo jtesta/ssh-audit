@@ -895,7 +895,12 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
     if sshv == 1:
         program_retval = output(out, aconf, banner, header, pkm=SSH1_PublicKeyMessage.parse(payload))
     elif sshv == 2:
-        kex = SSH2_Kex.parse(payload)
+        try:
+            kex = SSH2_Kex.parse(payload)
+        except Exception:
+            out.fail("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()))
+            return exitcodes.CONNECTION_ERROR
+
         if aconf.client_audit is False:
             HostKeyTest.run(out, s, kex)
             GEXTest.run(out, s, kex)

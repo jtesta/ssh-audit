@@ -177,6 +177,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 ### v2.5.0-dev (???)
  - Fixed crash when running host key tests.
+ - Handles server connection failures more gracefully.
  - Now prints JSON with indents when `-jj` is used (useful for debugging).
  - Added MD5 fingerprints to verbose output.
  - Added `-d`/`--debug` option for getting debugging output; credit [Adam Russell](https://github.com/thecliguy).

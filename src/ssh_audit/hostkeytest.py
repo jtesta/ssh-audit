@@ -26,6 +26,8 @@
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
+import traceback
+
 from ssh_audit.kexdh import KexDH, KexGroup1, KexGroup14_SHA1, KexGroup14_SHA256, KexCurve25519_SHA256, KexGroup16_SHA512, KexGroup18_SHA512, KexGroupExchange_SHA1, KexGroupExchange_SHA256, KexNISTP256, KexNISTP384, KexNISTP521
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
@@ -123,10 +125,13 @@ class HostKeyTest:
                     # Send our KEX using the specified group-exchange and most of the server's own values.
                     s.send_kexinit(key_exchanges=[kex_str], hostkeys=[host_key_type], ciphers=server_kex.server.encryption, macs=server_kex.server.mac, compressions=server_kex.server.compression, languages=server_kex.server.languages)
 
-                    # Parse the server's KEX.
-                    _, payload = s.read_packet()
-                    SSH2_Kex.parse(payload)
-
+                    try:
+                        # Parse the server's KEX.
+                        _, payload = s.read_packet()
+                        SSH2_Kex.parse(payload)
+                    except Exception:
+                        out.v("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()), write_now=True)
+                        return
 
                 # Do the initial DH exchange.  The server responds back
                 # with the host key and its length.  Bingo.  We also get back the host key fingerprint.
