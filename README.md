@@ -182,6 +182,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added MD5 fingerprints to verbose output.
  - Added `-d`/`--debug` option for getting debugging output; credit [Adam Russell](https://github.com/thecliguy).
  - Updated JSON output to include MD5 fingerprints.  Note that this results in a breaking change in the 'fingerprints' dictionary format.
+ - Updated OpenSSH 8.1 (and earlier) policies to include `rsa-sha2-512` and `rsa-sha2-256`.
  - Added 1 new MAC: `hmac-ripemd160-96`.
 
 ### v2.4.0 (2021-02-23)
