@@ -85,7 +85,7 @@ def usage(err: Optional[str] = None) -> None:
     uout.info('   -b,  --batch            batch output')
     uout.info('   -c,  --client-audit     starts a server on port 2222 to audit client\n                               software config (use -p to change port;\n                               use -t to change timeout)')
     uout.info('   -d,  --debug            debug output')
-    uout.info('   -j,  --json             JSON output')
+    uout.info('   -j,  --json             JSON output (use -jj to enable indents)')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies')
     uout.info('        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without\n                                    connecting to a server')
@@ -264,7 +264,7 @@ def output_security(out: OutputBuffer, banner: Optional[Banner], client_audit: b
         out.sep()
 
 
-def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: bool, sha256: bool = True) -> None:
+def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: bool) -> None:
     with out:
         fps = []
         if algs.ssh1kex is not None:
@@ -291,10 +291,12 @@ def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: boo
         fps = sorted(fps)
         for fpp in fps:
             name, fp = fpp
-            fpo = fp.sha256 if sha256 else fp.md5
-            # p = '' if out.batch else ' ' * (padlen - len(name))
-            # out.good('(fin) {0}{1} -- {2} {3}'.format(name, p, bits, fpo))
-            out.good('(fin) {}: {}'.format(name, fpo))
+            out.good('(fin) {}: {}'.format(name, fp.sha256))
+
+            # Output the MD5 hash too if verbose mode is enabled.
+            if out.verbose:
+                out.info('(fin) {}: {} -- [info] do not rely on MD5 fingerprints for server identification; it is insecure for this use case'.format(name, fp.md5))
+
     if not out.is_section_empty() and not is_json_output:
         out.head('# fingerprints')
         out.flush_section()
@@ -468,14 +470,14 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
         program_retval = output_algorithms(out, title, adb, atype, kex.server.encryption, unknown_algorithms, aconf.json, program_retval, maxlen)
         title, atype = 'message authentication code algorithms', 'mac'
         program_retval = output_algorithms(out, title, adb, atype, kex.server.mac, unknown_algorithms, aconf.json, program_retval, maxlen)
-    output_fingerprints(out, algs, aconf.json, True)
+    output_fingerprints(out, algs, aconf.json)
     perfect_config = output_recommendations(out, algs, software, aconf.json, maxlen)
     output_info(out, software, client_audit, not perfect_config, aconf.json)
 
     if aconf.json:
         out.reset()
         # Build & write the JSON struct.
-        out.info(json.dumps(build_struct(aconf.host, banner, kex=kex, client_host=client_host), sort_keys=True))
+        out.info(json.dumps(build_struct(aconf.host, banner, kex=kex, client_host=client_host), indent=4 if aconf.json_print_indent else None, sort_keys=True))
     elif len(unknown_algorithms) > 0:  # If we encountered any unknown algorithms, ask the user to report them.
         out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at <https://github.com/jtesta/ssh-audit/issues>.\n" % ','.join(unknown_algorithms))
 
@@ -490,7 +492,7 @@ def evaluate_policy(out: OutputBuffer, aconf: AuditConf, banner: Optional['Banne
     passed, error_struct, error_str = aconf.policy.evaluate(banner, kex)
     if aconf.json:
         json_struct = {'host': aconf.host, 'policy': aconf.policy.get_name_and_version(), 'passed': passed, 'errors': error_struct}
-        out.info(json.dumps(json_struct, sort_keys=True))
+        out.info(json.dumps(json_struct, indent=4 if aconf.json_print_indent else None, sort_keys=True))
     else:
         spacing = ''
         if aconf.client_audit:
@@ -607,7 +609,10 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.colors = False
             out.use_colors = False
         elif o in ('-j', '--json'):
-            aconf.json = True
+            if aconf.json:  # If specified twice, enable indent printing.
+                aconf.json_print_indent = True
+            else:
+                aconf.json = True
         elif o in ('-v', '--verbose'):
             aconf.verbose = True
             out.verbose = True
@@ -787,11 +792,18 @@ def build_struct(target_host: str, banner: Optional['Banner'], kex: Optional['SS
             # Skip over certificate host types (or we would return invalid fingerprints).
             if '-cert-' in host_key_type:
                 continue
-            entry = {
-                'type': host_key_type,
-                'fp': fp.sha256,
-            }
-            res['fingerprints'].append(entry)
+
+            # Add the SHA256 and MD5 fingerprints.
+            res['fingerprints'].append({
+                'hostkey': host_key_type,
+                'hash_alg': 'SHA256',
+                'hash': fp.sha256[7:]
+            })
+            res['fingerprints'].append({
+                'hostkey': host_key_type,
+                'hash_alg': 'MD5',
+                'hash': fp.md5[4:]
+            })
     else:
         pkm_supported_ciphers = None
         pkm_supported_authentications = None
@@ -883,7 +895,12 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
     if sshv == 1:
         program_retval = output(out, aconf, banner, header, pkm=SSH1_PublicKeyMessage.parse(payload))
     elif sshv == 2:
-        kex = SSH2_Kex.parse(payload)
+        try:
+            kex = SSH2_Kex.parse(payload)
+        except Exception:
+            out.fail("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()))
+            return exitcodes.CONNECTION_ERROR
+
         if aconf.client_audit is False:
             HostKeyTest.run(out, s, kex)
             GEXTest.run(out, s, kex)

@@ -138,7 +138,7 @@ class TestSSH1:
         self.audit(out, self._conf())
         out.write()
         lines = output_spy.flush()
-        assert len(lines) == 16
+        assert len(lines) == 17
 
     def test_ssh1_server_invalid_first_packet(self, output_spy, virtual_socket):
         vsocket = virtual_socket

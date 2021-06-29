@@ -26,6 +26,8 @@
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
+import traceback
+
 from ssh_audit.kexdh import KexGroupExchange_SHA1, KexGroupExchange_SHA256
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh2_kex import SSH2_Kex
@@ -58,9 +60,13 @@ class GEXTest:
         # server's own values.
         s.send_kexinit(key_exchanges=[gex_alg], hostkeys=kex.key_algorithms, ciphers=kex.server.encryption, macs=kex.server.mac, compressions=kex.server.compression, languages=kex.server.languages)
 
-        # Parse the server's KEX.
-        _, payload = s.read_packet(2)
-        SSH2_Kex.parse(payload)
+        try:
+            # Parse the server's KEX.
+            _, payload = s.read_packet(2)
+            SSH2_Kex.parse(payload)
+        except Exception:
+            out.v("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()), write_now=True)
+            return False
 
         return True
 

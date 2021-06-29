@@ -37,7 +37,7 @@ def test_prevent_runtime_error_regression(ssh_audit, kex):
 
     rv = ssh_audit.build_struct('localhost', banner=None, kex=kex)
 
-    assert len(rv["fingerprints"]) == 9
+    assert len(rv["fingerprints"]) == (9 * 2)  # Each host key generates two hash fingerprints: one using SHA256, and one using MD5.
 
     for key in ['banner', 'compression', 'enc', 'fingerprints', 'kex', 'key', 'mac']:
         assert key in rv
