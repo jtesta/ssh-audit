@@ -271,5 +271,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'aes256-gcm': [[]],
             'chacha20-poly1305@openssh.com': [[]],  # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
             'crypticore-mac@ssh.com': [[], [FAIL_UNPROVEN]],
+            'AEAD_AES_128_GCM': [[]],
+            'AEAD_AES_256_GCM': [[]],
         }
     }
