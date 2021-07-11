@@ -183,6 +183,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added `-d`/`--debug` option for getting debugging output; credit [Adam Russell](https://github.com/thecliguy).
  - Updated JSON output to include MD5 fingerprints.  Note that this results in a breaking change in the 'fingerprints' dictionary format.
  - Updated OpenSSH 8.1 (and earlier) policies to include `rsa-sha2-512` and `rsa-sha2-256`.
+ - Added 3 new key exchanges: `gss-gex-sha1-eipGX3TCiQSrx573bT1o1Q==`, `gss-group1-sha1-eipGX3TCiQSrx573bT1o1Q==`, and `gss-group14-sha1-eipGX3TCiQSrx573bT1o1Q==`.
  - Added 3 new MACs: `hmac-ripemd160-96`, `AEAD_AES_128_GCM`, and `AEAD_AES_256_GCM`.
 
 ### v2.4.0 (2021-02-23)

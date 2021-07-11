@@ -66,10 +66,13 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
         'kex': {
             'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_HASH_WEAK]],
             'gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_HASH_WEAK]],
+            'gss-gex-sha1-eipGX3TCiQSrx573bT1o1Q==': [[], [], [WARN_HASH_WEAK]],
             'gss-gex-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
             'gss-gex-sha1-': [[], [], [WARN_HASH_WEAK]],
+            'gss-group1-sha1-eipGX3TCiQSrx573bT1o1Q==': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
             'gss-group1-sha1-': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
             'gss-group14-sha1-': [[], [], [WARN_HASH_WEAK]],
+            'gss-group14-sha1-eipGX3TCiQSrx573bT1o1Q==': [[], [], [WARN_HASH_WEAK]],
             'gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
             'gss-group14-sha256-': [[]],
             'gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==': [[]],
