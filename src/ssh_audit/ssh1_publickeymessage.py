@@ -90,7 +90,7 @@ class SSH1_PublicKeyMessage:
     @property
     def supported_ciphers(self) -> List[str]:
         ciphers = []
-        for i in range(len(SSH1.CIPHERS)):
+        for i in range(len(SSH1.CIPHERS)):  # pylint: disable=consider-using-enumerate
             if self.__supported_ciphers_mask & (1 << i) != 0:
                 ciphers.append(Utils.to_text(SSH1.CIPHERS[i]))
         return ciphers

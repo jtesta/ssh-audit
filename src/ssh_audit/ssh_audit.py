@@ -563,7 +563,7 @@ def make_policy(aconf: AuditConf, banner: Optional['Banner'], kex: Optional['SSH
     # Open with mode 'x' (creates the file, or fails if it already exist).
     succeeded = True
     try:
-        with open(aconf.policy_file, 'x') as f:
+        with open(aconf.policy_file, 'x', encoding='utf-8') as f:
             f.write(policy_data)
     except FileExistsError:
         succeeded = False
@@ -681,7 +681,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
 
     # If a file containing a list of targets was given, read it.
     if aconf.target_file is not None:
-        with open(aconf.target_file, 'r') as f:
+        with open(aconf.target_file, 'r', encoding='utf-8') as f:
             aconf.target_list = f.readlines()
 
         # Strip out whitespace from each line in target file, and skip empty lines.
@@ -869,10 +869,10 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
                 if len(payload) > 0:
                     payload_txt = payload.decode('utf-8')
                 else:
-                    payload_txt = u'empty'
+                    payload_txt = 'empty'
             except UnicodeDecodeError:
-                payload_txt = u'"{}"'.format(repr(payload).lstrip('b')[1:-1])
-            if payload_txt == u'Protocol major versions differ.':
+                payload_txt = '"{}"'.format(repr(payload).lstrip('b')[1:-1])
+            if payload_txt == 'Protocol major versions differ.':
                 if sshv == 2 and aconf.ssh1:
                     ret = audit(out, aconf, 1)
                     out.write()
@@ -972,8 +972,8 @@ def algorithm_lookup(out: OutputBuffer, alg_names: str) -> int:
     similar_algorithms = [
         alg_unknown + " --> (" + alg_type + ") " + alg_name
         for alg_unknown in algorithms_not_found
-        for alg_type in adb
-        for alg_name in adb[alg_type]
+        for alg_type, alg_names in adb.items()
+        for alg_name in alg_names
         # Perform a case-insensitive comparison using 'casefold'
         # and match substrings using the 'in' operator.
         if alg_unknown.casefold() in alg_name.casefold()

@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -37,8 +37,8 @@ from ssh_audit.ssh_socket import SSH_Socket
 
 class KexDH:  # pragma: nocover
     def __init__(self, kex_name: str, hash_alg: str, g: int, p: int) -> None:
-        self.__kex_name = kex_name
-        self.__hash_alg = hash_alg
+        self.__kex_name = kex_name  # pylint: disable=unused-private-member
+        self.__hash_alg = hash_alg  # pylint: disable=unused-private-member
         self.__g = 0
         self.__p = 0
         self.__q = 0
@@ -46,10 +46,10 @@ class KexDH:  # pragma: nocover
         self.__e = 0
         self.set_params(g, p)
 
-        self.__ed25519_pubkey: Optional[bytes] = None
+        self.__ed25519_pubkey: Optional[bytes] = None  # pylint: disable=unused-private-member
         self.__hostkey_type: Optional[bytes] = None
-        self.__hostkey_e = 0
-        self.__hostkey_n = 0
+        self.__hostkey_e = 0  # pylint: disable=unused-private-member
+        self.__hostkey_n = 0  # pylint: disable=unused-private-member
         self.__hostkey_n_len = 0  # Length of the host key modulus.
         self.__ca_n_len = 0  # Length of the CA key modulus (if hostkey is a cert).
 
@@ -121,11 +121,11 @@ class KexDH:  # pragma: nocover
 
         # The public key exponent.
         hostkey_e, hostkey_e_len, ptr = KexDH.__get_bytes(hostkey, ptr)
-        self.__hostkey_e = int(binascii.hexlify(hostkey_e), 16)
+        self.__hostkey_e = int(binascii.hexlify(hostkey_e), 16)  # pylint: disable=unused-private-member
 
         # Here is the modulus size & actual modulus of the host key public key.
         hostkey_n, self.__hostkey_n_len, ptr = KexDH.__get_bytes(hostkey, ptr)
-        self.__hostkey_n = int(binascii.hexlify(hostkey_n), 16)
+        self.__hostkey_n = int(binascii.hexlify(hostkey_n), 16)  # pylint: disable=unused-private-member
 
         # If this is an RSA certificate, continue parsing to extract the CA
         # key.

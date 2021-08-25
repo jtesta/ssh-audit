@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2020-2021 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -117,7 +117,7 @@ class Policy:
 
         if policy_file is not None:
             try:
-                with open(policy_file, "r") as f:
+                with open(policy_file, "r", encoding='utf-8') as f:
                     policy_data = f.read()
             except FileNotFoundError:
                 print("Error: policy file not found: %s" % policy_file)
@@ -425,8 +425,8 @@ macs = %s
         server_policy_names = []
         client_policy_names = []
 
-        for policy_name in Policy.BUILTIN_POLICIES:
-            if Policy.BUILTIN_POLICIES[policy_name]['server_policy']:
+        for policy_name, policy in Policy.BUILTIN_POLICIES.items():
+            if policy['server_policy']:
                 server_policy_names.append(policy_name)
             else:
                 client_policy_names.append(policy_name)

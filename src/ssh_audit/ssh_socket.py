@@ -338,6 +338,6 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
     def __cleanup(self) -> None:
         self._close_socket(self.__sock)
-        for fd in self.__sock_map:
-            self._close_socket(self.__sock_map[fd])
+        for sock in self.__sock_map.values():
+            self._close_socket(sock)
         self.__sock = None

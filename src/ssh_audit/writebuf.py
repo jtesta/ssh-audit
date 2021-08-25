@@ -54,7 +54,7 @@ class WriteBuf:
         return self.write(v)
 
     def write_list(self, v: List[str]) -> 'WriteBuf':
-        return self.write_string(u','.join(v))
+        return self.write_string(','.join(v))
 
     @classmethod
     def _bitlength(cls, n: int) -> int:

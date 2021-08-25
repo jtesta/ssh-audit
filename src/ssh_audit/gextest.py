@@ -86,14 +86,14 @@ class GEXTest:
 
         # Check if the server supports any of the group-exchange
         # algorithms.  If so, test each one.
-        for gex_alg in GEX_ALGS:
+        for gex_alg, kex_group_class in GEX_ALGS.items():
             if gex_alg in kex.kex_algorithms:
                 out.d('Preparing to perform DH group exchange using ' + gex_alg + '...', write_now=True)
 
                 if GEXTest.reconnect(out, s, kex, gex_alg) is False:
                     break
 
-                kex_group = GEX_ALGS[gex_alg]()
+                kex_group = kex_group_class()
                 smallest_modulus = -1
 
                 # First try a range of weak sizes.

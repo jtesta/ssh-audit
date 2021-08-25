@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -55,7 +55,7 @@ class Algorithms:
         if self.ssh1kex is None:
             return None
         item = Algorithms.Item(1, SSH1_KexDB.ALGORITHMS)
-        item.add('key', [u'ssh-rsa1'])
+        item.add('key', ['ssh-rsa1'])
         item.add('enc', self.ssh1kex.supported_ciphers)
         item.add('aut', self.ssh1kex.supported_authentications)
         return item
