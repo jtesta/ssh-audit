@@ -85,6 +85,13 @@ if [[ -f dist/ssh-audit.exe ]]; then
     echo -e "\nExecutable created in $(pwd)/dist/ssh-audit.exe\n"
 fi
 
+# Ensure that the version string doesn't have '-dev' in it.
+X=`dist/ssh-audit.exe | grep -E 'ssh-audit.py v.+\-dev'` > /dev/null
+if [[ $? == 0 ]]; then
+    echo -e "\nError: executable's version number includes '-dev'."
+    exit 1
+fi
+
 # Remove the link we created, above.
 rm ssh-audit.py
 
