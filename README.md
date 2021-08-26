@@ -148,7 +148,7 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
 ## Pre-Built Packages
-Pre-built packages are available for Windows (see the releases page), on PyPI, Snap, and Homebrew.
+Pre-built packages are available for Windows (see the releases page), PyPI, Snap, and Docker.
 
 To install from PyPI:
 ```
@@ -158,11 +158,6 @@ $ pip3 install ssh-audit
 To install the Snap package:
 ```
 $ snap install ssh-audit
-```
-
-To install on Homebrew:
-```
-$ brew install ssh-audit
 ```
 
 To install from Dockerhub:
