@@ -11,25 +11,7 @@ However, if you can submit patches that pass all of our automated tests, then yo
 
 Tox is used to do unit testing, linting with [pylint](http://pylint.pycqa.org/en/latest/) & [flake8](https://flake8.pycqa.org/en/latest/), and static type-checking with [mypy](https://mypy.readthedocs.io/en/stable/).
 
-### Running tests on Ubuntu 18.04 and later
-
 For Ubuntu 18.04 or later, install tox with `apt install tox`, then simply run `tox` in the top-level directory.  Look for any error messages in the (verbose) output.
-
-### Running tests on Ubuntu 16.04
-
-For Ubuntu 16.04 (which is still supported until April 2021), a newer version of tox is needed.  The easiest way is to use virtualenv:
-```
-$ sudo apt install python3-virtualenv
-$ virtualenv -p /usr/bin/python3 ~/venv_ssh-audit
-$ source ~/venv_ssh-audit/bin/activate
-$ pip install tox
-```
-Then, to run the tox tests:
-```
-$ source ~/venv_ssh-audit/bin/activate
-$ cd path/to/ssh-audit
-$ tox
-```
 
 
 ## Docker Tests
