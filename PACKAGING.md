@@ -62,10 +62,10 @@ Install pre-requisites with:
     $ sudo snap install review-tools lxd
 ```
 
-Initialize LXD (leave all options default):
+Initialize LXD:
 
 ```
-    $ sudo lxd init
+    $ sudo lxd init --auto
 ```
 
 Bump the version number in snapcraft.yaml.  Then run:
