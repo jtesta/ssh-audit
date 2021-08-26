@@ -2,10 +2,6 @@
 
 An executable can only be made on a Windows host because the PyInstaller tool (https://www.pyinstaller.org/) does not support cross-compilation.
 
-**NOTE**: PyInstaller v4.2 is known to generate executables with broken PE checksums.  As a result, this triggers several anti-virus programs, including Microsoft Defender.  This issue has been [fixed here](https://github.com/pyinstaller/pyinstaller/pull/5580), but as of this writing, it has not been shipped in a stable release.  One workaround is to use the PyInstaller master branch instead of the version on PyPI.
-
-First, clone PyInstaller onto a Linux machine with MinGW tools installed (`apt install mingw-w64`).  In its `booloader` directory, compile with `python3 waf all`.  Copy the *entire* pyinstaller directory to a Windows machine.  From an elevated command prompt, install it with `python setup.py install`.  Check that it was successfully installed by running `pyinstaller`.  If so, follow the instructions below, but do not install pyinstaller using pip in step #2.
-
 1.) Install Python v3.9.x from https://www.python.org/.  To make life easier, check the option to add Python to the PATH environment variable.
 
 2.) Using pip, install pyinstaller and colorama:
