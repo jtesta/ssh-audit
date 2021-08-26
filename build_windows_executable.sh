@@ -120,8 +120,8 @@ if [[ $? == 0 ]]; then
     exit 1
 fi
 
-# Remove the link we created, above.
-rm ssh-audit.py
+# Remove the cache files created during the build process, along with the link we created, above.
+rm -rf build/ ssh-audit.spec ssh-audit.py
 
 # Reset the changes we made to globals.py.
 git checkout globals.py 2> /dev/null
