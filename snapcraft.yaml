@@ -1,5 +1,5 @@
 name: ssh-audit
-version: '2.4.0-1'
+version: '2.5.0-1'
 license: 'MIT'
 summary: ssh-audit
 description: |
