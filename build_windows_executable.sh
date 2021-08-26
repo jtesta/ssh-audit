@@ -58,6 +58,29 @@ if [[ $? != 0 ]]; then
     exit 1
 fi
 
+# Prompt for the version to release.
+echo -n "Enter the version to release, using format 'vX.X.X': "
+read -r version
+
+# Ensure that entered version fits required format.
+if [[ ! $version =~ ^v[0-9]\.[0-9]\.[0-9]$ ]]; then
+   echo "Error: version string does not match format vX.X.X!"
+   exit 1
+fi
+
+# Verify that version is correct.
+echo -n "Version will be set to '${version}'.  Is this correct? (y/n): "
+read -r yn
+echo
+
+if [[ $yn != "y" ]]; then
+   echo "Build cancelled."
+   exit 1
+fi
+
+# Reset any local changes made to globals.py from a previous run.
+git checkout src/ssh_audit/globals.py 2> /dev/null
+
 # Update the man page.
 ./update_windows_man_page.sh
 if [[ $? != 0 ]]; then
@@ -68,12 +91,14 @@ fi
 # Do all operations from this point from the main source directory.
 pushd src/ssh_audit > /dev/null
 
-# Delete the executable if it exists from a prior run.
-if [[ -f dist/ssh-audit.exe ]]; then
-    rm dist/ssh-audit.exe
-fi
+# Delete the existing VERSION variable and add the value that the user entered, above.
+sed -i '/^VERSION/d' globals.py
+echo "VERSION = '$version'" >> globals.py
 
-# Create a link from ssh_audit.py to ssh-audit.py.
+# Delete cached files if they exist from a prior run.
+rm -rf dist/ build/ ssh-audit.spec
+
+# Create a hard link from ssh_audit.py to ssh-audit.py.
 if [[ ! -f ssh-audit.py ]]; then
     ln ssh_audit.py ssh-audit.py
 fi
@@ -83,10 +108,13 @@ pyinstaller -F --icon ../../windows_icon.ico ssh-audit.py
 
 if [[ -f dist/ssh-audit.exe ]]; then
     echo -e "\nExecutable created in $(pwd)/dist/ssh-audit.exe\n"
+else
+    echo -e "\nFAILED to create $(pwd)/dist/ssh-audit.exe!\n"
+    exit 1
 fi
 
 # Ensure that the version string doesn't have '-dev' in it.
-X=`dist/ssh-audit.exe | grep -E 'ssh-audit.py v.+\-dev'` > /dev/null
+X=`dist/ssh-audit.exe | grep -E 'ssh-audit.exe v.+\-dev'` > /dev/null
 if [[ $? == 0 ]]; then
     echo -e "\nError: executable's version number includes '-dev'."
     exit 1
@@ -94,6 +122,9 @@ fi
 
 # Remove the link we created, above.
 rm ssh-audit.py
+
+# Reset the changes we made to globals.py.
+git checkout globals.py 2> /dev/null
 
 popd > /dev/null
 exit 0
