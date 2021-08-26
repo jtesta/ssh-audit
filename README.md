@@ -175,7 +175,7 @@ $ docker pull positronsecurity/ssh-audit
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
-### v2.5.0-dev (???)
+### v2.5.0 (2021-08-26)
  - Fixed crash when running host key tests.
  - Handles server connection failures more gracefully.
  - Now prints JSON with indents when `-jj` is used (useful for debugging).
