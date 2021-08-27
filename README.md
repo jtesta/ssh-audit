@@ -71,9 +71,9 @@ usage: ssh-audit.py [options] <host>
                                    targets (-T/--targets) (default: 32)
    -v,  --verbose          verbose output
 ```
-* if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.  
-* batch flag `-b` will output sections without header and without empty lines (implies verbose flag).  
-* verbose flag `-v` will prefix each line with section type and algorithm name.  
+* if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.
+* batch flag `-b` will output sections without header and without empty lines (implies verbose flag).
+* verbose flag `-v` will prefix each line with section type and algorithm name.
 * an exit code of 0 is returned when all algorithms are considered secure (for a standard audit), or when a policy check passes (for a policy audit).
 
 Basic server auditing:
@@ -303,18 +303,18 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ### v1.0.20160207
  - use OpenSSH 7.2 banner
- - additional warnings for OpenSSH 7.2 
+ - additional warnings for OpenSSH 7.2
  - fix OpenSSH 7.0 failure messages
  - add rijndael-cbc failure message from OpenSSH 6.7
 
 ### v1.0.20160105
  - multiple additional warnings
  - support for none algorithm
- - better compression handling  
- - ensure reading enough data (fixes few Linux SSH)  
+ - better compression handling
+ - ensure reading enough data (fixes few Linux SSH)
 
 ### v1.0.20151230
- - Dropbear SSH support  
+ - Dropbear SSH support
 
 ### v1.0.20151223
- - initial version  
+ - initial version

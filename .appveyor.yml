@@ -17,7 +17,7 @@ environment:
     - PYTHON: "C:\\Python38"
     - PYTHON: "C:\\Python38-x64"
 matrix:
-  fast_finish: true 
+  fast_finish: true
 
 cache:
   - '%LOCALAPPDATA%\pip\Cache'
