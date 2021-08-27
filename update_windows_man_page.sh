@@ -45,7 +45,7 @@
 #
 ################################################################################
 
-function usage {
+usage() {
     echo >&2 "Usage: $0 [-m <path-to-man-page>] [-g <path-to-globals.py>] [-h]"
     echo >&2 "  -m    Specify an alternate man page path (default: ./ssh-audit.1)"
     echo >&2 "  -g    Specify an alternate globals.py path (default: ./src/ssh_audit/globals.py)"
@@ -65,8 +65,7 @@ esac
 MAN_PAGE=./ssh-audit.1
 GLOBALS_PY=./src/ssh_audit/globals.py
 
-while getopts "m: g: h" OPTION
-do
+while getopts "m: g: h" OPTION; do
     case "$OPTION" in
         m)
             MAN_PAGE="$OPTARG"
@@ -87,11 +86,11 @@ do
 done
 
 # Check that the specified files exist.
-[ -f "$MAN_PAGE" ] || { echo >&2 "man page file not found: $MAN_PAGE"; exit 1; }
-[ -f "$GLOBALS_PY" ] || { echo >&2 "globals.py file not found: $GLOBALS_PY"; exit 1; }
+[[ -f "$MAN_PAGE" ]] || { echo >&2 "man page file not found: $MAN_PAGE"; exit 1; }
+[[ -f "$GLOBALS_PY" ]] || { echo >&2 "globals.py file not found: $GLOBALS_PY"; exit 1; }
 
 # Check that the 'ul' (do underlining) binary exists.
-if [[ "$PLATFORM" = Linux ]]; then
+if [[ "$PLATFORM" == "Linux" ]]; then
     command -v ul >/dev/null 2>&1 || { echo >&2 "ul not found."; exit 1; }
 fi
 
@@ -118,7 +117,7 @@ echo "Processing man page at ${MAN_PAGE} and placing output into ${GLOBALS_PY}..
 
 echo WINDOWS_MAN_PAGE = '"""' >> "$GLOBALS_PY"
 
-if [[ "$PLATFORM" = CYGWIN* ]]; then
+if [[ "$PLATFORM" == CYGWIN* ]]; then
 	MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
 else
 	MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | ul | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
