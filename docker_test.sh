@@ -41,33 +41,33 @@ num_failures=0
 
 
 # Returns 0 if current docker image exists.
-function check_if_docker_image_exists {
+check_if_docker_image_exists() {
     images=$(docker image ls | grep -E "$IMAGE_NAME[[:space:]]+$IMAGE_VERSION")
 }
 
 
 # Uncompresses and compiles the specified version of Dropbear.
-function compile_dropbear {
+compile_dropbear() {
     version=$1
     compile 'Dropbear' "$version"
 }
 
 
 # Uncompresses and compiles the specified version of OpenSSH.
-function compile_openssh {
+compile_openssh() {
     version=$1
     compile 'OpenSSH' "$version"
 }
 
 
 # Uncompresses and compiles the specified version of TinySSH.
-function compile_tinyssh {
+compile_tinyssh() {
     version=$1
     compile 'TinySSH' "$version"
 }
 
 
-function compile {
+compile() {
     project=$1
     version=$2
 
@@ -116,7 +116,7 @@ function compile {
 
 
 # Creates a new docker image.
-function create_docker_image {
+create_docker_image() {
     # Create a new temporary directory.
     TMP_DIR=$(mktemp -d /tmp/sshaudit-docker-XXXXXXXXXX)
 
@@ -212,7 +212,7 @@ function create_docker_image {
 
 
 # Creates an OpenSSH configuration file for a specific test.
-function create_openssh_config {
+create_openssh_config() {
     openssh_version=$1
     test_number=$2
     config_text=$3
@@ -223,24 +223,24 @@ function create_openssh_config {
 
 
 # Downloads the Dropbear release key and adds it to the local keyring.
-function get_dropbear_release_key {
+get_dropbear_release_key() {
     get_release_key 'Dropbear' 'https://matt.ucc.asn.au/dropbear/releases/dropbear-key-2015.asc' 'F29C6773' 'F734 7EF2 EE2E 07A2 6762  8CA9 4493 1494 F29C 6773'
 }
 
 
 # Downloads the OpenSSH release key and adds it to the local keyring.
-function get_openssh_release_key {
+get_openssh_release_key() {
     get_release_key 'OpenSSH' 'https://ftp.openbsd.org/pub/OpenBSD/OpenSSH/RELEASE_KEY.asc' '6D920D30' '59C2 118E D206 D927 E667  EBE3 D3E5 F56B 6D92 0D30'
 }
 
 
 # Downloads the TinySSH release key and adds it to the local keyring.
-function get_tinyssh_release_key {
+get_tinyssh_release_key() {
     get_release_key 'TinySSH' '' '96939FF9' 'AADF 2EDF 5529 F170 2772  C8A2 DEC4 D246 931E F49B'
 }
 
 
-function get_release_key {
+get_release_key() {
     project=$1
     key_url=$2
     key_id=$3
@@ -269,7 +269,7 @@ function get_release_key {
 
 
 # Downloads the specified version of Dropbear.
-function get_dropbear {
+get_dropbear() {
     version=$1
     tarball_checksum_expected=$2
     get_source 'Dropbear' "$version" "$tarball_checksum_expected"
@@ -277,7 +277,7 @@ function get_dropbear {
 
 
 # Downloads the specified version of OpenSSH.
-function get_openssh {
+get_openssh() {
     version=$1
     tarball_checksum_expected=$2
     get_source 'OpenSSH' "$version" "$tarball_checksum_expected"
@@ -285,14 +285,14 @@ function get_openssh {
 
 
 # Downloads the specified version of TinySSH.
-function get_tinyssh {
+get_tinyssh() {
     version=$1
     tarball_checksum_expected=$2
     get_source 'TinySSH' "$version" "$tarball_checksum_expected"
 }
 
 
-function get_source {
+get_source() {
     project=$1
     version=$2
     tarball_checksum_expected=$3
@@ -359,12 +359,12 @@ function get_source {
 
 
 # Pulls the defined image from Dockerhub.
-function pull_docker_image {
+pull_docker_image() {
     docker pull "$IMAGE_NAME:$IMAGE_VERSION"
     if [[ $? == 0 ]]; then
-        echo -e "${GREEN}Successfully downloaded image ${IMAGE_NAME}:${IMAGE_VERSION} from Dockerhub.${CLR}\n"
+        echo -e "${GREEN}Successfully downloaded image $IMAGE_NAME:$IMAGE_VERSION from Dockerhub.${CLR}\n"
     else
-        echo -e "${REDB}Failed to pull image ${IMAGE_NAME}:${IMAGE_VERSION} from Dockerhub!  Error code: $?${CLR}\n"
+        echo -e "${REDB}Failed to pull image $IMAGE_NAME:$IMAGE_VERSION from Dockerhub!  Error code: $?${CLR}\n"
         exit 1
     fi
 }
@@ -372,7 +372,7 @@ function pull_docker_image {
 
 # Runs a Dropbear test.  Upon failure, a diff between the expected and actual results
 # is shown, then the script immediately terminates.
-function run_dropbear_test {
+run_dropbear_test() {
     dropbear_version=$1
     test_number=$2
     options=$3
@@ -384,7 +384,7 @@ function run_dropbear_test {
 
 # Runs an OpenSSH test.  Upon failure, a diff between the expected and actual results
 # is shown, then the script immediately terminates.
-function run_openssh_test {
+run_openssh_test() {
     openssh_version=$1
     test_number=$2
     expected_retval=$3
@@ -395,7 +395,7 @@ function run_openssh_test {
 
 # Runs a TinySSH test.  Upon failure, a diff between the expected and actual results
 # is shown, then the script immediately terminates.
-function run_tinyssh_test {
+run_tinyssh_test() {
     tinyssh_version=$1
     test_number=$2
     expected_retval=$3
@@ -404,7 +404,7 @@ function run_tinyssh_test {
 }
 
 
-function run_test {
+run_test() {
     server_type=$1
     version=$2
     test_number=$3
@@ -443,7 +443,7 @@ function run_test {
     fi
 
     cid=$(docker run -d -p 2222:22 "$IMAGE_NAME:$IMAGE_VERSION" ${server_exec})
-    #echo "Running: docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}"
+    #echo "Running: docker run -d -p 2222:22 $IMAGE_NAME:$IMAGE_VERSION ${server_exec}"
     if [[ $? != 0 ]]; then
 	echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
 	exit 1
@@ -500,7 +500,7 @@ function run_test {
     fi
 }
 
-function run_builtin_policy_test {
+run_builtin_policy_test() {
     policy_name=$1         # The built-in policy name to use.
     version=$2             # Version of OpenSSH to test with.
     test_number=$3         # The test number to run.
@@ -518,7 +518,7 @@ function run_builtin_policy_test {
 }
 
 
-function run_custom_policy_test {
+run_custom_policy_test() {
     config_number=$1  # The configuration number to use.
     test_number=$2    # The policy test number to run.
     expected_exit_code=$3  # The expected exit code of ssh-audit.py.
@@ -548,7 +548,7 @@ function run_custom_policy_test {
 }
 
 
-function run_policy_test {
+run_policy_test() {
     test_name=$1
     server_exec=$2
     policy_path=$3
@@ -557,7 +557,7 @@ function run_policy_test {
     expected_exit_code=$6
 
 
-    #echo "Running: docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}"
+    #echo "Running: docker run -d -p 2222:22 $IMAGE_NAME:$IMAGE_VERSION ${server_exec}"
     cid=$(docker run -d -p 2222:22 "$IMAGE_NAME:$IMAGE_VERSION" ${server_exec})
     if [[ $? != 0 ]]; then
 	echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
