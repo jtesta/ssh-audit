@@ -52,7 +52,7 @@ fi
 command -v pyinstaller >/dev/null 2>&1 || { echo >&2 "pyinstaller not found.  Install with: 'pip install pyinstaller'"; exit 1; }
 
 # Ensure that the colorama module is installed.
-X=`pip show colorama` 2> /dev/null
+X=$(pip show colorama 2>/dev/null)
 if [[ $? != 0 ]]; then
     echo "Colorama module not found.  Install with: 'pip install colorama'"
     exit 1
