@@ -42,28 +42,28 @@ num_failures=0
 
 # Returns 0 if current docker image exists.
 function check_if_docker_image_exists {
-    images=`docker image ls | egrep "$IMAGE_NAME[[:space:]]+$IMAGE_VERSION"`
+    images=$(docker image ls | grep -E "$IMAGE_NAME[[:space:]]+$IMAGE_VERSION")
 }
 
 
 # Uncompresses and compiles the specified version of Dropbear.
 function compile_dropbear {
     version=$1
-    compile 'Dropbear' $version
+    compile 'Dropbear' "$version"
 }
 
 
 # Uncompresses and compiles the specified version of OpenSSH.
 function compile_openssh {
     version=$1
-    compile 'OpenSSH' $version
+    compile 'OpenSSH' "$version"
 }
 
 
 # Uncompresses and compiles the specified version of TinySSH.
 function compile_tinyssh {
     version=$1
-    compile 'TinySSH' $version
+    compile 'TinySSH' "$version"
 }
 
 
@@ -93,10 +93,10 @@ function compile {
     fi
 
     echo "Uncompressing ${project} ${version}..."
-    tar $uncompress_options $tarball
+    tar $uncompress_options "$tarball"
 
     echo "Compiling ${project} ${version}..."
-    pushd $source_dir > /dev/null
+    pushd "$source_dir" > /dev/null
 
     # TinySSH has no configure script... only a Makefile.
     if [[ $project == 'TinySSH' ]]; then
@@ -118,14 +118,14 @@ function compile {
 # Creates a new docker image.
 function create_docker_image {
     # Create a new temporary directory.
-    TMP_DIR=`mktemp -d /tmp/sshaudit-docker-XXXXXXXXXX`
+    TMP_DIR=$(mktemp -d /tmp/sshaudit-docker-XXXXXXXXXX)
 
     # Copy the Dockerfile and all files in the test/docker/ dir to our new temp directory.
-    find test/docker/ -maxdepth 1 -type f | xargs cp -t $TMP_DIR
+    find test/docker/ -maxdepth 1 -type f -exec cp -t "$TMP_DIR" '{}' +
 
     # Make the temp directory our working directory for the duration of the build
     # process.
-    pushd $TMP_DIR > /dev/null
+    pushd "$TMP_DIR" > /dev/null
 
     # Get the release keys.
     get_dropbear_release_key
@@ -204,10 +204,10 @@ function create_docker_image {
 
 
     # Now build the docker image!
-    docker build --tag $IMAGE_NAME:$IMAGE_VERSION .
+    docker build --tag "$IMAGE_NAME:$IMAGE_VERSION" .
 
     popd > /dev/null
-    rm -rf $TMP_DIR
+    rm -rf -- "$TMP_DIR"
 }
 
 
@@ -217,8 +217,8 @@ function create_openssh_config {
     test_number=$2
     config_text=$3
 
-    cp sshd_config-${openssh_version}_orig sshd_config-${openssh_version}_${test_number}
-    echo -e "${config_text}" >> sshd_config-${openssh_version}_${test_number}
+    cp "sshd_config-${openssh_version}_orig" "sshd_config-${openssh_version}_${test_number}"
+    echo -e "${config_text}" >> "sshd_config-${openssh_version}_${test_number}"
 }
 
 
@@ -248,10 +248,10 @@ function get_release_key {
 
     # The TinySSH release key isn't on any website, apparently.
     if [[ $project == 'TinySSH' ]]; then
-	gpg --keyserver keys.gnupg.net --recv-key $key_id
+	gpg --keyserver keys.gnupg.net --recv-key "$key_id"
     else
 	echo -e "\nGetting ${project} release key...\n"
-	wget -O key.asc $2
+	wget -O key.asc "$2"
 
 	echo -e "\nImporting ${project} release key...\n"
 	gpg --import key.asc
@@ -259,10 +259,10 @@ function get_release_key {
 	rm key.asc
     fi
 
-    local release_key_fingerprint_actual=`gpg --fingerprint ${key_id}`
+    local release_key_fingerprint_actual=$(gpg --fingerprint "$key_id")
     if [[ $release_key_fingerprint_actual != *"$release_key_fingerprint_expected"* ]]; then
         echo -e "\n${REDB}Error: ${project} release key fingerprint does not match expected value!\n\tExpected: $release_key_fingerprint_expected\n\tActual: $release_key_fingerprint_actual\n\nTerminating.${CLR}"
-        exit -1
+        exit 1
     fi
     echo -e "\n\n${GREEN}${project} release key matches expected value.${CLR}\n"
 }
@@ -272,7 +272,7 @@ function get_release_key {
 function get_dropbear {
     version=$1
     tarball_checksum_expected=$2
-    get_source 'Dropbear' $version $tarball_checksum_expected
+    get_source 'Dropbear' "$version" "$tarball_checksum_expected"
 }
 
 
@@ -280,7 +280,7 @@ function get_dropbear {
 function get_openssh {
     version=$1
     tarball_checksum_expected=$2
-    get_source 'OpenSSH' $version $tarball_checksum_expected
+    get_source 'OpenSSH' "$version" "$tarball_checksum_expected"
 }
 
 
@@ -288,7 +288,7 @@ function get_openssh {
 function get_tinyssh {
     version=$1
     tarball_checksum_expected=$2
-    get_source 'TinySSH' $version $tarball_checksum_expected
+    get_source 'TinySSH' "$version" "$tarball_checksum_expected"
 }
 
 
@@ -331,41 +331,41 @@ function get_source {
 
     # Older OpenSSH releases were .sigs.
     if [[ ($project == 'OpenSSH') && (! -f $sig) ]]; then
-	wget ${base_url_sig}openssh-${version}.tar.gz.sig
+	wget "${base_url_sig}openssh-${version}.tar.gz.sig"
 	sig=openssh-${version}.tar.gz.sig
     fi
 
-    local gpg_verify=`gpg --verify ${sig} ${tarball} 2>&1`
+    local gpg_verify=$(gpg --verify "${sig}" "${tarball}" 2>&1)
     if [[ $gpg_verify != *"Good signature from \"${signer}"* ]]; then
         echo -e "\n\n${REDB}Error: ${project} signature invalid!\n$gpg_verify\n\nTerminating.${CLR}"
-        exit -1
+        exit 1
     fi
 
     # Check GPG's return value.  0 denotes a valid signature, and 1 is returned
     # on invalid signatures.
     if [[ $? != 0 ]]; then
         echo -e "\n\n${REDB}Error: ${project} signature invalid!  Verification returned code: $?\n\nTerminating.${CLR}"
-        exit -1
+        exit 1
     fi
 
     echo -e "${GREEN}Signature on ${project} sources verified.${CLR}\n"
 
-    local checksum_actual=`sha256sum ${tarball} | cut -f1 -d" "`
-    if [[ $checksum_actual != $tarball_checksum_expected ]]; then
+    local checksum_actual=$(sha256sum "${tarball}" | cut -f1 -d" ")
+    if [[ $checksum_actual != "$tarball_checksum_expected" ]]; then
         echo -e "${REDB}Error: ${project} checksum is invalid!\n  Expected: ${tarball_checksum_expected}\n  Actual:   ${checksum_actual}\n\n  Terminating.${CLR}"
-        exit -1
+        exit 1
     fi
 }
 
 
 # Pulls the defined image from Dockerhub.
 function pull_docker_image {
-    docker pull $IMAGE_NAME:$IMAGE_VERSION
+    docker pull "$IMAGE_NAME:$IMAGE_VERSION"
     if [[ $? == 0 ]]; then
         echo -e "${GREEN}Successfully downloaded image ${IMAGE_NAME}:${IMAGE_VERSION} from Dockerhub.${CLR}\n"
     else
         echo -e "${REDB}Failed to pull image ${IMAGE_NAME}:${IMAGE_VERSION} from Dockerhub!  Error code: $?${CLR}\n"
-        exit -1
+        exit 1
     fi
 }
 
@@ -442,24 +442,24 @@ function run_test {
 	test_name="TinySSH ${version} ${test_number}"
     fi
 
-    cid=`docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}`
+    cid=$(docker run -d -p 2222:22 "$IMAGE_NAME:$IMAGE_VERSION" ${server_exec})
     #echo "Running: docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}"
     if [[ $? != 0 ]]; then
 	echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
 	exit 1
     fi
 
-    ./ssh-audit.py localhost:2222 > $test_result_stdout
+    ./ssh-audit.py localhost:2222 > "$test_result_stdout"
     actual_retval=$?
-    if [[ $actual_retval != $expected_retval ]]; then
+    if [[ $actual_retval != "$expected_retval" ]]; then
 	echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
 	docker container stop -t 0 $cid > /dev/null
 	exit 1
     fi
 
-    ./ssh-audit.py -j localhost:2222 > $test_result_json
+    ./ssh-audit.py -j localhost:2222 > "$test_result_json"
     actual_retval=$?
-    if [[ $actual_retval != $expected_retval ]]; then
+    if [[ $actual_retval != "$expected_retval" ]]; then
 	echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
 	docker container stop -t 0 $cid > /dev/null
 	exit 1
@@ -475,20 +475,20 @@ function run_test {
     # we need to filter out the banner part of the output so we get stable, repeatable
     # results.
     if [[ $server_type == 'TinySSH' ]]; then
-	grep -v "(gen) banner: " ${test_result_stdout} > "${test_result_stdout}.tmp"
-	mv "${test_result_stdout}.tmp" ${test_result_stdout}
+	grep -v "(gen) banner: " "${test_result_stdout}" > "${test_result_stdout}.tmp"
+	mv "${test_result_stdout}.tmp" "${test_result_stdout}"
 	cat "${test_result_json}" | perl -pe 's/"comments": ".*?"/"comments": ""/' | perl -pe 's/"raw": ".+?"/"raw": ""/' > "${test_result_json}.tmp"
-	mv "${test_result_json}.tmp" ${test_result_json}
+	mv "${test_result_json}.tmp" "${test_result_json}"
     fi
 
-    diff=`diff -u ${expected_result_stdout} ${test_result_stdout}`
+    diff=$(diff -u "${expected_result_stdout}" "${test_result_stdout}")
     if [[ $? != 0 ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
 	failed=1
 	num_failures=$((num_failures+1))
     fi
 
-    diff=`diff -u ${expected_result_json} ${test_result_json}`
+    diff=$(diff -u "${expected_result_json}" "${test_result_json}")
     if [[ $? != 0 ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
 	failed=1
@@ -558,28 +558,28 @@ function run_policy_test {
 
 
     #echo "Running: docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}"
-    cid=`docker run -d -p 2222:22 ${IMAGE_NAME}:${IMAGE_VERSION} ${server_exec}`
+    cid=$(docker run -d -p 2222:22 "$IMAGE_NAME:$IMAGE_VERSION" ${server_exec})
     if [[ $? != 0 ]]; then
 	echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
 	exit 1
     fi
 
     #echo "Running: ./ssh-audit.py -P \"${policy_path}\" localhost:2222 > ${test_result_stdout}"
-    ./ssh-audit.py -P "${policy_path}" localhost:2222 > ${test_result_stdout}
+    ./ssh-audit.py -P "${policy_path}" localhost:2222 > "${test_result_stdout}"
     actual_exit_code=$?
-    if [[ ${actual_exit_code} != ${expected_exit_code} ]]; then
+    if [[ ${actual_exit_code} != "${expected_exit_code}" ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
-        cat ${test_result_stdout}
+        cat "${test_result_stdout}"
 	docker container stop -t 0 $cid > /dev/null
 	exit 1
     fi
 
     #echo "Running: ./ssh-audit.py -P \"${policy_path}\" -j localhost:2222 > ${test_result_json}"
-    ./ssh-audit.py -P "${policy_path}" -j localhost:2222 > ${test_result_json}
+    ./ssh-audit.py -P "${policy_path}" -j localhost:2222 > "${test_result_json}"
     actual_exit_code=$?
-    if [[ ${actual_exit_code} != ${expected_exit_code} ]]; then
+    if [[ ${actual_exit_code} != "${expected_exit_code}" ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
-        cat ${test_result_json}
+        cat "${test_result_json}"
 	docker container stop -t 0 $cid > /dev/null
 	exit 1
     fi
@@ -590,13 +590,13 @@ function run_policy_test {
        exit 1
     fi
 
-    diff=`diff -u ${expected_result_stdout} ${test_result_stdout}`
+    diff=$(diff -u "${expected_result_stdout}" "${test_result_stdout}")
     if [[ $? != 0 ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
 	exit 1
     fi
 
-    diff=`diff -u ${expected_result_json} ${test_result_json}`
+    diff=$(diff -u "${expected_result_json}" "${test_result_json}")
     if [[ $? != 0 ]]; then
 	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
 	exit 1
@@ -647,7 +647,7 @@ fi
 echo -e "\n${GREEN}Starting tests...${CLR}"
 
 # Create a temporary directory to write test results to.
-TEST_RESULT_DIR=`mktemp -d /tmp/ssh-audit_test-results_XXXXXXXXXX`
+TEST_RESULT_DIR=$(mktemp -d /tmp/ssh-audit_test-results_XXXXXXXXXX)
 
 # Now run all the tests.
 echo -e "\nRunning tests..."
@@ -708,7 +708,7 @@ run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 1)" "8.0p1" "test
 
 if [[ $num_failures == 0 ]]; then
     echo -e "\n${GREENB}ALL TESTS PASS!${CLR}\n"
-    rm -rf $TEST_RESULT_DIR
+    rm -rf -- "$TEST_RESULT_DIR"
 else
     echo -e "\n${REDB}${num_failures} TESTS FAILED!${CLR}\n"
 fi
