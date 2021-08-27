@@ -76,20 +76,20 @@ compile() {
     source_dir=
     server_executable=
     if [[ $project == 'OpenSSH' ]]; then
-	tarball="openssh-${version}.tar.gz"
-	uncompress_options="xzf"
-	source_dir="openssh-${version}"
-	server_executable=sshd
+        tarball="openssh-${version}.tar.gz"
+        uncompress_options="xzf"
+        source_dir="openssh-${version}"
+        server_executable=sshd
     elif [[ $project == 'Dropbear' ]]; then
-	tarball="dropbear-${version}.tar.bz2"
-	uncompress_options="xjf"
-	source_dir="dropbear-${version}"
-	server_executable=dropbear
+        tarball="dropbear-${version}.tar.bz2"
+        uncompress_options="xjf"
+        source_dir="dropbear-${version}"
+        server_executable=dropbear
     elif [[ $project == 'TinySSH' ]]; then
-	tarball="${version}.tar.gz"
-	uncompress_options="xzf"
-	source_dir="tinyssh-${version}"
-	server_executable='build/bin/tinysshd'
+        tarball="${version}.tar.gz"
+        uncompress_options="xzf"
+        source_dir="tinyssh-${version}"
+        server_executable='build/bin/tinysshd'
     fi
 
     echo "Uncompressing ${project} ${version}..."
@@ -100,14 +100,14 @@ compile() {
 
     # TinySSH has no configure script... only a Makefile.
     if [[ $project == 'TinySSH' ]]; then
-	make -j 10
+        make -j 10
     else
-	./configure && make -j 10
+        ./configure && make -j 10
     fi
 
     if [[ ! -f $server_executable ]]; then
-	echo -e "${REDB}Error: ${server_executable} not built!${CLR}"
-	exit 1
+        echo -e "${REDB}Error: ${server_executable} not built!${CLR}"
+        exit 1
     fi
 
     echo -e "\n${GREEN}Successfully built ${project} ${version}${CLR}\n"
@@ -178,7 +178,7 @@ create_docker_image() {
 
     # Test 2: RSA 1024 host key with RSA 1024 certificate.
     create_openssh_config '5.6p1' 'test2' "HostKey /etc/ssh/ssh_host_rsa_key_1024\nHostCertificate /etc/ssh/ssh_host_rsa_key_1024-cert_1024.pub"
-    
+
     # Test 3: RSA 1024 host key with RSA 3072 certificate.
     create_openssh_config '5.6p1' 'test3' "HostKey /etc/ssh/ssh_host_rsa_key_1024\nHostCertificate /etc/ssh/ssh_host_rsa_key_1024-cert_3072.pub"
 
@@ -248,15 +248,15 @@ get_release_key() {
 
     # The TinySSH release key isn't on any website, apparently.
     if [[ $project == 'TinySSH' ]]; then
-	gpg --keyserver keys.gnupg.net --recv-key "$key_id"
+        gpg --keyserver keys.gnupg.net --recv-key "$key_id"
     else
-	echo -e "\nGetting ${project} release key...\n"
-	wget -O key.asc "$2"
+        echo -e "\nGetting ${project} release key...\n"
+        wget -O key.asc "$2"
 
-	echo -e "\nImporting ${project} release key...\n"
-	gpg --import key.asc
+        echo -e "\nImporting ${project} release key...\n"
+        gpg --import key.asc
 
-	rm key.asc
+        rm key.asc
     fi
 
     local release_key_fingerprint_actual=$(gpg --fingerprint "$key_id")
@@ -303,23 +303,23 @@ get_source() {
     sig=
     signer=
     if [[ $project == 'OpenSSH' ]]; then
-	base_url_source='https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/'
-	base_url_sig=$base_url_source
-	tarball="openssh-${version}.tar.gz"
-	sig="${tarball}.asc"
-	signer="Damien Miller "
+        base_url_source='https://cdn.openbsd.org/pub/OpenBSD/OpenSSH/portable/'
+        base_url_sig=$base_url_source
+        tarball="openssh-${version}.tar.gz"
+        sig="${tarball}.asc"
+        signer="Damien Miller "
     elif [[ $project == 'Dropbear' ]]; then
-	base_url_source='https://matt.ucc.asn.au/dropbear/releases/'
-	base_url_sig=$base_url_source
-	tarball="dropbear-${version}.tar.bz2"
-	sig="${tarball}.asc"
-	signer="Dropbear SSH Release Signing <matt@ucc.asn.au>"
+        base_url_source='https://matt.ucc.asn.au/dropbear/releases/'
+        base_url_sig=$base_url_source
+        tarball="dropbear-${version}.tar.bz2"
+        sig="${tarball}.asc"
+        signer="Dropbear SSH Release Signing <matt@ucc.asn.au>"
     elif [[ $project == 'TinySSH' ]]; then
-	base_url_source='https://github.com/janmojzis/tinyssh/archive/'
-	base_url_sig="https://github.com/janmojzis/tinyssh/releases/download/${version}/"
-	tarball="${version}.tar.gz"
-	sig="${tarball}.asc"
-	signer="Jan Mojžíš <jan.mojzis@gmail.com>"
+        base_url_source='https://github.com/janmojzis/tinyssh/archive/'
+        base_url_sig="https://github.com/janmojzis/tinyssh/releases/download/${version}/"
+        tarball="${version}.tar.gz"
+        sig="${tarball}.asc"
+        signer="Jan Mojžíš <jan.mojzis@gmail.com>"
     fi
 
     echo -e "\nGetting ${project} ${version} sources...\n"
@@ -331,8 +331,8 @@ get_source() {
 
     # Older OpenSSH releases were .sigs.
     if [[ ($project == 'OpenSSH') && (! -f $sig) ]]; then
-	wget "${base_url_sig}openssh-${version}.tar.gz.sig"
-	sig=openssh-${version}.tar.gz.sig
+        wget "${base_url_sig}openssh-${version}.tar.gz.sig"
+        sig=openssh-${version}.tar.gz.sig
     fi
 
     local gpg_verify=$(gpg --verify "${sig}" "${tarball}" 2>&1)
@@ -419,50 +419,50 @@ run_test() {
     expected_result_json=
     test_name=
     if [[ $server_type == 'OpenSSH' ]]; then
-	server_exec="/openssh/sshd-${version} -D -f /etc/ssh/sshd_config-${version}_${test_number}"
-	test_result_stdout="${TEST_RESULT_DIR}/openssh_${version}_${test_number}.txt"
-	test_result_json="${TEST_RESULT_DIR}/openssh_${version}_${test_number}.json"
-	expected_result_stdout="test/docker/expected_results/openssh_${version}_${test_number}.txt"
-	expected_result_json="test/docker/expected_results/openssh_${version}_${test_number}.json"
-	test_name="OpenSSH ${version} ${test_number}"
-	options=
+        server_exec="/openssh/sshd-${version} -D -f /etc/ssh/sshd_config-${version}_${test_number}"
+        test_result_stdout="${TEST_RESULT_DIR}/openssh_${version}_${test_number}.txt"
+        test_result_json="${TEST_RESULT_DIR}/openssh_${version}_${test_number}.json"
+        expected_result_stdout="test/docker/expected_results/openssh_${version}_${test_number}.txt"
+        expected_result_json="test/docker/expected_results/openssh_${version}_${test_number}.json"
+        test_name="OpenSSH ${version} ${test_number}"
+        options=
     elif [[ $server_type == 'Dropbear' ]]; then
-	server_exec="/dropbear/dropbear-${version} -F ${options}"
-	test_result_stdout="${TEST_RESULT_DIR}/dropbear_${version}_${test_number}.txt"
-	test_result_json="${TEST_RESULT_DIR}/dropbear_${version}_${test_number}.json"
-	expected_result_stdout="test/docker/expected_results/dropbear_${version}_${test_number}.txt"
-	expected_result_json="test/docker/expected_results/dropbear_${version}_${test_number}.json"
-	test_name="Dropbear ${version} ${test_number}"
+        server_exec="/dropbear/dropbear-${version} -F ${options}"
+        test_result_stdout="${TEST_RESULT_DIR}/dropbear_${version}_${test_number}.txt"
+        test_result_json="${TEST_RESULT_DIR}/dropbear_${version}_${test_number}.json"
+        expected_result_stdout="test/docker/expected_results/dropbear_${version}_${test_number}.txt"
+        expected_result_json="test/docker/expected_results/dropbear_${version}_${test_number}.json"
+        test_name="Dropbear ${version} ${test_number}"
     elif [[ $server_type == 'TinySSH' ]]; then
-	server_exec="/usr/bin/tcpserver -HRDl0 0.0.0.0 22 /tinysshd/tinyssh-20190101 -v /etc/tinyssh/"
-	test_result_stdout="${TEST_RESULT_DIR}/tinyssh_${version}_${test_number}.txt"
-	test_result_json="${TEST_RESULT_DIR}/tinyssh_${version}_${test_number}.json"
-	expected_result_stdout="test/docker/expected_results/tinyssh_${version}_${test_number}.txt"
-	expected_result_json="test/docker/expected_results/tinyssh_${version}_${test_number}.json"
-	test_name="TinySSH ${version} ${test_number}"
+        server_exec="/usr/bin/tcpserver -HRDl0 0.0.0.0 22 /tinysshd/tinyssh-20190101 -v /etc/tinyssh/"
+        test_result_stdout="${TEST_RESULT_DIR}/tinyssh_${version}_${test_number}.txt"
+        test_result_json="${TEST_RESULT_DIR}/tinyssh_${version}_${test_number}.json"
+        expected_result_stdout="test/docker/expected_results/tinyssh_${version}_${test_number}.txt"
+        expected_result_json="test/docker/expected_results/tinyssh_${version}_${test_number}.json"
+        test_name="TinySSH ${version} ${test_number}"
     fi
 
     cid=$(docker run -d -p 2222:22 "$IMAGE_NAME:$IMAGE_VERSION" ${server_exec})
     #echo "Running: docker run -d -p 2222:22 $IMAGE_NAME:$IMAGE_VERSION ${server_exec}"
     if [[ $? != 0 ]]; then
-	echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
-	exit 1
+        echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
+        exit 1
     fi
 
     ./ssh-audit.py localhost:2222 > "$test_result_stdout"
     actual_retval=$?
     if [[ $actual_retval != "$expected_retval" ]]; then
-	echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
-	docker container stop -t 0 $cid > /dev/null
-	exit 1
+        echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
+        docker container stop -t 0 $cid > /dev/null
+        exit 1
     fi
 
     ./ssh-audit.py -j localhost:2222 > "$test_result_json"
     actual_retval=$?
     if [[ $actual_retval != "$expected_retval" ]]; then
-	echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
-	docker container stop -t 0 $cid > /dev/null
-	exit 1
+        echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
+        docker container stop -t 0 $cid > /dev/null
+        exit 1
     fi
 
     docker container stop -t 0 $cid > /dev/null
@@ -475,28 +475,28 @@ run_test() {
     # we need to filter out the banner part of the output so we get stable, repeatable
     # results.
     if [[ $server_type == 'TinySSH' ]]; then
-	grep -v "(gen) banner: " "${test_result_stdout}" > "${test_result_stdout}.tmp"
-	mv "${test_result_stdout}.tmp" "${test_result_stdout}"
-	cat "${test_result_json}" | perl -pe 's/"comments": ".*?"/"comments": ""/' | perl -pe 's/"raw": ".+?"/"raw": ""/' > "${test_result_json}.tmp"
-	mv "${test_result_json}.tmp" "${test_result_json}"
+        grep -v "(gen) banner: " "${test_result_stdout}" > "${test_result_stdout}.tmp"
+        mv "${test_result_stdout}.tmp" "${test_result_stdout}"
+        cat "${test_result_json}" | perl -pe 's/"comments": ".*?"/"comments": ""/' | perl -pe 's/"raw": ".+?"/"raw": ""/' > "${test_result_json}.tmp"
+        mv "${test_result_json}.tmp" "${test_result_json}"
     fi
 
     diff=$(diff -u "${expected_result_stdout}" "${test_result_stdout}")
     if [[ $? != 0 ]]; then
-	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-	failed=1
-	num_failures=$((num_failures+1))
+        echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+        failed=1
+        num_failures=$((num_failures+1))
     fi
 
     diff=$(diff -u "${expected_result_json}" "${test_result_json}")
     if [[ $? != 0 ]]; then
-	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-	failed=1
-	num_failures=$((num_failures+1))
+        echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+        failed=1
+        num_failures=$((num_failures+1))
     fi
 
     if [[ $failed == 0 ]]; then
-	echo -e "${test_name} ${GREEN}passed${CLR}."
+        echo -e "${test_name} ${GREEN}passed${CLR}."
     fi
 }
 
@@ -560,28 +560,28 @@ run_policy_test() {
     #echo "Running: docker run -d -p 2222:22 $IMAGE_NAME:$IMAGE_VERSION ${server_exec}"
     cid=$(docker run -d -p 2222:22 "$IMAGE_NAME:$IMAGE_VERSION" ${server_exec})
     if [[ $? != 0 ]]; then
-	echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
-	exit 1
+        echo -e "${REDB}Failed to run docker image! (exit code: $?)${CLR}"
+        exit 1
     fi
 
     #echo "Running: ./ssh-audit.py -P \"${policy_path}\" localhost:2222 > ${test_result_stdout}"
     ./ssh-audit.py -P "${policy_path}" localhost:2222 > "${test_result_stdout}"
     actual_exit_code=$?
     if [[ ${actual_exit_code} != "${expected_exit_code}" ]]; then
-	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
+        echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
         cat "${test_result_stdout}"
-	docker container stop -t 0 $cid > /dev/null
-	exit 1
+        docker container stop -t 0 $cid > /dev/null
+        exit 1
     fi
 
     #echo "Running: ./ssh-audit.py -P \"${policy_path}\" -j localhost:2222 > ${test_result_json}"
     ./ssh-audit.py -P "${policy_path}" -j localhost:2222 > "${test_result_json}"
     actual_exit_code=$?
     if [[ ${actual_exit_code} != "${expected_exit_code}" ]]; then
-	echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
+        echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
         cat "${test_result_json}"
-	docker container stop -t 0 $cid > /dev/null
-	exit 1
+        docker container stop -t 0 $cid > /dev/null
+        exit 1
     fi
 
     docker container stop -t 0 $cid > /dev/null
@@ -592,14 +592,14 @@ run_policy_test() {
 
     diff=$(diff -u "${expected_result_stdout}" "${test_result_stdout}")
     if [[ $? != 0 ]]; then
-	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-	exit 1
+        echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+        exit 1
     fi
 
     diff=$(diff -u "${expected_result_json}" "${test_result_json}")
     if [[ $? != 0 ]]; then
-	echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-	exit 1
+        echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+        exit 1
     fi
 
     echo -e "${test_name} ${GREEN}passed${CLR}."
