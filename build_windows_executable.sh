@@ -37,9 +37,9 @@ PLATFORM="$(uname -s)"
 case "$PLATFORM" in
     CYGWIN*) ;;
     *)
-	echo "Platform not supported ($PLATFORM).  This must be run in Cygwin only."
-	exit 1
-	;;
+    echo "Platform not supported ($PLATFORM).  This must be run in Cygwin only."
+    exit 1
+    ;;
 esac
 
 # Ensure that Python 3.x is installed.

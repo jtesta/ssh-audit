@@ -30,12 +30,12 @@
 #
 # PURPOSE
 #   Since Windows lacks a manual reader it's necessary to provide an alternative
-#   means of reading the man page. 
+#   means of reading the man page.
 #
-#   This script should be run as part of the ssh-audit packaging process for 
-#   Windows. It populates the 'WINDOWS_MAN_PAGE' variable in 'globals.py' with 
-#   the contents of the man page. Windows users can then print the content of 
-#   'WINDOWS_MAN_PAGE' by invoking ssh-audit with the manual parameters 
+#   This script should be run as part of the ssh-audit packaging process for
+#   Windows. It populates the 'WINDOWS_MAN_PAGE' variable in 'globals.py' with
+#   the contents of the man page. Windows users can then print the content of
+#   'WINDOWS_MAN_PAGE' by invoking ssh-audit with the manual parameters
 #   (--manual / -m).
 #
 #   Cygwin is required.
@@ -56,10 +56,11 @@ PLATFORM="$(uname -s)"
 
 # This script is intended for use on Linux and Cygwin only.
 case "$PLATFORM" in
-    Linux | CYGWIN*) ;;
-    *) echo "Platform not supported: $PLATFORM"
-	exit 1
-	;;
+  Linux | CYGWIN*) ;;
+  *)
+    echo "Platform not supported: $PLATFORM"
+    exit 1
+    ;;
 esac
 
 MAN_PAGE=./ssh-audit.1
@@ -106,21 +107,21 @@ sed -i '/^WINDOWS_MAN_PAGE/d' "$GLOBALS_PY"
 echo "Processing man page at ${MAN_PAGE} and placing output into ${GLOBALS_PY}..."
 
 # Append the man page content to 'globals.py'.
-#   * man outputs a backspace-overwrite sequence rather than an ANSI escape 
+#   * man outputs a backspace-overwrite sequence rather than an ANSI escape
 #     sequence.
-#   * 'MAN_KEEP_FORMATTING' preserves the backspace-overwrite sequence when 
+#   * 'MAN_KEEP_FORMATTING' preserves the backspace-overwrite sequence when
 #     redirected to a file or a pipe.
 #   * sed converts unicode hyphens into an ASCI equivalent.
-#   * The 'ul' command converts the backspace-overwrite sequence to an ANSI 
-#     escape sequence. Not required under Cygwin because man outputs ANSI escape 
+#   * The 'ul' command converts the backspace-overwrite sequence to an ANSI
+#     escape sequence. Not required under Cygwin because man outputs ANSI escape
 #     codes automatically.
 
 echo WINDOWS_MAN_PAGE = '"""' >> "$GLOBALS_PY"
 
 if [[ "$PLATFORM" == CYGWIN* ]]; then
-	MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
+    MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
 else
-	MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | ul | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
+    MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | ul | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
 fi
 
 echo '"""' >> "$GLOBALS_PY"
