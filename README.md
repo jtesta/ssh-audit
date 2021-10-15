@@ -170,6 +170,11 @@ $ docker pull positronsecurity/ssh-audit
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
+
+### v2.6.0-dev
+ - Snap packages now print more user-friendly error messages when permission errors are encountered.
+ - JSON 'target' field now always includes port number; credit [tomatohater1337](https://github.com/tomatohater1337).
+
 ### v2.5.0 (2021-08-26)
  - Fixed crash when running host key tests.
  - Handles server connection failures more gracefully.
