@@ -30,6 +30,7 @@ from datetime import date
 from ssh_audit import exitcodes
 from ssh_audit.ssh2_kex import SSH2_Kex  # pylint: disable=unused-import
 from ssh_audit.banner import Banner  # pylint: disable=unused-import
+from ssh_audit.globals import SNAP_PACKAGE, SNAP_PERMISSIONS_ERROR
 
 
 # Validates policy files and performs policy testing
@@ -121,6 +122,13 @@ class Policy:
                     policy_data = f.read()
             except FileNotFoundError:
                 print("Error: policy file not found: %s" % policy_file)
+                sys.exit(exitcodes.UNKNOWN_ERROR)
+            except PermissionError as e:
+                # If installed as a Snap package, print a more useful message with potential work-arounds.
+                if SNAP_PACKAGE:
+                    print(SNAP_PERMISSIONS_ERROR)
+                else:
+                    print("Error: insufficient permissions: %s" % str(e))
                 sys.exit(exitcodes.UNKNOWN_ERROR)
 
         lines = []

@@ -1,5 +1,5 @@
 name: ssh-audit
-version: '2.5.0-1'
+# 'version' field will be automatically added by build_snap.sh.
 license: 'MIT'
 summary: ssh-audit
 description: |
@@ -12,10 +12,9 @@ confinement: strict
 apps:
   ssh-audit:
     command: bin/ssh-audit
-    plugs: [network,network-bind]
+    plugs: [network,network-bind,home]
 
 parts:
   ssh-audit:
     plugin: python
-    # python-version: python3
     source: .

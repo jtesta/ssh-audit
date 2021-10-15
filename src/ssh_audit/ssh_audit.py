@@ -36,6 +36,8 @@ import traceback
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
+from ssh_audit.globals import SNAP_PACKAGE
+from ssh_audit.globals import SNAP_PERMISSIONS_ERROR
 from ssh_audit.globals import VERSION
 from ssh_audit.globals import WINDOWS_MAN_PAGE
 from ssh_audit.algorithm import Algorithm
@@ -560,18 +562,27 @@ def make_policy(aconf: AuditConf, banner: Optional['Banner'], kex: Optional['SSH
     if aconf.policy_file is None:
         raise RuntimeError('Internal error: cannot write policy file since filename is None!')
 
-    # Open with mode 'x' (creates the file, or fails if it already exist).
-    succeeded = True
+    succeeded = False
+    err = ''
     try:
+        # Open with mode 'x' (creates the file, or fails if it already exist).
         with open(aconf.policy_file, 'x', encoding='utf-8') as f:
             f.write(policy_data)
+        succeeded = True
     except FileExistsError:
-        succeeded = False
+        err = "Error: file already exists: %s" % aconf.policy_file
+    except PermissionError as e:
+        # If installed as a Snap package, print a more useful message with potential work-arounds.
+        if SNAP_PACKAGE:
+            print(SNAP_PERMISSIONS_ERROR)
+            sys.exit(exitcodes.UNKNOWN_ERROR)
+        else:
+            err = "Error: insufficient permissions: %s" % str(e)
 
     if succeeded:
         print("Wrote policy to %s.  Customize as necessary, then run a policy scan with -P option." % aconf.policy_file)
     else:
-        print("Error: file already exists: %s" % aconf.policy_file)
+        print(err)
 
 
 def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[..., None]) -> 'AuditConf':  # pylint: disable=too-many-statements
@@ -681,8 +692,16 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
 
     # If a file containing a list of targets was given, read it.
     if aconf.target_file is not None:
-        with open(aconf.target_file, 'r', encoding='utf-8') as f:
-            aconf.target_list = f.readlines()
+        try:
+            with open(aconf.target_file, 'r', encoding='utf-8') as f:
+                aconf.target_list = f.readlines()
+        except PermissionError as e:
+            # If installed as a Snap package, print a more useful message with potential work-arounds.
+            if SNAP_PACKAGE:
+                print(SNAP_PERMISSIONS_ERROR)
+            else:
+                print("Error: insufficient permissions: %s" % str(e))
+            sys.exit(exitcodes.UNKNOWN_ERROR)
 
         # Strip out whitespace from each line in target file, and skip empty lines.
         aconf.target_list = [target.strip() for target in aconf.target_list if target not in ("", "\n")]

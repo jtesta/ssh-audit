@@ -21,7 +21,20 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
-VERSION = 'v2.6.0-dev'
-SSH_HEADER = 'SSH-{0}-OpenSSH_8.2'  # SSH software to impersonate
-GITHUB_ISSUES_URL = 'https://github.com/jtesta/ssh-audit/issues'  # The URL to the Github issues tracker.
+# The version to display.
+VERSION = 'v2.6.0'
+
+# SSH software to impersonate
+SSH_HEADER = 'SSH-{0}-OpenSSH_8.2'
+
+# The URL to the Github issues tracker.
+GITHUB_ISSUES_URL = 'https://github.com/jtesta/ssh-audit/issues'
+
+# The man page.  Only filled in on Windows systems.
 WINDOWS_MAN_PAGE = ''
+
+# True when installed from a Snap package, otherwise False.
+SNAP_PACKAGE = False
+
+# Error message when installed as a Snap package and a file access fails.
+SNAP_PERMISSIONS_ERROR = 'Error while accessing file.  It appears that ssh-audit was installed as a Snap package.  In that case, there are two options:  1.) only try to read & write files in the $HOME/snap/ssh-audit/common/ directory, or 2.) grant permissions to read & write files in $HOME using the following command: "sudo snap connect ssh-audit:home :home"'

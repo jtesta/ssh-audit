@@ -51,27 +51,14 @@ To download from production server and verify:
     $ pip3 install ssh-audit
 ```
 
+
 # Snap
 
 To create the snap package, run a fully-updated Ubuntu Server 20.04 VM.
 
-Install pre-requisites with:
-
+Create the snap package with:
 ```
-    $ sudo apt install make snapcraft
-    $ sudo snap install review-tools lxd
-```
-
-Initialize LXD:
-
-```
-    $ sudo lxd init --auto
-```
-
-Bump the version number in snapcraft.yaml.  Then run:
-
-```
-    $ make -f Makefile.snap
+    $ ./build_snap.sh
 ```
 
 Upload the snap with:
