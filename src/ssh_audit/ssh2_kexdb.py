@@ -48,6 +48,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     FAIL_1024BIT_MODULUS = 'using small 1024-bit modulus'
     FAIL_UNPROVEN = 'using unproven algorithm'
     FAIL_HASH_WEAK = 'using weak hashing algorithm'
+    FAIL_SMALL_ECC_MODULUS = 'using small ECC modulus'
     WARN_CURVES_WEAK = 'using weak elliptic curves'
     WARN_RNDSIG_KEY = 'using weak random number generator could reveal the key'
     WARN_HASH_WEAK = 'using weak hashing algorithm'
@@ -114,6 +115,33 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ecdh-sha2-nistp521': [['5.7,d2013.62'], [WARN_CURVES_WEAK]],
             'ecdh-sha2-nistt571': [[], [WARN_CURVES_WEAK]],
             'ecdh-sha2-1.3.132.0.10': [[]],  # ECDH over secp256k1 (i.e.: the Bitcoin curve)
+
+            # Note: the base64 strings, according to draft 6 of RFC5656, is Base64(MD5(DER(OID))).  The final RFC5656 dropped the base64 strings in favor of plain OID concatenation, but apparently some SSH servers implement them anyway.  See: https://datatracker.ietf.org/doc/html/draft-green-secsh-ecc-06#section-9.2
+            'ecdh-sha2-1.3.132.0.1': [[], [FAIL_SMALL_ECC_MODULUS]],  # sect163k1
+            'ecdh-sha2-4MHB+NBt3AlaSRQ7MnB4cg==': [[], [FAIL_SMALL_ECC_MODULUS]],  # sect163k1
+            'ecdh-sha2-1.2.840.10045.3.1.1': [[], [FAIL_SMALL_ECC_MODULUS, WARN_CURVES_WEAK]],  # NIST P-192 / secp192r1
+            'ecdh-sha2-5pPrSUQtIaTjUSt5VZNBjg==': [[], [FAIL_SMALL_ECC_MODULUS, WARN_CURVES_WEAK]],  # NIST P-192 / secp192r1
+            'ecdh-sha2-1.3.132.0.33': [[], [FAIL_SMALL_ECC_MODULUS, WARN_CURVES_WEAK]],  # NIST P-224 / secp224r1
+            'ecdh-sha2-VqBg4QRPjxx1EXZdV0GdWQ==': [[], [FAIL_SMALL_ECC_MODULUS, WARN_CURVES_WEAK]],  # NIST P-224 / secp224r1
+            'ecdh-sha2-1.3.132.0.26': [[], [FAIL_SMALL_ECC_MODULUS]],  # sect233k1
+            'ecdh-sha2-zD/b3hu/71952ArpUG4OjQ==': [[], [FAIL_SMALL_ECC_MODULUS]],  # sect233k1
+            'ecdh-sha2-1.3.132.0.27': [[], [FAIL_SMALL_ECC_MODULUS, WARN_CURVES_WEAK]],  # sect233r1
+            'ecdh-sha2-qCbG5Cn/jjsZ7nBeR7EnOA==': [[FAIL_SMALL_ECC_MODULUS, WARN_CURVES_WEAK]],  # sect233r1
+            'ecdh-sha2-1.2.840.10045.3.1.7': [[], [WARN_CURVES_WEAK]],  # NIST P-256 / secp256r1
+            'ecdh-sha2-9UzNcgwTlEnSCECZa7V1mw==': [[], [WARN_CURVES_WEAK]],  # NIST P-256 / secp256r1
+            'ecdh-sha2-1.3.132.0.16': [[]],  # sect283k1
+            'ecdh-sha2-wiRIU8TKjMZ418sMqlqtvQ==': [[]],  # sect283k1
+            'ecdh-sha2-1.3.132.0.34': [[], [WARN_CURVES_WEAK]],  # NIST P-384 / secp384r1
+            'ecdh-sha2-qcFQaMAMGhTziMT0z+Tuzw==': [[], [WARN_CURVES_WEAK]],  # NIST P-384 / secp384r1
+            'ecdh-sha2-1.3.132.0.36': [[]],  # sect409k1
+            'ecdh-sha2-m/FtSAmrV4j/Wy6RVUaK7A==': [[]],  # sect409k1
+            'ecdh-sha2-1.3.132.0.37': [[], [WARN_CURVES_WEAK]],  # sect409r1
+            'ecdh-sha2-D3FefCjYoJ/kfXgAyLddYA==': [[], [WARN_CURVES_WEAK]],  # sect409r1
+            'ecdh-sha2-1.3.132.0.35': [[], [WARN_CURVES_WEAK]],  # NIST P-521 / secp521r1
+            'ecdh-sha2-h/SsxnLCtRBh7I9ATyeB3A==': [[], [WARN_CURVES_WEAK]],  # NIST P-521 / secp521r1
+            'ecdh-sha2-1.3.132.0.38': [[]],  # sect571k1
+            'ecdh-sha2-mNVwCXAoS1HGmHpLvBC94w==': [[]],  # sect571k1
+
             'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
             'curve25519-sha256': [['7.4,d2018.76']],
             'curve448-sha512': [[]],
