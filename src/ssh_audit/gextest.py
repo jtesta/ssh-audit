@@ -33,6 +33,7 @@ from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh_socket import SSH_Socket
 from ssh_audit.outputbuffer import OutputBuffer
+from ssh_audit import exitcodes
 
 
 # Performs DH group exchanges to find what moduli are supported, and checks
@@ -70,6 +71,76 @@ class GEXTest:
 
         return True
 
+    # Tests for modulus size in bits against the specified target.
+    @staticmethod
+    def modulus_size_test(out: 'OutputBuffer', s: 'SSH_Socket', kex: 'SSH2_Kex', bits_min: int, bits_pref: int, bits_max: int, modulus_dict: Dict[str, List[int]]) -> int:
+        '''
+        Tests for modulus size in bits against the target target.
+        Builds a dictionary, where a key represents a DH algorithm name and the
+        values are the modulus sizes (in bits) that have been returned by the
+        target server.
+        Returns an exitcodes.* flag.
+        '''
+
+        retval = exitcodes.GOOD
+
+        out.d("Starting modulus_size_test...")
+        out.d("Bits Min:  " + str(bits_min))
+        out.d("Bits Pref: " + str(bits_pref))
+        out.d("Bits Max:  " + str(bits_max))
+
+        if all(x < 0 for x in (bits_min, bits_pref, bits_max)):
+            out.fail("min, pref and max values cannot be negative.")
+            return exitcodes.FAILURE
+
+        GEX_ALGS = {
+            'diffie-hellman-group-exchange-sha1': KexGroupExchange_SHA1,
+            'diffie-hellman-group-exchange-sha256': KexGroupExchange_SHA256,
+        }
+
+        # Check if the server supports any of the group-exchange
+        # algorithms.  If so, test each one.
+        for gex_alg in GEX_ALGS:
+            if gex_alg not in kex.kex_algorithms:
+                out.d('Server does not support the algorithm "' + gex_alg + '".', write_now=True)
+            else:
+                kex_group = GEX_ALGS[gex_alg]()
+                out.d('Preparing to perform DH group exchange using ' + gex_alg + ' with min, pref and max modulus sizes of ' + str(bits_min) + ' bits, ' + str(bits_pref) + ' bits and ' + str(bits_max) + ' bits...', write_now=True)
+
+                # It has been observed that reconnecting to some SSH servers
+                # multiple times in quick succession can eventually result
+                # in a "connection reset by peer" error. It may be possible
+                # to recover from such an error by sleeping for some time
+                # before continuing to issue reconnects.
+                if GEXTest.reconnect(out, s, kex, gex_alg) is False:
+                    out.fail('Reconnect failed.')
+                    return exitcodes.FAILURE
+                try:
+                    modulus_size_returned = None
+                    kex_group.send_init_gex(s, bits_min, bits_pref, bits_max)
+                    kex_group.recv_reply(s, False)
+                    modulus_size_returned = kex_group.get_dh_modulus_size()
+                    out.d('Modulus size returned by server: ' + str(modulus_size_returned) + ' bits', write_now=True)
+                except Exception as e:
+                    out.d('[exception] ' + str(e), write_now=True)
+                    # import traceback
+                    # print(traceback.format_exc())
+                    pass
+                finally:
+                    # The server is in a state that is not re-testable,
+                    # so there's nothing else to do with this open
+                    # connection.
+                    s.close()
+
+                if modulus_size_returned is not None:
+                    if gex_alg in modulus_dict:
+                        if modulus_size_returned not in modulus_dict[gex_alg]:
+                            modulus_dict[gex_alg].append(modulus_size_returned)
+                    else:
+                        modulus_dict[gex_alg] = [modulus_size_returned]
+
+        return retval
+
     # Runs the DH moduli test against the specified target.
     @staticmethod
     def run(out: 'OutputBuffer', s: 'SSH_Socket', kex: 'SSH2_Kex') -> None:
@@ -88,7 +159,8 @@ class GEXTest:
         # algorithms.  If so, test each one.
         for gex_alg, kex_group_class in GEX_ALGS.items():
             if gex_alg in kex.kex_algorithms:
-                out.d('Preparing to perform DH group exchange using ' + gex_alg + '...', write_now=True)
+                weak_sizes = 512, 1024, 1536
+                out.d('Preparing to perform DH group exchange using ' + gex_alg + ' with min, pref and max modulus sizes of ' + str(weak_sizes[0]) + ' bits, ' + str(weak_sizes[1]) + ' bits and ' + str(weak_sizes[2]) + ' bits...', write_now=True)
 
                 if GEXTest.reconnect(out, s, kex, gex_alg) is False:
                     break
@@ -98,15 +170,17 @@ class GEXTest:
 
                 # First try a range of weak sizes.
                 try:
-                    kex_group.send_init_gex(s, 512, 1024, 1536)
+                    kex_group.send_init_gex(s, weak_sizes[0], weak_sizes[1], weak_sizes[2])
                     kex_group.recv_reply(s, False)
 
                     # Its been observed that servers will return a group
                     # larger than the requested max.  So just because we
                     # got here, doesn't mean the server is vulnerable...
                     smallest_modulus = kex_group.get_dh_modulus_size()
+                    out.d('Modulus size returned by server: ' + str(smallest_modulus) + ' bits', write_now=True)
 
-                except Exception:
+                except Exception as e:
+                    out.d('[exception] ' + str(e), write_now=True)
                     pass
                 finally:
                     s.close()
@@ -120,7 +194,7 @@ class GEXTest:
                     if bits >= smallest_modulus > 0:
                         break
 
-                    out.d('Preparing to perform DH group exchange using ' + gex_alg + ' with modulus size ' + str(bits) + '...', write_now=True)
+                    out.d('Preparing to perform DH group exchange using ' + gex_alg + ' with min, pref and max modulus sizes of ' + str(bits) + ' bits...', write_now=True)
 
                     if GEXTest.reconnect(out, s, kex, gex_alg) is False:
                         reconnect_failed = True
@@ -130,7 +204,9 @@ class GEXTest:
                         kex_group.send_init_gex(s, bits, bits, bits)
                         kex_group.recv_reply(s, False)
                         smallest_modulus = kex_group.get_dh_modulus_size()
-                    except Exception:
+                        out.d('Modulus size returned by server: ' + str(smallest_modulus) + ' bits', write_now=True)
+                    except Exception as e:
+                        out.d('[exception] ' + str(e), write_now=True)
                         # import traceback
                         # print(traceback.format_exc())
                         pass

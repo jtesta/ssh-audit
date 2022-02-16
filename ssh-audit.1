@@ -1,4 +1,4 @@
-.TH SSH-AUDIT 1 "March 2, 2021"
+.TH SSH-AUDIT 1 "February 13, 2022"
 .SH NAME
 \fBssh-audit\fP \- SSH server & client configuration auditor
 .SH SYNOPSIS
@@ -50,6 +50,43 @@ Starts a server on port 2222 to audit client software configuration.  Use -p/--p
 .B -d, \-\-debug
 .br
 Enable debug output.
+
+.TP
+.B -g, \-\-gex-test=<n[,n,...] | min:pref:max[,min:pref:max,...] | n-n[:step]>
+.br
+Runs a Diffie-Hellman Group Exchange modulus size test against a server.
+
+Diffie-Hellman requires the client and server to agree on a generator value and
+a modulus value. In the "Group Exchange" implementation of Diffie-Hellman, the 
+client specifies the size of the modulus in bits by providing the server with 
+minimum, preferred and maximum values. The server then finds a group that best 
+matches the client's request, returning the corresponding generator and modulus. 
+For a full explanation of this process see RFC 4419 and its successors.
+
+This test acts as a client by providing an SSH server with the size of a modulus 
+and then obtains the size of the modulus returned by the server.
+
+Three types of syntax are supported:
+
+  1. <n[,n,...]>
+  
+     A comma delimited list of modulus sizes.
+     A test is performed against each value in the list where it acts as the minimum, preferred and maximum modulus size.
+                                        
+
+  2. <min:pref:max[,min:pref:max,...]>
+  
+     A set of three colon delimited values denoting minimum, preferred and maximum modulus size.
+     A test is performed against each set.
+     Multiple sets can specified as a comma separated list.
+
+  3. <n-n[:step]>
+  
+     A range of modulus sizes with an optional step value. Step defaults to 1 if omitted.
+     If the left value is greater than the right value, then the sequence operates from right to left.
+     A test is performed against each value in the range where it acts as the minimum, preferred and maximum modulus size.
+
+Duplicates are excluded from the return value.
 
 .TP
 .B -j, \-\-json
@@ -130,7 +167,7 @@ When the -P/--policy option is used, \fBssh-audit\fP performs a policy audit.  T
 Policy auditing is helpful for ensuring a group of related servers are properly hardened to an exact specification.
 
 .PP
-The set of official built-in policies can be viewed with -L/--list-policies.  Multiple servers can be audited with -T/--targets=<servers.txt>.  Custom policies can be made from an ideal target server with -M/--make-policy=<custom_policy.txt>.
+The set of official built-in policies can be viewed with -L/--list-policies.  Multiple servers can be audited with -T/--targets=<servers.txt>.  Custom policies can be made from an preferred target server with -M/--make-policy=<custom_policy.txt>.
 
 
 .SH EXAMPLES
@@ -216,6 +253,30 @@ To create a policy based on a target server (which can be manually edited; see o
 .RS
 .nf
 ssh-audit -M new_policy.txt targetserver
+.fi
+.RE
+
+.LP
+To run a Diffie-Hellman Group Exchange modulus size test using the values 2000 bits, 3000 bits, 4000 bits and 5000 bits:
+.RS
+.nf
+ssh-audit targetserver --gex-test=2000,3000,4000,5000
+.fi
+.RE
+
+.LP
+To run a Diffie-Hellman Group Exchange modulus size test where 2048 bits is the minimum, 3072 bits is the preferred and 5000 bits is the maximum:
+.RS
+.nf
+ssh-audit targetserver --gex-test=2048:3072:5000
+.fi
+.RE
+
+.LP
+To run a Diffie-Hellman Group Exchange modulus size test from 0 bits to 5120 bits in increments of 1024 bits:
+.RS
+.nf
+ssh-audit targetserver --gex-test=0-5120:1024
 .fi
 .RE
 
