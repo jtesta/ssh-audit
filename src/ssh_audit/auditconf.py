@@ -59,6 +59,7 @@ class AuditConf:
         self.lookup = ''
         self.manual = False
         self.debug = False
+        self.gex_test = ''
 
     def __setattr__(self, name: str, value: Union[str, int, float, bool, Sequence[int]]) -> None:
         valid = False
@@ -86,7 +87,7 @@ class AuditConf:
             if value == -1.0:
                 raise ValueError('invalid timeout: {}'.format(value))
             valid = True
-        elif name in ['ip_version_preference', 'lookup', 'policy_file', 'policy', 'target_file', 'target_list']:
+        elif name in ['ip_version_preference', 'lookup', 'policy_file', 'policy', 'target_file', 'target_list', 'gex_test']:
             valid = True
         elif name == "threads":
             valid, num_threads = True, Utils.parse_int(value)
