@@ -1080,7 +1080,7 @@ def get_permitted_syntax_for_gex_test() -> Dict[str, str]:
 
 
 def invoke_modulus_size_test(out: OutputBuffer, s: 'SSH_Socket', kex: 'SSH2_Kex', aconf: AuditConf) -> int:
-    '''Extracts the user specified modulus sizes and submits them for testing against the target target.  Returns an exitcodes.* flag.'''
+    '''Extracts the user specified modulus sizes and submits them for testing against the target server.  Returns an exitcodes.* flag.'''
 
     permitted_syntax = get_permitted_syntax_for_gex_test()
 
