@@ -5,7 +5,10 @@
 [0;32m(gen) compression: enabled (zlib@openssh.com)[0m
 
 [0;36m# security[0m
-[0;33m(cve) CVE-2018-15473                        -- (CVSSv2: 5.3) enumerate usernames due to timing discrepencies[0m
+[0;33m(cve) CVE-2020-15778                        -- (CVSSv2: 7.8) command injection via anomalous argument transfers[0m
+[0;33m(cve) CVE-2018-15473                        -- (CVSSv2: 5.3) enumerate usernames due to timing discrepancies[0m
+[0;33m(cve) CVE-2017-15906                        -- (CVSSv2: 5.3) readonly bypass via sftp[0m
+[0;33m(cve) CVE-2016-20012                        -- (CVSSv2: 5.3) enumerate usernames via challenge response[0m
 [0;33m(cve) CVE-2016-3115                         -- (CVSSv2: 5.5) bypass command restrictions via crafted X11 forwarding data[0m
 [0;33m(cve) CVE-2016-1907                         -- (CVSSv2: 5.0) cause DoS via crafted network traffic (out of bounds read)[0m
 [0;33m(cve) CVE-2015-6564                         -- (CVSSv2: 6.9) privilege escalation via leveraging sshd uid[0m

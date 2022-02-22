@@ -4,6 +4,12 @@
 [0;32m(gen) compatibility: OpenSSH 7.4+, Dropbear SSH 2018.76+[0m
 [0;32m(gen) compression: enabled (zlib@openssh.com)[0m
 
+[0;36m# security[0m
+[0;33m(cve) CVE-2021-41617                        -- (CVSSv2: 7.0) privilege escalation via supplemental groups[0m
+[0;33m(cve) CVE-2020-15778                        -- (CVSSv2: 7.8) command injection via anomalous argument transfers[0m
+[0;33m(cve) CVE-2019-16905                        -- (CVSSv2: 7.8) memory corruption and local code execution via pre-authentication integer overflow[0m
+[0;33m(cve) CVE-2016-20012                        -- (CVSSv2: 5.3) enumerate usernames via challenge response[0m
+
 [0;36m# key exchange algorithms[0m
 [0;32m(kex) curve25519-sha256                     -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
 [0;32m(kex) curve25519-sha256@libssh.org          -- [info] available since OpenSSH 6.5, Dropbear SSH 2013.62[0m
