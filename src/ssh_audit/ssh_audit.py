@@ -87,7 +87,7 @@ def usage(err: Optional[str] = None) -> None:
     uout.info('   -b,  --batch            batch output')
     uout.info('   -c,  --client-audit     starts a server on port 2222 to audit client\n                               software config (use -p to change port;\n                               use -t to change timeout)')
     uout.info('   -d,  --debug            debug output')
-    uout.info('   -g,  --gex-test=<n[,n,...] | min:pref:max[,min:pref:max,...] | n-n[:step]>  dh gex modulus size test')
+    uout.info('   -g,  --gex-test=<x[,y,...] | min:pref:max[,min:pref:max,...] | x-y[:step]>  dh gex modulus size test')
     uout.info('   -j,  --json             JSON output (use -jj to enable indents)')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies')
@@ -654,9 +654,28 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.debug = True
             out.debug = True
         elif o in ('-g', '--gex-test'):
-            if not((any(re.search(regex_str, a) for regex_str in get_permitted_syntax_for_gex_test().values()))):
+            permitted_syntax = get_permitted_syntax_for_gex_test()
+
+            if not any(re.search(regex_str, a) for regex_str in permitted_syntax.values()):
                 usage_cb('{} {} is not valid'.format(o, a))
+
+            if re.search(permitted_syntax['RANGE'], a):
+                extracted_digits = re.findall(r'\d+', a)
+                bits_left_bound = int(extracted_digits[0])
+                bits_right_bound = int(extracted_digits[1])
+
+                bits_step = 1
+                if (len(extracted_digits)) == 3:
+                    bits_step = int(extracted_digits[2])
+
+                if bits_step <= 0:
+                    usage_cb('{} {} is not valid'.format(o, bits_step))
+
+                if all(x < 0 for x in (bits_left_bound, bits_right_bound)):
+                    usage_cb('{} {} {} is not valid'.format(o, bits_left_bound, bits_right_bound))
+
             aconf.gex_test = a
+
 
     if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '' and aconf.manual is False:
         usage_cb()
@@ -928,8 +947,7 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
         if aconf.client_audit is False:
             HostKeyTest.run(out, s, kex)
             if aconf.gex_test != '':
-                program_retval = invoke_modulus_size_test(out, s, kex, aconf)
-                return program_retval
+                return run_gex_granular_modulus_size_test(out, s, kex, aconf)
             else:
                 GEXTest.run(out, s, kex)
 
@@ -1079,14 +1097,10 @@ def get_permitted_syntax_for_gex_test() -> Dict[str, str]:
     return syntax
 
 
-def invoke_modulus_size_test(out: OutputBuffer, s: 'SSH_Socket', kex: 'SSH2_Kex', aconf: AuditConf) -> int:
+def run_gex_granular_modulus_size_test(out: OutputBuffer, s: 'SSH_Socket', kex: 'SSH2_Kex', aconf: AuditConf) -> int:
     '''Extracts the user specified modulus sizes and submits them for testing against the target server.  Returns an exitcodes.* flag.'''
 
     permitted_syntax = get_permitted_syntax_for_gex_test()
-
-    if not((any(re.search(regex_str, aconf.gex_test) for regex_str in permitted_syntax.values()))):
-        out.fail("Invalid syntax.")
-        return exitcodes.FAILURE
 
     mod_dict: Dict[str, List[int]] = {}
 
@@ -1096,18 +1110,9 @@ def invoke_modulus_size_test(out: OutputBuffer, s: 'SSH_Socket', kex: 'SSH2_Kex'
         bits_left_bound = int(extracted_digits[0])
         bits_right_bound = int(extracted_digits[1])
 
+        bits_step = 1
         if (len(extracted_digits)) == 3:
             bits_step = int(extracted_digits[2])
-        else:
-            bits_step = 1
-
-        if bits_step <= 0:
-            out.fail("Step value must be greater than zero.")
-            return exitcodes.FAILURE
-
-        if all(x < 0 for x in (bits_left_bound, bits_right_bound)):
-            out.fail("Start and end values cannot be negative.")
-            return exitcodes.FAILURE
 
         # If the left value is greater than the right value, then the sequence
         # operates from right to left.
@@ -1119,7 +1124,7 @@ def invoke_modulus_size_test(out: OutputBuffer, s: 'SSH_Socket', kex: 'SSH2_Kex'
         out.v("A separate test will be performed against each of the following modulus sizes: " + ", ".join([str(x) for x in bits_in_range_to_test]) + ".", write_now=True)
 
         for i_bits in bits_in_range_to_test:
-            program_retval = GEXTest.modulus_size_test(out, s, kex, i_bits, i_bits, i_bits, mod_dict)
+            program_retval = GEXTest.granular_modulus_size_test(out, s, kex, i_bits, i_bits, i_bits, mod_dict)
             if program_retval != exitcodes.GOOD:
                 return program_retval
 
@@ -1128,15 +1133,16 @@ def invoke_modulus_size_test(out: OutputBuffer, s: 'SSH_Socket', kex: 'SSH2_Kex'
         bits_in_list_to_test = aconf.gex_test.split(',')
         out.v("A separate test will be performed against each of the following modulus sizes: " + ", ".join([str(x) for x in bits_in_list_to_test]) + ".", write_now=True)
         for s_bits in bits_in_list_to_test:
-            program_retval = GEXTest.modulus_size_test(out, s, kex, int(s_bits), int(s_bits), int(s_bits), mod_dict)
+            program_retval = GEXTest.granular_modulus_size_test(out, s, kex, int(s_bits), int(s_bits), int(s_bits), mod_dict)
             if program_retval != exitcodes.GOOD:
                 return program_retval
+
     if re.search(permitted_syntax['LIST_WITH_MIN_PREF_MAX'], aconf.gex_test):
         sets_of_min_pref_max = aconf.gex_test.split(',')
         out.v("A separate test will be performed against each of the following sets of 'min:pref:max' modulus sizes: " + ', '.join(sets_of_min_pref_max), write_now=True)
         for set_of_min_pref_max in sets_of_min_pref_max:
             bits_in_list_to_test = set_of_min_pref_max.split(':')
-            program_retval = GEXTest.modulus_size_test(out, s, kex, int(bits_in_list_to_test[0]), int(bits_in_list_to_test[1]), int(bits_in_list_to_test[2]), mod_dict)
+            program_retval = GEXTest.granular_modulus_size_test(out, s, kex, int(bits_in_list_to_test[0]), int(bits_in_list_to_test[1]), int(bits_in_list_to_test[2]), mod_dict)
             if program_retval != exitcodes.GOOD:
                 return program_retval
 
@@ -1150,7 +1156,7 @@ def invoke_modulus_size_test(out: OutputBuffer, s: 'SSH_Socket', kex: 'SSH2_Kex'
 
             for key, value in mod_dict.items():
                 padding = (max_key_len - len(key)) + 1
-                out.info(key + " " * padding + '--> ' + ', '.join(map(str, value)))
+                out.info(key + " " * padding + '--> ' + ', '.join([str(i) for i in value]))
 
     return program_retval
 

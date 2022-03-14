@@ -172,6 +172,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v2.6.0-dev
+ - Added `-g` and `--gex-test` for granular GEX modulus size tests; credit [Adam Russell](https://github.com/thecliguy).
  - Snap packages now print more user-friendly error messages when permission errors are encountered.
  - JSON 'target' field now always includes port number; credit [tomatohater1337](https://github.com/tomatohater1337).
  - Added 24 new key exchanges: `ecdh-sha2-1.3.132.0.1`, `ecdh-sha2-1.2.840.10045.3.1.1`, `ecdh-sha2-1.3.132.0.33`, `ecdh-sha2-1.3.132.0.26`, `ecdh-sha2-1.3.132.0.27`, `ecdh-sha2-1.2.840.10045.3.1.7`, `ecdh-sha2-1.3.132.0.16`, `ecdh-sha2-1.3.132.0.34`, `ecdh-sha2-1.3.132.0.36`, `ecdh-sha2-1.3.132.0.37`, `ecdh-sha2-1.3.132.0.35`, `ecdh-sha2-1.3.132.0.38`, `ecdh-sha2-4MHB+NBt3AlaSRQ7MnB4cg==`, `ecdh-sha2-5pPrSUQtIaTjUSt5VZNBjg==`, `ecdh-sha2-VqBg4QRPjxx1EXZdV0GdWQ==`, `ecdh-sha2-zD/b3hu/71952ArpUG4OjQ==`, `ecdh-sha2-qCbG5Cn/jjsZ7nBeR7EnOA==`, `ecdh-sha2-9UzNcgwTlEnSCECZa7V1mw==`, `ecdh-sha2-wiRIU8TKjMZ418sMqlqtvQ==`, `ecdh-sha2-qcFQaMAMGhTziMT0z+Tuzw==`, `ecdh-sha2-m/FtSAmrV4j/Wy6RVUaK7A==`, `ecdh-sha2-D3FefCjYoJ/kfXgAyLddYA==`, `ecdh-sha2-h/SsxnLCtRBh7I9ATyeB3A==`, `ecdh-sha2-mNVwCXAoS1HGmHpLvBC94w==`.
