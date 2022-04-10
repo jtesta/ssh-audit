@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2022 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -149,7 +149,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
             'rsa2048-sha256': [[]],
             'sntrup4591761x25519-sha512@tinyssh.org': [['8.0', '8.4'], [], [WARN_EXPERIMENTAL]],
-            'sntrup761x25519-sha512@openssh.com': [['8.5'], [], [WARN_EXPERIMENTAL]],
+            'sntrup761x25519-sha512@openssh.com': [['8.5'], [], []],
             'kexAlgoCurve25519SHA256': [[]],
             'Curve25519SHA256': [[]],
             'ext-info-c': [[]],  # Extension negotiation (RFC 8308)

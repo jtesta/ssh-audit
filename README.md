@@ -172,6 +172,8 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v2.6.0-dev
+ - Removed experimental warning tag from `sntrup761x25519-sha512@openssh.com`.
+ - Updated CVE database; credit [Alexandre Zanni](https://github.com/noraj).
  - Added `-g` and `--gex-test` for granular GEX modulus size tests; credit [Adam Russell](https://github.com/thecliguy).
  - Snap packages now print more user-friendly error messages when permission errors are encountered.
  - JSON 'target' field now always includes port number; credit [tomatohater1337](https://github.com/tomatohater1337).
