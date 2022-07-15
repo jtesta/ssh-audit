@@ -167,6 +167,11 @@ $ docker pull positronsecurity/ssh-audit
 ```
 (Then run with: `docker run -it -p 2222:2222 positronsecurity/ssh-audit 10.1.1.1`)
 
+To install on Arch Linux:
+```
+$ sudo pacman -S ssh-audit
+```
+
 ## Web Front-End
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
