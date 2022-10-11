@@ -196,6 +196,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'x509v3-ecdsa-sha2-nistp384': [[], [WARN_CURVES_WEAK]],
             'x509v3-ecdsa-sha2-nistp521': [[], [WARN_CURVES_WEAK]],
             'x509v3-rsa2048-sha256': [[]],
+            'webauthn-sk-ecdsa-sha2-nistp256@openssh.com': [['8.3'], [WARN_CURVES_WEAK]],
         },
         'enc': {
             'none': [['1.2.2,d2013.56,l10.2'], [FAIL_PLAINTEXT]],
