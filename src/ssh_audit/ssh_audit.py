@@ -32,9 +32,9 @@ import re
 import sys
 import traceback
 
-# pylint: disable=unused-import
-from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
-from typing import Callable, Optional, Union, Any  # noqa: F401
+
+from typing import Dict, List, Tuple
+from typing import Callable, Optional, Any
 
 from ssh_audit.globals import SNAP_PACKAGE
 from ssh_audit.globals import SNAP_PERMISSIONS_ERROR

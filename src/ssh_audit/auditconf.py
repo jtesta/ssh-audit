@@ -22,9 +22,8 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
-# pylint: disable=unused-import
-from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
-from typing import Callable, Optional, Union, Any  # noqa: F401
+
+from typing import List, Sequence, Optional, Union
 
 from ssh_audit.policy import Policy
 from ssh_audit.utils import Utils

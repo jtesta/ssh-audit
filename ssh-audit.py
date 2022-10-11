@@ -7,8 +7,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
 
-from ssh_audit.ssh_audit import main  # noqa: E402
-from ssh_audit import exitcodes  # noqa: E402
+from ssh_audit.ssh_audit import main
+from ssh_audit import exitcodes
 
 exit_code = exitcodes.GOOD
 

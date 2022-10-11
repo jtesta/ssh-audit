@@ -29,9 +29,9 @@ import socket
 import struct
 import sys
 
-# pylint: disable=unused-import
-from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
-from typing import Callable, Optional, Union, Any  # noqa: F401
+
+from typing import Dict, List, Tuple, Iterable
+from typing import Optional, Union, Any
 
 from ssh_audit import exitcodes
 from ssh_audit.banner import Banner

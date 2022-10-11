@@ -23,9 +23,8 @@
 """
 import re
 
-# pylint: disable=unused-import
-from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
-from typing import Callable, Optional, Union, Any  # noqa: F401
+
+from typing import Optional, Union
 
 from ssh_audit.banner import Banner
 from ssh_audit.product import Product

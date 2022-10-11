@@ -27,9 +27,8 @@ import os
 import random
 import struct
 
-# pylint: disable=unused-import
-from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
-from typing import Callable, Optional, Union, Any  # noqa: F401
+
+from typing import Tuple, Optional
 
 from ssh_audit.protocol import Protocol
 from ssh_audit.ssh_socket import SSH_Socket
