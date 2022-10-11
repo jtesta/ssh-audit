@@ -176,7 +176,7 @@ def output_algorithm(out: OutputBuffer, alg_db: Dict[str, Dict[str, List[List[Op
                 f = out.good
             f(prefix + alg_name + comment)
             first = False
-        else:  # pylint: disable=else-if-used
+        else:
             if out.verbose:
                 f(prefix + alg_name + comment)
             elif text != '':

@@ -23,7 +23,7 @@
 """
 import traceback
 
-
+# pylint: disable=unused-import
 from typing import Dict, List
 
 from ssh_audit.kexdh import KexGroupExchange_SHA1, KexGroupExchange_SHA256

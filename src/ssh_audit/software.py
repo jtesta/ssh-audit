@@ -23,7 +23,7 @@
 """
 import re
 
-
+# pylint: disable=unused-import
 from typing import Optional, Union
 
 from ssh_audit.banner import Banner

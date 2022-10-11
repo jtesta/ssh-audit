@@ -22,7 +22,7 @@
    THE SOFTWARE.
 """
 
-
+# pylint: disable=unused-import
 from typing import Dict
 
 import traceback
