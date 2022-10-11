@@ -325,7 +325,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
         self.__header = []
         self.__banner = None
 
-    def _close_socket(self, s: Optional[socket.socket]) -> None:  # pylint: disable=no-self-use
+    def _close_socket(self, s: Optional[socket.socket]) -> None:
         try:
             if s is not None:
                 s.shutdown(socket.SHUT_RDWR)

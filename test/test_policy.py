@@ -41,15 +41,15 @@ class TestPolicy:
         for policy_name in Policy.BUILTIN_POLICIES:
             # Ensure that the policy name ends with " (version X)", where X is the 'version' field.
             version_str = " (version %s)" % Policy.BUILTIN_POLICIES[policy_name]['version']
-            assert(policy_name.endswith(version_str))
+            assert policy_name.endswith(version_str)
 
             # Ensure that each built-in policy can be loaded with Policy.load_builtin_policy().
-            assert(Policy.load_builtin_policy(policy_name) is not None)
+            assert Policy.load_builtin_policy(policy_name) is not None
 
         # Ensure that both server and client policy names are returned.
         server_policy_names, client_policy_names = Policy.list_builtin_policies()
-        assert(len(server_policy_names) > 0)
-        assert(len(client_policy_names) > 0)
+        assert len(server_policy_names) > 0
+        assert len(client_policy_names) > 0
 
 
     def test_policy_basic(self):
