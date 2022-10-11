@@ -53,7 +53,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
     SM_BANNER_SENT = 1
 
     def __init__(self, outputbuffer: 'OutputBuffer', host: Optional[str], port: int, ip_version_preference: List[int] = [], timeout: Union[int, float] = 5, timeout_set: bool = False) -> None:  # pylint: disable=dangerous-default-value
-        super(SSH_Socket, self).__init__()
+        super().__init__()
         self.__outputbuffer = outputbuffer
         self.__sock: Optional[socket.socket] = None
         self.__sock_map: Dict[int, socket.socket] = {}

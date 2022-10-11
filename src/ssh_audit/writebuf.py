@@ -30,7 +30,7 @@ from typing import List, Optional, Union
 
 class WriteBuf:
     def __init__(self, data: Optional[bytes] = None) -> None:
-        super(WriteBuf, self).__init__()
+        super().__init__()
         self._wbuf = io.BytesIO(data) if data is not None else io.BytesIO()
 
     def write(self, data: bytes) -> 'WriteBuf':

@@ -30,7 +30,7 @@ from typing import List, Optional
 
 class ReadBuf:
     def __init__(self, data: Optional[bytes] = None) -> None:
-        super(ReadBuf, self).__init__()
+        super().__init__()
         self._buf = io.BytesIO(data) if data is not None else io.BytesIO()
         self._len = len(data) if data is not None else 0
 
