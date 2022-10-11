@@ -890,9 +890,8 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
             # If we're running against multiple targets, return a connection error to the calling worker thread.  Otherwise, write the error message to the console and exit.
             if len(aconf.target_list) > 0:
                 return exitcodes.CONNECTION_ERROR
-            else:
-                out.write()
-                sys.exit(exitcodes.CONNECTION_ERROR)
+            out.write()
+            sys.exit(exitcodes.CONNECTION_ERROR)
 
     if sshv is None:
         sshv = 2 if aconf.ssh2 else 1
@@ -948,8 +947,7 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
             HostKeyTest.run(out, s, kex)
             if aconf.gex_test != '':
                 return run_gex_granular_modulus_size_test(out, s, kex, aconf)
-            else:
-                GEXTest.run(out, s, kex)
+            GEXTest.run(out, s, kex)
 
         # This is a standard audit scan.
         if (aconf.policy is None) and (aconf.make_policy is False):

@@ -40,7 +40,7 @@ class Utils:
     def to_bytes(cls, v: Union[bytes, str], enc: str = 'utf-8') -> bytes:
         if isinstance(v, bytes):
             return v
-        elif isinstance(v, str):
+        if isinstance(v, str):
             return v.encode(enc)
         raise cls._type_err(v, 'bytes')
 
@@ -48,7 +48,7 @@ class Utils:
     def to_text(cls, v: Union[str, bytes], enc: str = 'utf-8') -> str:
         if isinstance(v, str):
             return v
-        elif isinstance(v, bytes):
+        if isinstance(v, bytes):
             return v.decode(enc)
         raise cls._type_err(v, 'unicode text')
 
@@ -104,15 +104,13 @@ class Utils:
 
         if isinstance(seq, tuple):
             return tuple(x for x in seq if x not in seen and not _seen_add(x))
-        else:
-            return [x for x in seq if x not in seen and not _seen_add(x)]
+        return [x for x in seq if x not in seen and not _seen_add(x)]
 
     @classmethod
     def ctoi(cls, c: Union[str, int]) -> int:
         if isinstance(c, str):
             return ord(c[0])
-        else:
-            return c
+        return c
 
     @staticmethod
     def parse_int(v: Any) -> int:

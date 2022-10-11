@@ -73,7 +73,7 @@ class Software:
             oversion, opatch = other, ''
         if self.version < oversion:
             return -1
-        elif self.version > oversion:
+        if self.version > oversion:
             return 1
         spatch = self.patch or ''
         if self.product == Product.DropbearSSH:
@@ -94,7 +94,7 @@ class Software:
                 return 0
         if spatch < opatch:
             return -1
-        elif spatch > opatch:
+        if spatch > opatch:
             return 1
         return 0
 
@@ -145,8 +145,7 @@ class Software:
     def _fix_date(d: Optional[str]) -> Optional[str]:
         if d is not None and len(d) == 8:
             return '{}-{}-{}'.format(d[:4], d[4:6], d[6:8])
-        else:
-            return None
+        return None
 
     @classmethod
     def _extract_os_version(cls, c: Optional[str]) -> Optional[str]:
