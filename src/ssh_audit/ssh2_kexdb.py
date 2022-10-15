@@ -262,6 +262,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'none': [['d2013.56'], [FAIL_PLAINTEXT]],
             'hmac-sha1': [['2.1.0,d0.28,l10.2'], [], [WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
             'hmac-sha1-96': [['2.5.0,d0.47', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
+            'hmac-sha1-96@openssh.com': [[], [], [WARN_TAG_SIZE, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],  # Despite the @openssh.com tag, this perhaps was never implemented in OpenSSH (!)
             'hmac-sha2-56': [[], [], [WARN_TAG_SIZE, WARN_ENCRYPT_AND_MAC]],
             'hmac-sha2-224': [[], [], [WARN_TAG_SIZE, WARN_ENCRYPT_AND_MAC]],
             'hmac-sha2-256': [['5.9,d2013.56,l10.7.0'], [], [WARN_ENCRYPT_AND_MAC]],
