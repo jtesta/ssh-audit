@@ -41,3 +41,10 @@ class Fingerprint:
         h = base64.b64encode(hashlib.sha256(self.__fpd).digest())
         r = h.decode('ascii').rstrip('=')
         return 'SHA256:{}'.format(r)
+
+    @property
+    def sha512(self) -> str:
+        h = base64.b64encode(hashlib.sha512(self.__fpd).digest())
+        r = h.decode('ascii').rstrip('=')
+        return 'SHA512:{}'.format(r)
+

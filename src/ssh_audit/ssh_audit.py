@@ -294,7 +294,9 @@ def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: boo
         fps = sorted(fps)
         for fpp in fps:
             name, fp = fpp
+            out.good('(fin) {}: {}'.format(name, fp.md5))
             out.good('(fin) {}: {}'.format(name, fp.sha256))
+            out.good('(fin) {}: {}'.format(name, fp.sha512))
 
             # Output the MD5 hash too if verbose mode is enabled.
             if out.verbose:
@@ -836,11 +838,16 @@ def build_struct(target_host: str, banner: Optional['Banner'], kex: Optional['SS
             if '-cert-' in host_key_type:
                 continue
 
-            # Add the SHA256 and MD5 fingerprints.
+            # Add the SHA256, SHA512 and MD5 fingerprints.
             res['fingerprints'].append({
                 'hostkey': host_key_type,
                 'hash_alg': 'SHA256',
                 'hash': fp.sha256[7:]
+            })
+            res['fingerprints'].append({
+                'hostkey': host_key_type,
+                'hash_alg': 'SHA512',
+                'hash': fp.sha512[7:]
             })
             res['fingerprints'].append({
                 'hostkey': host_key_type,
