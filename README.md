@@ -49,7 +49,9 @@ usage: ssh-audit.py [options] <host>
                                software config (use -p to change port;
                                use -t to change timeout)
    -d,  --debug            Enable debug output.
-   -g,  --gex-test=<x[,y,...] | min:pref:max[,min:pref:max,...] | x-y[:step]>  dh gex modulus size test
+   -g,  --gex-test=<x[,y,...]>  dh gex modulus size test
+                   <min1:pref1:max1[,min2:pref2:max2,...]>
+                   <x-y[:step]>
    -j,  --json             JSON output (use -jj to enable indents)
    -l,  --level=<level>    minimum output level (info|warn|fail)
    -L,  --list-policies    list all the official, built-in policies
