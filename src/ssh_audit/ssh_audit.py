@@ -219,7 +219,6 @@ def output_compatibility(out: OutputBuffer, algs: Algorithms, client_audit: bool
 
 
 def output_security_sub(out: OutputBuffer, sub: str, software: Optional[Software], client_audit: bool, padlen: int) -> dict:
-    cveVulns = {}
     cveVulns = {
         'critical': [],
         'warning': []
@@ -900,7 +899,20 @@ def build_struct(
             'fp': pkm_fp,
         }]
 
-    res['cves'] = cves
+    if cves is None:
+        res['cves'] = {}
+        res['cves']['critical'] = []
+        res['cves']['warning'] = []
+    elif cves['warning'] is None and cves['critical']:
+        res['cves'] = {}
+        res['cves']['warning'] = []
+        res['cves']['critical'] = cves['critical']
+    elif cves['critical'] and cves['warning'] is None:
+        res['cves'] = {}
+        res['cves']['critical'] = []
+        res['cves']['warning'] = cves['warning']
+    else:
+        res['cves'] = cves
 
     software, alg_rec = algs.get_recommendations(software, True)
     res['recommendations'] = {
