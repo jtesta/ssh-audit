@@ -218,7 +218,12 @@ def output_compatibility(out: OutputBuffer, algs: Algorithms, client_audit: bool
         out.good('(gen) compatibility: ' + ', '.join(comp_text))
 
 
-def output_security_sub(out: OutputBuffer, sub: str, software: Optional[Software], client_audit: bool, padlen: int) -> None:
+def output_security_sub(out: OutputBuffer, sub: str, software: Optional[Software], client_audit: bool, padlen: int) -> dict:
+    cveVulns = {}
+    cveVulns = {
+        'critical': [],
+        'warning': []
+    }
     secdb = VersionVulnerabilityDB.CVE if sub == 'cve' else VersionVulnerabilityDB.TXT
     if software is None or software.product not in secdb:
         return
@@ -246,20 +251,24 @@ def output_security_sub(out: OutputBuffer, sub: str, software: Optional[Software
 
             # Critical CVSS scores (>= 8.0) are printed as a fail, otherwise they are printed as a warning.
             out_func = out.warn
+            level = 'critical' if cvss >= 8.0 else 'warning'
             if cvss >= 8.0:
                 out_func = out.fail
             out_func('(cve) {}{} -- (CVSSv2: {}) {}'.format(name, p, cvss, descr))
+            cveVulns[level].append({"cve": name, "CVSSv2": cvss, "description": descr})
         else:
             descr = line[4]
             out.fail('(sec) {}{} -- {}'.format(name, p, descr))
+    return cveVulns
 
 
-def output_security(out: OutputBuffer, banner: Optional[Banner], client_audit: bool, padlen: int, is_json_output: bool) -> None:
+def output_security(out: OutputBuffer, banner: Optional[Banner], client_audit: bool, padlen: int, is_json_output: bool) -> dict:
+    cveVulns = {}
     with out:
         if banner is not None:
             software = Software.parse(banner)
-            output_security_sub(out, 'cve', software, client_audit, padlen)
-            output_security_sub(out, 'txt', software, client_audit, padlen)
+            cveVulns = output_security_sub(out, 'cve', software, client_audit, padlen)
+            _ = output_security_sub(out, 'txt', software, client_audit, padlen)
             if banner.protocol[0] == 1:
                 p = '' if out.batch else ' ' * (padlen - 14)
                 out.fail('(sec) SSH v1 enabled{} -- SSH v1 can be exploited to recover plaintext passwords'.format(p))
@@ -267,6 +276,8 @@ def output_security(out: OutputBuffer, banner: Optional[Banner], client_audit: b
         out.head('# security')
         out.flush_section()
         out.sep()
+    return cveVulns
+
 
 
 def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: bool) -> None:
@@ -452,7 +463,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
         out.flush_section()
         out.sep()
     maxlen = algs.maxlen + 1
-    output_security(out, banner, client_audit, maxlen, aconf.json)
+    cveVulns = output_security(out, banner, client_audit, maxlen, aconf.json)
     # Filled in by output_algorithms() with unidentified algs.
     unknown_algorithms: List[str] = []
     if pkm is not None:
@@ -482,7 +493,21 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
     if aconf.json:
         out.reset()
         # Build & write the JSON struct.
-        out.info(json.dumps(build_struct(aconf.host + ":" + str(aconf.port), banner, kex=kex, client_host=client_host), indent=4 if aconf.json_print_indent else None, sort_keys=True))
+        out.info(
+            json.dumps(
+                build_struct(
+                    aconf.host,
+                    banner,
+                    kex=kex,
+                    client_host=client_host,
+                    cves=cveVulns,
+                    software=software,
+                    algs=algs
+                ),
+                indent=4 if aconf.json_print_indent else None, 
+                sort_keys=True
+            )
+        )
     elif len(unknown_algorithms) > 0:  # If we encountered any unknown algorithms, ask the user to report them.
         out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at <https://github.com/jtesta/ssh-audit/issues>.\n" % ','.join(unknown_algorithms))
 
@@ -760,7 +785,16 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     return aconf
 
 
-def build_struct(target_host: str, banner: Optional['Banner'], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None) -> Any:
+def build_struct(
+    target_host: str,
+    banner: Optional['Banner'],
+    kex: Optional['SSH2_Kex'] = None,
+    pkm: Optional['SSH1_PublicKeyMessage'] = None,
+    client_host: Optional[str] = None,
+    cves: Optional[dict] = None,
+    software: Optional[Software] = None,
+    algs: Algorithms = None
+    ) -> Any:
 
     banner_str = ''
     banner_protocol = None
@@ -866,6 +900,28 @@ def build_struct(target_host: str, banner: Optional['Banner'], kex: Optional['SS
             'fp': pkm_fp,
         }]
 
+    res['cves'] = cves
+
+    software, alg_rec = algs.get_recommendations(software, True)
+    res['recommendations'] = {
+        'critical': {},
+        'warning': {}
+    }
+
+    for alg_type in ['kex', 'key', 'enc', 'mac']:
+        if alg_type in alg_rec[2]:
+            for action in ['del', 'add', 'chg']:
+                if action in alg_rec[2][alg_type]:
+                    for n in alg_rec[2][alg_type][action]:
+                        level = 'critical' if alg_rec[2][alg_type][action][n] >= 10 else 'warning'
+
+                        if action not in res['recommendations'][level]:
+                            res['recommendations'][level][action] = {}
+
+                        if alg_type not in res['recommendations'][level][action]:
+                            res['recommendations'][level][action][alg_type] = []
+
+                        res['recommendations'][level][action][alg_type].append(n)
     return res
 
 
