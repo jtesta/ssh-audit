@@ -496,6 +496,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
             json.dumps(
                 build_struct(
                     aconf.host,
+                    aconf.port,
                     banner,
                     kex=kex,
                     client_host=client_host,
@@ -786,6 +787,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
 
 def build_struct(
     target_host: str,
+    target_port: int,
     banner: Optional['Banner'],
     kex: Optional['SSH2_Kex'] = None,
     pkm: Optional['SSH1_PublicKeyMessage'] = None,
@@ -819,6 +821,8 @@ def build_struct(
         res['client_ip'] = client_host
     else:
         res['target'] = target_host
+
+    res['port'] = str(target_port)
 
     if kex is not None:
         res['compression'] = kex.server.compression
