@@ -182,7 +182,7 @@ def output_algorithm(out: OutputBuffer, alg_db: Dict[str, Dict[str, List[List[Op
             if out.verbose:
                 f(prefix + alg_name + comment)
             elif text != '':
-                comment = (padding + ' `- [' + level + '] ' + text)
+                comment = padding + ' `- [' + level + '] ' + text
                 f(' ' * len(prefix + alg_name) + comment)
 
     return program_retval
