@@ -32,7 +32,7 @@
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - policy scans to ensure adherence to a hardened/standard configuration;
 - runs on Linux and Windows;
-- supports Python 3.7 - 3.10;
+- supports Python 3.7 - 3.11;
 - no dependencies
 
 ## Usage
@@ -176,7 +176,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ### v2.6.0-dev
  - Dropped support for Python 3.6, as it reached EOL at the end of 2021.
- - Added Ubuntu Server 22.04 hardening policy.
+ - Added Ubuntu Server & Client 22.04 hardening policies.
  - Removed experimental warning tag from `sntrup761x25519-sha512@openssh.com`.
  - Updated CVE database; credit [Alexandre Zanni](https://github.com/noraj).
  - Added `-g` and `--gex-test` for granular GEX modulus size tests; credit [Adam Russell](https://github.com/thecliguy).
