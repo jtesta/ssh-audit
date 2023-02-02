@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2022 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -28,16 +28,12 @@ from typing import Callable, Optional, Union, Any  # noqa: F401
 
 
 class SSH2_KexDB:  # pylint: disable=too-few-public-methods
-    WARN_OPENSSH74_UNSAFE = 'disabled (in client) since OpenSSH 7.4, unsafe algorithm'
-    WARN_OPENSSH72_LEGACY = 'disabled (in client) since OpenSSH 7.2, legacy algorithm'
     FAIL_OPENSSH70_LEGACY = 'removed since OpenSSH 7.0, legacy algorithm'
     FAIL_OPENSSH70_WEAK = 'removed (in server) and disabled (in client) since OpenSSH 7.0, weak algorithm'
     FAIL_OPENSSH70_LOGJAM = 'disabled (in client) since OpenSSH 7.0, logjam attack'
-    INFO_OPENSSH69_CHACHA = 'default cipher since OpenSSH 6.9.'
     FAIL_OPENSSH67_UNSAFE = 'removed (in server) since OpenSSH 6.7, unsafe algorithm'
     FAIL_OPENSSH61_REMOVE = 'removed since OpenSSH 6.1, removed from specification'
     FAIL_OPENSSH31_REMOVE = 'removed since OpenSSH 3.1'
-    INFO_OPENSSH82_FUTURE_DEPRECATION = 'a future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2'
     FAIL_DBEAR67_DISABLED = 'disabled since Dropbear SSH 2015.67'
     FAIL_DBEAR53_DISABLED = 'disabled since Dropbear SSH 0.53'
     FAIL_DEPRECATED_CIPHER = 'deprecated cipher'
@@ -49,6 +45,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     FAIL_UNPROVEN = 'using unproven algorithm'
     FAIL_HASH_WEAK = 'using weak hashing algorithm'
     FAIL_SMALL_ECC_MODULUS = 'using small ECC modulus'
+    FAIL_UNKNOWN = 'using unknown algorithm'
+
     WARN_CURVES_WEAK = 'using weak elliptic curves'
     WARN_RNDSIG_KEY = 'using weak random number generator could reveal the key'
     WARN_HASH_WEAK = 'using weak hashing algorithm'
@@ -61,6 +59,13 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     WARN_EXPERIMENTAL = 'using experimental algorithm'
     WARN_OBSOLETE = 'using obsolete algorithm'
     WARN_UNTRUSTED = 'using untrusted algorithm'
+    WARN_OPENSSH74_UNSAFE = 'disabled (in client) since OpenSSH 7.4, unsafe algorithm'
+    WARN_OPENSSH72_LEGACY = 'disabled (in client) since OpenSSH 7.2, legacy algorithm'
+
+    INFO_OPENSSH82_FUTURE_DEPRECATION = 'a future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2'
+    INFO_OPENSSH69_CHACHA = 'default cipher since OpenSSH 6.9.'
+    INFO_NEVER_IMPLEMENTED_IN_OPENSSH = 'despite the @openssh.com tag, this was never implemented in OpenSSH'
+
 
     ALGORITHMS: Dict[str, Dict[str, List[List[Optional[str]]]]] = {
         # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
@@ -82,6 +87,21 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'gss-group16-sha512-': [[]],
             'gss-nistp256-sha256-': [[], [WARN_CURVES_WEAK]],
             'gss-curve25519-sha256-': [[]],
+            'gss-13.3.132.0.10-sha256-*': [[], [FAIL_UNKNOWN]],
+            'gss-curve25519-sha256-*': [[]],
+            'gss-curve448-sha512-*': [[]],
+            'gss-gex-sha1-*': [[], [], [WARN_HASH_WEAK]],
+            'gss-gex-sha256-*': [[]],
+            'gss-group1-sha1-*': [[], [], [WARN_HASH_WEAK]],
+            'gss-group14-sha1-*': [[], [], [WARN_HASH_WEAK]],
+            'gss-group14-sha256-*': [[]],
+            'gss-group15-sha512-*': [[]],
+            'gss-group16-sha512-*': [[]],
+            'gss-group17-sha512-*': [[]],
+            'gss-group18-sha512-*': [[]],
+            'gss-nistp256-sha256-*': [[], [WARN_CURVES_WEAK]],
+            'gss-nistp384-sha256-*': [[], [WARN_CURVES_WEAK]],
+            'gss-nistp521-sha512-*': [[], [WARN_CURVES_WEAK]],
             'diffie-hellman-group1-sha256': [[], [FAIL_1024BIT_MODULUS]],
             'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
             'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
@@ -101,6 +121,11 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'diffie-hellman-group-exchange-sha256': [['4.4']],
             'diffie-hellman-group-exchange-sha256@ssh.com': [[]],
             'diffie-hellman-group-exchange-sha512@ssh.com': [[]],
+            'diffie-hellman-group-exchange-sha224@ssh.com': [[]],
+            'diffie-hellman-group-exchange-sha384@ssh.com': [[]],
+            'diffie-hellman-group14-sha224@ssh.com': [[]],
+            'diffie-hellman_group17-sha512': [[]],
+            'ecmqv-sha2': [[], [FAIL_UNPROVEN]],
             'ecdh-sha2-curve25519': [[], []],
             'ecdh-sha2-nistb233': [[], [WARN_CURVES_WEAK]],
             'ecdh-sha2-nistb409': [[], [WARN_CURVES_WEAK]],
@@ -141,7 +166,6 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ecdh-sha2-h/SsxnLCtRBh7I9ATyeB3A==': [[], [WARN_CURVES_WEAK]],  # NIST P-521 / secp521r1
             'ecdh-sha2-1.3.132.0.38': [[]],  # sect571k1
             'ecdh-sha2-mNVwCXAoS1HGmHpLvBC94w==': [[]],  # sect571k1
-
             'curve25519-sha256@libssh.org': [['6.5,d2013.62,l10.6.0']],
             'curve25519-sha256': [['7.4,d2018.76']],
             'curve448-sha512': [[]],
@@ -154,6 +178,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'Curve25519SHA256': [[]],
             'ext-info-c': [[]],  # Extension negotiation (RFC 8308)
             'ext-info-s': [[]],  # Extension negotiation (RFC 8308)
+            'm383-sha384@libassh.org': [[], [FAIL_UNPROVEN]],
+            'm511-sha512@libassh.org': [[], [FAIL_UNPROVEN]],
         },
         'key': {
             'ssh-rsa1': [[], [FAIL_WEAK_ALGORITHM]],
@@ -199,6 +225,15 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'webauthn-sk-ecdsa-sha2-nistp256@openssh.com': [['8.3'], [WARN_CURVES_WEAK]],
             'ssh-xmss@openssh.com': [['7.7'], [WARN_EXPERIMENTAL]],
             'ssh-xmss-cert-v01@openssh.com': [['7.7'], [WARN_EXPERIMENTAL]],
+            'dsa2048-sha224@libassh.org': [[], [FAIL_UNPROVEN]],
+            'dsa2048-sha256@libassh.org': [[], [FAIL_UNPROVEN]],
+            'dsa3072-sha256@libassh.org': [[], [FAIL_UNPROVEN]],
+            'ecdsa-sha2-1.3.132.0.10-cert-v01@openssh.com': [[], [FAIL_UNKNOWN]],
+            'eddsa-e382-shake256@libassh.org': [[], [FAIL_UNPROVEN]],
+            'eddsa-e521-shake256@libassh.org': [[], [FAIL_UNPROVEN]],
+            'null': [[], [FAIL_PLAINTEXT]],
+            'pgp-sign-dss': [[], [FAIL_1024BIT_MODULUS]],
+            'pgp-sign-rsa': [[], [FAIL_1024BIT_MODULUS]],
         },
         'enc': {
             'none': [['1.2.2,d2013.56,l10.2'], [FAIL_PLAINTEXT]],
@@ -258,13 +293,39 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'camellia256-cbc': [[], [], [WARN_CIPHER_MODE]],
             'camellia256-ctr': [[]],
             'crypticore128@ssh.com': [[], [FAIL_UNPROVEN]],
-            'seed-cbc@ssh.com': [[], [], [WARN_OBSOLETE, WARN_CIPHER_MODE]],
+            'seed-cbc@ssh.com': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
+            '3des-cfb': [[], [FAIL_WEAK_CIPHER], [WARN_CIPHER_MODE]],
+            '3des-ecb': [[], [FAIL_WEAK_CIPHER], [WARN_CIPHER_MODE]],
+            '3des-ofb': [[], [FAIL_WEAK_CIPHER], [WARN_CIPHER_MODE]],
+            'blowfish-cfb': [[], [FAIL_WEAK_CIPHER], [WARN_CIPHER_MODE]],
+            'blowfish-ecb': [[], [FAIL_WEAK_CIPHER], [WARN_CIPHER_MODE]],
+            'blowfish-ofb': [[], [FAIL_WEAK_CIPHER], [WARN_CIPHER_MODE]],
+            'camellia128-cbc@openssh.org': [[], [], [WARN_CIPHER_MODE]],
+            'camellia128-ctr@openssh.org': [[]],
+            'camellia192-cbc@openssh.org': [[], [], [WARN_CIPHER_MODE]],
+            'camellia192-ctr@openssh.org': [[]],
+            'camellia256-cbc@openssh.org': [[], [], [WARN_CIPHER_MODE]],
+            'camellia256-ctr@openssh.org': [[]],
+            'cast128-cfb': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
+            'cast128-ecb': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
+            'cast128-ofb': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
+            'idea-cfb': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
+            'idea-ecb': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
+            'idea-ofb': [[], [FAIL_DEPRECATED_CIPHER], [WARN_CIPHER_MODE]],
+            'seed-ctr@ssh.com': [[], [FAIL_DEPRECATED_CIPHER]],
+            'serpent128-gcm@libassh.org': [[], [FAIL_DEPRECATED_CIPHER]],
+            'serpent256-gcm@libassh.org': [[], [FAIL_DEPRECATED_CIPHER]],
+            'twofish-cfb': [[], [], [WARN_CIPHER_MODE]],
+            'twofish-ecb': [[], [], [WARN_CIPHER_MODE]],
+            'twofish-ofb': [[], [], [WARN_CIPHER_MODE]],
+            'twofish128-gcm@libassh.org': [[]],
+            'twofish256-gcm@libassh.org': [[]],
         },
         'mac': {
             'none': [['d2013.56'], [FAIL_PLAINTEXT]],
             'hmac-sha1': [['2.1.0,d0.28,l10.2'], [], [WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
             'hmac-sha1-96': [['2.5.0,d0.47', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],
-            'hmac-sha1-96@openssh.com': [[], [], [WARN_TAG_SIZE, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK]],  # Despite the @openssh.com tag, this perhaps was never implemented in OpenSSH (!)
+            'hmac-sha1-96@openssh.com': [[], [], [WARN_TAG_SIZE, WARN_ENCRYPT_AND_MAC, WARN_HASH_WEAK], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],
             'hmac-sha2-56': [[], [], [WARN_TAG_SIZE, WARN_ENCRYPT_AND_MAC]],
             'hmac-sha2-224': [[], [], [WARN_TAG_SIZE, WARN_ENCRYPT_AND_MAC]],
             'hmac-sha2-256': [['5.9,d2013.56,l10.7.0'], [], [WARN_ENCRYPT_AND_MAC]],
@@ -291,22 +352,26 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'umac-128@openssh.com': [['6.2'], [], [WARN_ENCRYPT_AND_MAC]],
             'hmac-sha1-etm@openssh.com': [['6.2'], [], [WARN_HASH_WEAK]],
             'hmac-sha1-96-etm@openssh.com': [['6.2', '6.6', None], [FAIL_OPENSSH67_UNSAFE], [WARN_HASH_WEAK]],
-            'hmac-sha2-256-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]],  # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
-            'hmac-sha2-512-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96]],  # Despite the @openssh.com tag, it doesn't appear that this was ever shipped with OpenSSH; it is only implemented in AsyncSSH (?).
+            'hmac-sha2-256-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],  # Only ever implemented in AsyncSSH (?).
+            'hmac-sha2-512-96-etm@openssh.com': [[], [], [WARN_TAG_SIZE_96], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],  # Only ever implemented in AsyncSSH (?).
             'hmac-sha2-256-etm@openssh.com': [['6.2']],
             'hmac-sha2-512-etm@openssh.com': [['6.2']],
             'hmac-md5-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_HASH_WEAK]],
             'hmac-md5-96-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY, WARN_HASH_WEAK]],
             'hmac-ripemd160-etm@openssh.com': [['6.2', '6.6', '7.1'], [FAIL_OPENSSH67_UNSAFE], [WARN_OPENSSH72_LEGACY]],
-            'umac-32@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]],  # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
+            'umac-32@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],
             'umac-64-etm@openssh.com': [['6.2'], [], [WARN_TAG_SIZE]],
-            'umac-96@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],  # Despite having the @openssh.com suffix, this may never have shipped with OpenSSH (!).
+            'umac-96@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],
             'umac-128-etm@openssh.com': [['6.2']],
             'aes128-gcm': [[]],
             'aes256-gcm': [[]],
-            'chacha20-poly1305@openssh.com': [[]],  # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
+            'chacha20-poly1305@openssh.com': [[], [], [], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],  # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
             'crypticore-mac@ssh.com': [[], [FAIL_UNPROVEN]],
             'AEAD_AES_128_GCM': [[]],
             'AEAD_AES_256_GCM': [[]],
+            'hmac-sha224@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],
+            'hmac-sha256-2@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],
+            'hmac-sha384@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],
+            'hmac-whirlpool': [[], [], [WARN_ENCRYPT_AND_MAC]],
         }
     }
