@@ -70,13 +70,12 @@ if sys.platform == 'win32':
         pass
 
 
-def usage(err: Optional[str] = None) -> None:
+def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     retval = exitcodes.GOOD
-    uout = OutputBuffer()
     p = os.path.basename(sys.argv[0])
     uout.head('# {} {}, https://github.com/jtesta/ssh-audit\n'.format(p, VERSION))
     if err is not None and len(err) > 0:
-        uout.fail('\n' + err)
+        uout.fail(err + '\n')
         retval = exitcodes.UNKNOWN_ERROR
     uout.info('usage: {0} [options] <host>\n'.format(p))
     uout.info('   -h,  --help             print this help')
@@ -591,19 +590,24 @@ def make_policy(aconf: AuditConf, banner: Optional['Banner'], kex: Optional['SSH
 def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[..., None]) -> 'AuditConf':  # pylint: disable=too-many-statements
     # pylint: disable=too-many-branches
     aconf = AuditConf()
+
+    enable_colors = not (any(i in args for i in ['--no-colors', '-n']))
+    aconf.colors = enable_colors
+    out.use_colors = enable_colors
+
     try:
         sopts = 'h1246M:p:P:jbcnvl:t:T:Lmdg:'
         lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=', 'threads=', 'manual', 'debug', 'gex-test=']
         opts, args = getopt.gnu_getopt(args, sopts, lopts)
     except getopt.GetoptError as err:
-        usage_cb(str(err))
+        usage_cb(out, str(err))
     aconf.ssh1, aconf.ssh2 = False, False
     host: str = ''
     oport: Optional[str] = None
     port: int = 0
     for o, a in opts:
         if o in ('-h', '--help'):
-            usage_cb()
+            usage_cb(out)
         elif o in ('-1', '--ssh1'):
             aconf.ssh1 = True
         elif o in ('-2', '--ssh2'):
@@ -619,9 +623,6 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.verbose = True
         elif o in ('-c', '--client-audit'):
             aconf.client_audit = True
-        elif o in ('-n', '--no-colors'):
-            aconf.colors = False
-            out.use_colors = False
         elif o in ('-j', '--json'):
             if aconf.json:  # If specified twice, enable indent printing.
                 aconf.json_print_indent = True
@@ -632,7 +633,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             out.verbose = True
         elif o in ('-l', '--level'):
             if a not in ('info', 'warn', 'fail'):
-                usage_cb('level {} is not valid'.format(a))
+                usage_cb(out, 'level {} is not valid'.format(a))
             aconf.level = a
         elif o in ('-t', '--timeout'):
             aconf.timeout = float(a)
@@ -659,7 +660,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             permitted_syntax = get_permitted_syntax_for_gex_test()
 
             if not any(re.search(regex_str, a) for regex_str in permitted_syntax.values()):
-                usage_cb('{} {} is not valid'.format(o, a))
+                usage_cb(out, '{} {} is not valid'.format(o, a))
 
             if re.search(permitted_syntax['RANGE'], a):
                 extracted_digits = re.findall(r'\d+', a)
@@ -671,16 +672,16 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
                     bits_step = int(extracted_digits[2])
 
                 if bits_step <= 0:
-                    usage_cb('{} {} is not valid'.format(o, bits_step))
+                    usage_cb(out, '{} {} is not valid'.format(o, bits_step))
 
                 if all(x < 0 for x in (bits_left_bound, bits_right_bound)):
-                    usage_cb('{} {} {} is not valid'.format(o, bits_left_bound, bits_right_bound))
+                    usage_cb(out, '{} {} {} is not valid'.format(o, bits_left_bound, bits_right_bound))
 
             aconf.gex_test = a
 
 
     if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '' and aconf.manual is False:
-        usage_cb()
+        usage_cb(out)
 
     if aconf.manual:
         return aconf
@@ -698,7 +699,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
         else:
             host, port = Utils.parse_host_and_port(args[0])
         if not host and aconf.target_file is None:
-            usage_cb('host is empty')
+            usage_cb(out, 'host is empty')
 
     if port == 0 and oport is None:
         if aconf.client_audit:  # The default port to listen on during a client audit is 2222.
@@ -709,7 +710,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     if oport is not None:
         port = Utils.parse_int(oport)
         if port <= 0 or port > 65535:
-            usage_cb('port {} is not valid'.format(oport))
+            usage_cb(out, 'port {} is not valid'.format(oport))
 
     aconf.host = host
     aconf.port = port
