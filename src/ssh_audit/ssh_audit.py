@@ -591,7 +591,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     # pylint: disable=too-many-branches
     aconf = AuditConf()
 
-    enable_colors = not (any(i in args for i in ['--no-colors', '-n']))
+    enable_colors = not any(i in args for i in ['--no-colors', '-n'])
     aconf.colors = enable_colors
     out.use_colors = enable_colors
 
