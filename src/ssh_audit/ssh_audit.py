@@ -2,7 +2,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -365,7 +365,7 @@ def output_recommendations(out: OutputBuffer, algs: Algorithms, software: Option
                         elif action == 'chg':
                             an, sg, fn = 'change', '!', out.fail
                             ret = False
-                            chg_additional_info = ' (increase modulus size to 2048 bits or larger)'
+                            chg_additional_info = ' (increase modulus size to 3072 bits or larger)'
                         b = '(SSH{})'.format(sshv) if sshv == 1 else ''
                         fm = '(rec) {0}{1}{2}-- {3} algorithm to {4}{5} {6}'
                         fn(fm.format(sg, name, p, alg_type, an, chg_additional_info, b))

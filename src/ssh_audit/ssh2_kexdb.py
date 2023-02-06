@@ -61,6 +61,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     WARN_UNTRUSTED = 'using untrusted algorithm'
     WARN_OPENSSH74_UNSAFE = 'disabled (in client) since OpenSSH 7.4, unsafe algorithm'
     WARN_OPENSSH72_LEGACY = 'disabled (in client) since OpenSSH 7.2, legacy algorithm'
+    WARN_2048BIT_MODULUS = '2048-bit modulus only provides 112-bits of symmetric strength'
 
     INFO_OPENSSH82_FUTURE_DEPRECATION = 'a future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2'
     INFO_OPENSSH69_CHACHA = 'default cipher since OpenSSH 6.9.'
@@ -68,7 +69,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
 
 
     ALGORITHMS: Dict[str, Dict[str, List[List[Optional[str]]]]] = {
-        # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...]]
+        # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...], [info1, info2, ...]]
         'kex': {
             'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_HASH_WEAK]],
             'gss-group1-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH67_UNSAFE, FAIL_OPENSSH70_LOGJAM], [WARN_HASH_WEAK]],
@@ -77,11 +78,11 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'gss-gex-sha1-': [[], [], [WARN_HASH_WEAK]],
             'gss-group1-sha1-eipGX3TCiQSrx573bT1o1Q==': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
             'gss-group1-sha1-': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
-            'gss-group14-sha1-': [[], [], [WARN_HASH_WEAK]],
-            'gss-group14-sha1-eipGX3TCiQSrx573bT1o1Q==': [[], [], [WARN_HASH_WEAK]],
-            'gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK]],
-            'gss-group14-sha256-': [[]],
-            'gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==': [[]],
+            'gss-group14-sha1-': [[], [], [WARN_HASH_WEAK, WARN_2048BIT_MODULUS]],
+            'gss-group14-sha1-eipGX3TCiQSrx573bT1o1Q==': [[], [], [WARN_HASH_WEAK, WARN_2048BIT_MODULUS]],
+            'gss-group14-sha1-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_HASH_WEAK, WARN_2048BIT_MODULUS]],
+            'gss-group14-sha256-': [[], [], [WARN_2048BIT_MODULUS]],
+            'gss-group14-sha256-toWM5Slw5Ew8Mqkay+al2g==': [[], [], [WARN_2048BIT_MODULUS]],
             'gss-group15-sha512-': [[]],
             'gss-group15-sha512-toWM5Slw5Ew8Mqkay+al2g==': [[]],
             'gss-group16-sha512-': [[]],
@@ -92,9 +93,9 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'gss-curve448-sha512-*': [[]],
             'gss-gex-sha1-*': [[], [], [WARN_HASH_WEAK]],
             'gss-gex-sha256-*': [[]],
-            'gss-group1-sha1-*': [[], [], [WARN_HASH_WEAK]],
-            'gss-group14-sha1-*': [[], [], [WARN_HASH_WEAK]],
-            'gss-group14-sha256-*': [[]],
+            'gss-group1-sha1-*': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
+            'gss-group14-sha1-*': [[], [], [WARN_HASH_WEAK, WARN_2048BIT_MODULUS]],
+            'gss-group14-sha256-*': [[], [], [WARN_2048BIT_MODULUS]],
             'gss-group15-sha512-*': [[]],
             'gss-group16-sha512-*': [[]],
             'gss-group17-sha512-*': [[]],
@@ -103,9 +104,9 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'gss-nistp384-sha256-*': [[], [FAIL_CURVES_WEAK]],
             'gss-nistp521-sha512-*': [[], [FAIL_CURVES_WEAK]],
             'diffie-hellman-group1-sha256': [[], [FAIL_1024BIT_MODULUS]],
-            'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK]],
-            'diffie-hellman-group14-sha256': [['7.3,d2016.73']],
-            'diffie-hellman-group14-sha256@ssh.com': [[]],
+            'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [], [WARN_HASH_WEAK, WARN_2048BIT_MODULUS]],
+            'diffie-hellman-group14-sha256': [['7.3,d2016.73'], [], [WARN_2048BIT_MODULUS]],
+            'diffie-hellman-group14-sha256@ssh.com': [[], [], [WARN_2048BIT_MODULUS]],
             'diffie-hellman-group15-sha256': [[]],
             'diffie-hellman-group15-sha256@ssh.com': [[]],
             'diffie-hellman-group15-sha384@ssh.com': [[]],
@@ -171,7 +172,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'curve448-sha512': [[]],
             'kexguess2@matt.ucc.asn.au': [['d2013.57']],
             'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS], [WARN_HASH_WEAK]],
-            'rsa2048-sha256': [[]],
+            'rsa2048-sha256': [[], [], [WARN_2048BIT_MODULUS]],
             'sntrup4591761x25519-sha512@tinyssh.org': [['8.0', '8.4'], [], [WARN_EXPERIMENTAL]],
             'sntrup761x25519-sha512@openssh.com': [['8.5'], [], []],
             'kexAlgoCurve25519SHA256': [[]],
@@ -225,8 +226,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'webauthn-sk-ecdsa-sha2-nistp256@openssh.com': [['8.3'], [FAIL_CURVES_WEAK]],
             'ssh-xmss@openssh.com': [['7.7'], [WARN_EXPERIMENTAL]],
             'ssh-xmss-cert-v01@openssh.com': [['7.7'], [WARN_EXPERIMENTAL]],
-            'dsa2048-sha224@libassh.org': [[], [FAIL_UNPROVEN]],
-            'dsa2048-sha256@libassh.org': [[], [FAIL_UNPROVEN]],
+            'dsa2048-sha224@libassh.org': [[], [FAIL_UNPROVEN], [WARN_2048BIT_MODULUS]],
+            'dsa2048-sha256@libassh.org': [[], [FAIL_UNPROVEN], [WARN_2048BIT_MODULUS]],
             'dsa3072-sha256@libassh.org': [[], [FAIL_UNPROVEN]],
             'ecdsa-sha2-1.3.132.0.10-cert-v01@openssh.com': [[], [FAIL_UNKNOWN]],
             'eddsa-e382-shake256@libassh.org': [[], [FAIL_UNPROVEN]],
