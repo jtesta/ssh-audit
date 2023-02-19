@@ -7,7 +7,7 @@ class TestAuditConf:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
         self.AuditConf = ssh_audit.AuditConf
-        self.OutputBuffer = ssh_audit.OutputBuffer
+        self.OutputBuffer = ssh_audit.OutputBuffer()
         self.usage = ssh_audit.usage
         self.process_commandline = process_commandline
 

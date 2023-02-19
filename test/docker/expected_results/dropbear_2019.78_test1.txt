@@ -13,8 +13,10 @@
                                      `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
 [0;31m(kex) ecdh-sha2-nistp256             -- [fail] using weak elliptic curves[0m
                                      `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
-[0;32m(kex) diffie-hellman-group14-sha256  -- [info] available since OpenSSH 7.3, Dropbear SSH 2016.73[0m
+[0;33m(kex) diffie-hellman-group14-sha256  -- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
+                                     `- [info] available since OpenSSH 7.3, Dropbear SSH 2016.73
 [0;33m(kex) diffie-hellman-group14-sha1    -- [warn] using weak hashing algorithm[0m
+[0;33m                                     `- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
                                      `- [info] available since OpenSSH 3.9, Dropbear SSH 0.53
 [0;32m(kex) kexguess2@matt.ucc.asn.au      -- [info] available since Dropbear SSH 2013.57[0m
 
@@ -80,6 +82,7 @@
 [0;32m(rec) +twofish128-ctr                -- enc algorithm to append [0m
 [0;32m(rec) +twofish256-ctr                -- enc algorithm to append [0m
 [0;33m(rec) -diffie-hellman-group14-sha1   -- kex algorithm to remove [0m
+[0;33m(rec) -diffie-hellman-group14-sha256 -- kex algorithm to remove [0m
 [0;33m(rec) -hmac-sha1                     -- mac algorithm to remove [0m
 [0;33m(rec) -hmac-sha2-256                 -- mac algorithm to remove [0m
 

@@ -13,7 +13,8 @@
 [0;36m# key exchange algorithms[0m
 [0;32m(kex) curve25519-sha256                     -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
 [0;32m(kex) curve25519-sha256@libssh.org          -- [info] available since OpenSSH 6.5, Dropbear SSH 2013.62[0m
-[0;32m(kex) diffie-hellman-group-exchange-sha256 (2048-bit) -- [info] available since OpenSSH 4.4[0m
+[0;33m(kex) diffie-hellman-group-exchange-sha256 (2048-bit) -- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
+                                                      `- [info] available since OpenSSH 4.4
 
 [0;36m# host-key algorithms[0m
 [0;32m(key) ssh-ed25519                           -- [info] available since OpenSSH 6.5[0m
@@ -36,9 +37,12 @@
 [0;32m(fin) ssh-ed25519: SHA256:UrnXIVH+7dlw8UqYocl48yUEcKrthGDQG2CPCgp7MxU[0m
 
 [0;36m# algorithm recommendations (for OpenSSH 8.0)[0m
-[0;32m(rec) +diffie-hellman-group14-sha256        -- kex algorithm to append [0m
+[0;31m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 3072 bits or larger) [0m
 [0;32m(rec) +diffie-hellman-group16-sha512        -- kex algorithm to append [0m
 [0;32m(rec) +diffie-hellman-group18-sha512        -- kex algorithm to append [0m
 [0;32m(rec) +rsa-sha2-256                         -- key algorithm to append [0m
 [0;32m(rec) +rsa-sha2-512                         -- key algorithm to append [0m
+
+[0;36m# additional info[0m
+[0;33m(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>[0m
 

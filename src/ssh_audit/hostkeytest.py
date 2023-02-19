@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -53,6 +53,9 @@ class HostKeyTest:
         'ssh-ed25519':                      {'cert': False, 'variable_key_len': False},
         'ssh-ed25519-cert-v01@openssh.com': {'cert': True, 'variable_key_len': False},
     }
+
+    TWO2K_MODULUS_WARNING = '2048-bit modulus only provides 112-bits of symmetric strength'
+
 
     @staticmethod
     def run(out: 'OutputBuffer', s: 'SSH_Socket', server_kex: 'SSH2_Kex') -> None:
@@ -161,24 +164,34 @@ class HostKeyTest:
                     elif cert is True:
                         server_kex.set_rsa_key_size(host_key_type, hostkey_modulus_size, ca_modulus_size)
 
-                    # Keys smaller than 2048 result in a failure.  Update the database accordingly.
-                    if (cert is False) and (hostkey_modulus_size < 2048):
+                    # Keys smaller than 2048 result in a failure.  Keys smaller 3072 result in a warning.  Update the database accordingly.
+                    if (cert is False) and (hostkey_modulus_size < 3072):
                         for rsa_type in HostKeyTest.RSA_FAMILY:
                             alg_list = SSH2_KexDB.ALGORITHMS['key'][rsa_type]
 
-                            # If no failure list exists, add an empty failure list.
-                            if len(alg_list) < 2:
+                            # Ensure that failure & warning lists exist.
+                            while len(alg_list) < 3:
                                 alg_list.append([])
-                            alg_list[1].append('using small %d-bit modulus' % hostkey_modulus_size)
-                    elif (cert is True) and ((hostkey_modulus_size < 2048) or (ca_modulus_size > 0 and ca_modulus_size < 2048)):  # pylint: disable=chained-comparison
+
+                            # If the key is under 2048, add to the failure list.
+                            if hostkey_modulus_size < 2048:
+                                alg_list[1].append('using small %d-bit modulus' % hostkey_modulus_size)
+                            elif HostKeyTest.TWO2K_MODULUS_WARNING not in alg_list[2]:  # Issue a warning about 2048-bit moduli.
+                                alg_list[2].append(HostKeyTest.TWO2K_MODULUS_WARNING)
+
+                    elif (cert is True) and ((hostkey_modulus_size < 3072) or (ca_modulus_size > 0 and ca_modulus_size < 3072)):  # pylint: disable=chained-comparison
                         alg_list = SSH2_KexDB.ALGORITHMS['key'][host_key_type]
                         min_modulus = min(hostkey_modulus_size, ca_modulus_size)
                         min_modulus = min_modulus if min_modulus > 0 else max(hostkey_modulus_size, ca_modulus_size)
 
-                        # If no failure list exists, add an empty failure list.
-                        if len(alg_list) < 2:
+                        # Ensure that failure & warning lists exist.
+                        while len(alg_list) < 3:
                             alg_list.append([])
-                        alg_list[1].append('using small %d-bit modulus' % min_modulus)
+
+                        if (hostkey_modulus_size < 2048) or (ca_modulus_size > 0 and ca_modulus_size < 2048):  # pylint: disable=chained-comparison
+                            alg_list[1].append('using small %d-bit modulus' % min_modulus)
+                        elif HostKeyTest.TWO2K_MODULUS_WARNING not in alg_list[2]:
+                            alg_list[2].append(HostKeyTest.TWO2K_MODULUS_WARNING)
 
                 # If this host key type is in the RSA family, then mark them all as parsed (since results in one are valid for them all).
                 if host_key_type in HostKeyTest.RSA_FAMILY:

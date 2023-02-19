@@ -661,7 +661,7 @@ run_openssh_test '5.6p1' 'test5' $PROGRAM_RETVAL_FAILURE
 echo
 run_openssh_test '8.0p1' 'test1' $PROGRAM_RETVAL_FAILURE
 run_openssh_test '8.0p1' 'test2' $PROGRAM_RETVAL_FAILURE
-run_openssh_test '8.0p1' 'test3' $PROGRAM_RETVAL_GOOD
+run_openssh_test '8.0p1' 'test3' $PROGRAM_RETVAL_WARNING
 echo
 run_dropbear_test '2019.78' 'test1' '-r /etc/dropbear/dropbear_rsa_host_key_1024 -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_ecdsa_host_key' 3
 echo
