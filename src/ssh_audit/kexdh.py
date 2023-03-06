@@ -35,6 +35,10 @@ from ssh_audit.protocol import Protocol
 from ssh_audit.ssh_socket import SSH_Socket
 
 
+class KexDHException(Exception):
+    pass
+
+
 class KexDH:  # pragma: nocover
     def __init__(self, kex_name: str, hash_alg: str, g: int, p: int) -> None:
         self.__kex_name = kex_name  # pylint: disable=unused-private-member
@@ -79,8 +83,7 @@ class KexDH:  # pragma: nocover
             packet_type, payload = s.read_packet(2)
 
         if packet_type != -1 and packet_type not in [Protocol.MSG_KEXDH_REPLY, Protocol.MSG_KEXDH_GEX_REPLY]:  # pylint: disable=no-else-raise
-            # TODO: change Exception to something more specific.
-            raise Exception('Expected MSG_KEXDH_REPLY (%d) or MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (Protocol.MSG_KEXDH_REPLY, Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
+            raise KexDHException('Expected MSG_KEXDH_REPLY (%d) or MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (Protocol.MSG_KEXDH_REPLY, Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
         elif packet_type == -1:
             # A connection error occurred.  We can't parse anything, so just
             # return.  The host key modulus (and perhaps certificate modulus)
@@ -328,8 +331,7 @@ class KexGroupExchange(KexDH):
 
         packet_type, payload = s.read_packet(2)
         if packet_type not in [Protocol.MSG_KEXDH_GEX_GROUP, Protocol.MSG_DEBUG]:
-            # TODO: replace with a better exception type.
-            raise Exception('Expected MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
+            raise KexDHException('Expected MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
 
         # Skip any & all MSG_DEBUG messages.
         while packet_type == Protocol.MSG_DEBUG:

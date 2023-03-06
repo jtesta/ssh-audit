@@ -86,7 +86,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
             # If the user has a preference for using IPv4 over IPv6 (or vice-versa), then sort the list returned by getaddrinfo() so that the preferred address type comes first.
             if len(self.__ip_version_preference) == 2:
-                r = sorted(r, key=lambda x: x[0], reverse=(self.__ip_version_preference[0] == 6))
+                r = sorted(r, key=lambda x: x[0], reverse=(self.__ip_version_preference[0] == 6))  # pylint: disable=superfluous-parens
             for af, socktype, _proto, _canonname, addr in r:
                 if socktype == socket.SOCK_STREAM:
                     yield af, addr

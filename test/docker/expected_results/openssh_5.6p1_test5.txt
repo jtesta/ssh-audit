@@ -28,6 +28,7 @@
 [0;33m                                                    `- [warn] using weak hashing algorithm[0m
                                                     `- [info] available since OpenSSH 2.3.0
 [0;33m(kex) diffie-hellman-group14-sha1           -- [warn] using weak hashing algorithm[0m
+[0;33m                                            `- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
                                             `- [info] available since OpenSSH 3.9, Dropbear SSH 0.53
 [0;31m(kex) diffie-hellman-group1-sha1            -- [fail] using small 1024-bit modulus[0m
 [0;31m                                            `- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
@@ -125,7 +126,7 @@
 [0;32m(fin) ssh-rsa: SHA256:nsWtdJ9Z67Vrf7OsUzQov7esXhsWAfVppArGh25u244[0m
 
 [0;36m# algorithm recommendations (for OpenSSH 5.6)[0m
-[0;31m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 2048 bits or larger) [0m
+[0;31m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 3072 bits or larger) [0m
 [0;31m(rec) -3des-cbc                             -- enc algorithm to remove [0m
 [0;31m(rec) -aes128-cbc                           -- enc algorithm to remove [0m
 [0;31m(rec) -aes192-cbc                           -- enc algorithm to remove [0m

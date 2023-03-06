@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -219,6 +219,19 @@ class GEXTest:
                         else:
                             del lst[1]
                             lst.insert(1, [text])
+
+                    # Moduli smaller than 3072 get flagged as a warning.
+                    elif smallest_modulus < 3072:
+                        lst = SSH2_KexDB.ALGORITHMS['kex'][gex_alg]
+
+                        # Ensure that a warning list exists for us to append to, below.
+                        while len(lst) < 3:
+                            lst.append([])
+
+                        # Ensure this is only added once.
+                        text = '2048-bit modulus only provides 112-bits of symmetric strength'
+                        if text not in lst[2]:
+                            lst[2].append(text)
 
                 if reconnect_failed:
                     break
