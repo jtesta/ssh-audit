@@ -63,7 +63,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     WARN_OPENSSH72_LEGACY = 'disabled (in client) since OpenSSH 7.2, legacy algorithm'
     WARN_2048BIT_MODULUS = '2048-bit modulus only provides 112-bits of symmetric strength'
 
-    INFO_OPENSSH82_FUTURE_DEPRECATION = 'a future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2'
+    INFO_DEPRECATED_IN_OPENSSH88 = 'deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8'
     INFO_OPENSSH69_CHACHA = 'default cipher since OpenSSH 6.9.'
     INFO_NEVER_IMPLEMENTED_IN_OPENSSH = 'despite the @openssh.com tag, this was never implemented in OpenSSH'
 
@@ -188,20 +188,20 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'rsa-sha2-512': [['7.2']],
             'ssh-ed25519': [['6.5,l10.7.0']],
             'ssh-ed25519-cert-v01@openssh.com': [['6.5']],
-            'ssh-rsa': [['2.5.0,d0.28,l10.2'], [FAIL_HASH_WEAK], [], [INFO_OPENSSH82_FUTURE_DEPRECATION]],
+            'ssh-rsa': [['2.5.0,d0.28,l10.2'], [FAIL_HASH_WEAK], [], [INFO_DEPRECATED_IN_OPENSSH88]],
             'ssh-dss': [['2.1.0,d0.28,l10.2', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp256': [['5.7,d2013.62,l10.6.4'], [FAIL_CURVES_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp384': [['5.7,d2013.62,l10.6.4'], [FAIL_CURVES_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp521': [['5.7,d2013.62,l10.6.4'], [FAIL_CURVES_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]],  # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
             'x509v3-sign-dss': [[], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
-            'x509v3-sign-rsa': [[], [FAIL_HASH_WEAK], [], [INFO_OPENSSH82_FUTURE_DEPRECATION]],
+            'x509v3-sign-rsa': [[], [FAIL_HASH_WEAK], [], [INFO_DEPRECATED_IN_OPENSSH88]],
             'x509v3-sign-rsa-sha256@ssh.com': [[]],
             'x509v3-ssh-dss': [[], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
-            'x509v3-ssh-rsa': [[], [FAIL_HASH_WEAK], [], [INFO_OPENSSH82_FUTURE_DEPRECATION]],
-            'ssh-rsa-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY, FAIL_HASH_WEAK], [], [INFO_OPENSSH82_FUTURE_DEPRECATION]],
+            'x509v3-ssh-rsa': [[], [FAIL_HASH_WEAK], [], [INFO_DEPRECATED_IN_OPENSSH88]],
+            'ssh-rsa-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_OPENSSH70_LEGACY, FAIL_HASH_WEAK], [], [INFO_DEPRECATED_IN_OPENSSH88]],
             'ssh-dss-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_LEGACY], [WARN_RNDSIG_KEY]],
-            'ssh-rsa-cert-v01@openssh.com': [['5.6'], [FAIL_HASH_WEAK], [], [INFO_OPENSSH82_FUTURE_DEPRECATION]],
+            'ssh-rsa-cert-v01@openssh.com': [['5.6'], [FAIL_HASH_WEAK], [], [INFO_DEPRECATED_IN_OPENSSH88]],
             'ssh-dss-cert-v01@openssh.com': [['5.6', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_OPENSSH70_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp256-cert-v01@openssh.com': [['5.7'], [FAIL_CURVES_WEAK], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp384-cert-v01@openssh.com': [['5.7'], [FAIL_CURVES_WEAK], [WARN_RNDSIG_KEY]],
