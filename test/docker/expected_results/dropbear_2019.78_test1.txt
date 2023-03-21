@@ -27,7 +27,7 @@
 [0;31m(key) ssh-rsa (1024-bit)             -- [fail] using weak hashing algorithm[0m
 [0;31m                                     `- [fail] using small 1024-bit modulus[0m
                                      `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28
-                                     `- [info] a future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2
+                                     `- [info] deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8
 [0;31m(key) ssh-dss                        -- [fail] using small 1024-bit modulus[0m
 [0;31m                                     `- [fail] removed (in server) and disabled (in client) since OpenSSH 7.0, weak algorithm[0m
 [0;33m                                     `- [warn] using weak random number generator could reveal the key[0m

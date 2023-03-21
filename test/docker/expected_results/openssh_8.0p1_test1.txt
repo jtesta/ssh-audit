@@ -35,7 +35,7 @@
 [0;32m(key) rsa-sha2-256 (3072-bit)               -- [info] available since OpenSSH 7.2[0m
 [0;31m(key) ssh-rsa (3072-bit)                    -- [fail] using weak hashing algorithm[0m
                                             `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28
-                                            `- [info] a future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2
+                                            `- [info] deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8
 [0;31m(key) ecdsa-sha2-nistp256                   -- [fail] using weak elliptic curves[0m
 [0;33m                                            `- [warn] using weak random number generator could reveal the key[0m
                                             `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
