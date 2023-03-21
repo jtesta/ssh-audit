@@ -453,6 +453,7 @@ run_test() {
     actual_retval=$?
     if [[ $actual_retval != "$expected_retval" ]]; then
         echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
+	cat $test_result_stdout
         docker container stop -t 0 $cid > /dev/null
         exit 1
     fi
@@ -461,6 +462,7 @@ run_test() {
     actual_retval=$?
     if [[ $actual_retval != "$expected_retval" ]]; then
         echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
+	cat $test_result_json
         docker container stop -t 0 $cid > /dev/null
         exit 1
     fi
