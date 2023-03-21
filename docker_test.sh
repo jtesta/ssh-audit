@@ -4,6 +4,11 @@
 # This script will set up a docker image with multiple versions of OpenSSH, then
 # use it to run tests.
 #
+# Optional arguments:
+#   --accept: accepts test failures and overwrites expected results with actual results (useful for updating the tests themselves).
+#   --create: attempts to create a new docker image.
+#
+#
 # For debugging purposes, here is a cheat sheet for manually running the docker image:
 #
 # docker run -p 2222:22 -it ssh-audit-test:X /bin/bash
@@ -26,8 +31,9 @@ CLR="\033[0m"
 RED="\033[0;31m"
 YELLOW="\033[0;33m"
 GREEN="\033[0;32m"
-REDB="\033[1;31m"   # Red + bold
-GREENB="\033[1;32m" # Green + bold
+REDB="\033[1;31m"    # Red + bold
+YELLOWB="\033[1;33m" # Yellow + bold
+GREENB="\033[1;32m"  # Green + bold
 
 # Program return values.
 PROGRAM_RETVAL_FAILURE=3
@@ -38,6 +44,9 @@ PROGRAM_RETVAL_GOOD=0
 
 # Counts the number of test failures.
 num_failures=0
+
+# When set, if a failure is encountered, overwrite the expected output with the actual value (i.e.: the user validated the failures already and wants to update the tests themselves).
+accept=0
 
 
 # Returns 0 if current docker image exists.
@@ -453,7 +462,12 @@ run_test() {
     actual_retval=$?
     if [[ $actual_retval != "$expected_retval" ]]; then
         echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
-	cat $test_result_stdout
+
+        if [[ $accept == 1 ]]; then
+            echo -e "\n${REDB}This failure cannot be automatically fixed; this script must be manually updated with the new expected return value.${CLR}"
+        fi
+
+        cat ${test_result_stdout}
         docker container stop -t 0 $cid > /dev/null
         exit 1
     fi
@@ -462,7 +476,12 @@ run_test() {
     actual_retval=$?
     if [[ $actual_retval != "$expected_retval" ]]; then
         echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
-	cat $test_result_json
+
+        if [[ $accept == 1 ]]; then
+            echo -e "\n${REDB}This failure cannot be automatically fixed; this script must be manually updated with the new expected return value.${CLR}"
+	fi
+
+        cat ${test_result_json}
         docker container stop -t 0 $cid > /dev/null
         exit 1
     fi
@@ -485,16 +504,32 @@ run_test() {
 
     diff=$(diff -u "${expected_result_stdout}" "${test_result_stdout}")
     if [[ $? != 0 ]]; then
-        echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-        failed=1
-        num_failures=$((num_failures+1))
+
+        # If the user wants to update the tests, then overwrite the expected results with the actual results.
+        if [[ $accept == 1 ]]; then
+            cp "${test_result_stdout}" "${expected_result_stdout}"
+            echo -e "${test_name} ${YELLOWB}UPDATED${CLR}\n"
+        else
+            echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+            failed=1
+            num_failures=$((num_failures+1))
+        fi
+
     fi
 
     diff=$(diff -u "${expected_result_json}" "${test_result_json}")
     if [[ $? != 0 ]]; then
-        echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-        failed=1
-        num_failures=$((num_failures+1))
+
+        # If the user wants to update the tests, then overwrite the expected results with the actual results.
+        if [[ $accept == 1 ]]; then
+            cp "${test_result_json}" "${expected_result_json}"
+            echo -e "${test_name} ${YELLOWB}UPDATED${CLR}\n"
+        else
+            echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+            failed=1
+            num_failures=$((num_failures+1))
+        fi
+
     fi
 
     if [[ $failed == 0 ]]; then
@@ -571,6 +606,11 @@ run_policy_test() {
     actual_exit_code=$?
     if [[ ${actual_exit_code} != "${expected_exit_code}" ]]; then
         echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
+
+        if [[ $accept == 1 ]]; then
+            echo -e "\n${REDB}This failure cannot be automatically fixed; this script must be manually updated with the new expected return value.${CLR}"
+        fi
+
         cat "${test_result_stdout}"
         docker container stop -t 0 $cid > /dev/null
         exit 1
@@ -581,6 +621,11 @@ run_policy_test() {
     actual_exit_code=$?
     if [[ ${actual_exit_code} != "${expected_exit_code}" ]]; then
         echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"
+
+        if [[ $accept == 1 ]]; then
+            echo -e "\n${REDB}This failure cannot be automatically fixed; this script must be manually updated with the new expected return value.${CLR}"
+        fi
+
         cat "${test_result_json}"
         docker container stop -t 0 $cid > /dev/null
         exit 1
@@ -594,14 +639,30 @@ run_policy_test() {
 
     diff=$(diff -u "${expected_result_stdout}" "${test_result_stdout}")
     if [[ $? != 0 ]]; then
-        echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-        exit 1
+
+	# If the user wants to update the tests, then overwrite the expected results with the actual results.
+        if [[ $accept == 1 ]]; then
+            cp "${test_result_stdout}" "${expected_result_stdout}"
+            echo -e "${test_name} ${YELLOWB}UPDATED${CLR}\n"
+        else
+            echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+            exit 1
+        fi
+
     fi
 
     diff=$(diff -u "${expected_result_json}" "${test_result_json}")
     if [[ $? != 0 ]]; then
-        echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
-        exit 1
+
+	# If the user wants to update the tests, then overwrite the expected results with the actual results.
+        if [[ $accept == 1 ]]; then
+            cp "${test_result_json}" "${expected_result_json}"
+            echo -e "${test_name} ${YELLOWB}UPDATED${CLR}\n"
+        else
+            echo -e "${test_name} ${REDB}FAILED${CLR}.\n\n${diff}\n"
+            exit 1
+        fi
+
     fi
 
     echo -e "${test_name} ${GREEN}passed${CLR}."
@@ -636,6 +697,13 @@ if [[ ($# == 1) && ($1 == "--create") ]]; then
         echo -e "\n${GREEN}Done creating docker image!${CLR}"
         exit 0
     fi
+fi
+
+
+# If the user passes --accept, then the actual results will replace the expected results (meaning the user wants to update the tests themselves due to new functionality).
+if [[ ($# == 1) && ($1 == "--accept") ]]; then
+    accept=1
+    echo -e "\n${YELLOWB}Expected test results will be replaced with actual results.${CLR}"
 fi
 
 
