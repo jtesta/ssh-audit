@@ -308,7 +308,7 @@ def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: boo
 
 
 # Returns True if no warnings or failures encountered in configuration.
-def output_recommendations(out: OutputBuffer, algs: Algorithms, software: Optional[Software], is_json_output: bool, padlen: int = 0) -> bool:
+def output_recommendations(out: OutputBuffer, algs: Algorithms, algorithm_recommendation_suppress_list: List[str], software: Optional[Software], is_json_output: bool, padlen: int = 0) -> bool:
 
     ret = True
     # PuTTY's algorithms cannot be modified, so there's no point in issuing recommendations.
@@ -352,6 +352,11 @@ def output_recommendations(out: OutputBuffer, algs: Algorithms, software: Option
                     if action not in alg_rec[sshv][alg_type]:
                         continue
                     for name in alg_rec[sshv][alg_type][action]:
+
+                        # If this algorithm should be suppressed, skip it.
+                        if name in algorithm_recommendation_suppress_list:
+                            continue
+
                         p = '' if out.batch else ' ' * (padlen - len(name))
                         chg_additional_info = ''
                         if action == 'del':
@@ -396,6 +401,27 @@ def output_info(out: OutputBuffer, software: Optional['Software'], client_audit:
         out.sep()
 
 
+def post_process_findings(banner: Optional[Banner], algs: Algorithms) -> List[str]:
+    '''Perform post-processing on scan results before reporting them to the user.  Returns a list of algorithms that should not be recommended'''
+
+
+    algorithm_recommendation_suppress_list = []
+
+    # If the server is OpenSSH, and the diffie-hellman-group-exchange-sha256 key exchange was found with modulus size 2048, add a note regarding the bug that causes the server to support 2048-bit moduli no matter the configuration.
+    if (algs.ssh2kex is not None and 'diffie-hellman-group-exchange-sha256' in algs.ssh2kex.kex_algorithms and 'diffie-hellman-group-exchange-sha256' in algs.ssh2kex.dh_modulus_sizes() and algs.ssh2kex.dh_modulus_sizes()['diffie-hellman-group-exchange-sha256'][0] == 2048) and (banner is not None and banner.software is not None and banner.software.find('OpenSSH') != -1):
+
+        # Ensure a list for notes exists.
+        while len(SSH2_KexDB.ALGORITHMS['kex']['diffie-hellman-group-exchange-sha256']) < 4:
+            SSH2_KexDB.ALGORITHMS['kex']['diffie-hellman-group-exchange-sha256'].append([])
+
+        SSH2_KexDB.ALGORITHMS['kex']['diffie-hellman-group-exchange-sha256'][3].append("A bug in OpenSSH causes it to fall back to a 2048-bit modulus regardless of server configuration (https://bugzilla.mindrot.org/show_bug.cgi?id=2793)")
+
+        # Ensure that this algorithm doesn't appear in the recommendations section since the user cannot control this OpenSSH bug.
+        algorithm_recommendation_suppress_list.append('diffie-hellman-group-exchange-sha256')
+
+    return algorithm_recommendation_suppress_list
+
+
 # Returns a exitcodes.* flag to denote if any failures or warnings were encountered.
 def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header: List[str], client_host: Optional[str] = None, kex: Optional[SSH2_Kex] = None, pkm: Optional[SSH1_PublicKeyMessage] = None, print_target: bool = False) -> int:
 
@@ -403,6 +429,10 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
     client_audit = client_host is not None  # If set, this is a client audit.
     sshv = 1 if pkm is not None else 2
     algs = Algorithms(pkm, kex)
+
+    # Perform post-processing on the findings to make final adjustments before outputting the results.
+    algorithm_recommendation_suppress_list = post_process_findings(banner, algs)
+
     with out:
         if print_target:
             host = aconf.host
@@ -475,7 +505,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
         title, atype = 'message authentication code algorithms', 'mac'
         program_retval = output_algorithms(out, title, adb, atype, kex.server.mac, unknown_algorithms, aconf.json, program_retval, maxlen)
     output_fingerprints(out, algs, aconf.json)
-    perfect_config = output_recommendations(out, algs, software, aconf.json, maxlen)
+    perfect_config = output_recommendations(out, algs, algorithm_recommendation_suppress_list, software, aconf.json, maxlen)
     output_info(out, software, client_audit, not perfect_config, aconf.json)
 
     if aconf.json:

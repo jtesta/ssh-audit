@@ -21,6 +21,7 @@
                                             `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
 [0;33m(kex) diffie-hellman-group-exchange-sha256 (2048-bit) -- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
                                                       `- [info] available since OpenSSH 4.4
+                                                      `- [info] A bug in OpenSSH causes it to fall back to a 2048-bit modulus regardless of server configuration (https://bugzilla.mindrot.org/show_bug.cgi?id=2793)
 [0;32m(kex) diffie-hellman-group16-sha512         -- [info] available since OpenSSH 7.3, Dropbear SSH 2016.73[0m
 [0;32m(kex) diffie-hellman-group18-sha512         -- [info] available since OpenSSH 7.3[0m
 [0;33m(kex) diffie-hellman-group14-sha256         -- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
@@ -67,7 +68,6 @@
 [0;32m(fin) ssh-ed25519: SHA256:UrnXIVH+7dlw8UqYocl48yUEcKrthGDQG2CPCgp7MxU[0m
 
 [0;36m# algorithm recommendations (for OpenSSH 8.0)[0m
-[0;31m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 3072 bits or larger) [0m
 [0;31m(rec) -ecdh-sha2-nistp256                   -- kex algorithm to remove [0m
 [0;31m(rec) -ecdh-sha2-nistp384                   -- kex algorithm to remove [0m
 [0;31m(rec) -ecdh-sha2-nistp521                   -- kex algorithm to remove [0m
