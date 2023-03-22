@@ -137,6 +137,12 @@ def output_algorithm(out: OutputBuffer, alg_db: Dict[str, Dict[str, List[List[Op
             alg_name_with_size = '%s (%d-bit)' % (alg_name, hostkey_size)
             padding = padding[0:-11]
 
+    # If this is a kex algorithm and starts with 'gss-', then normalize its name (i.e.: 'gss-gex-sha1-vz8J1E9PzLr8b1K+0remTg==' => 'gss-gex-sha1-*').  The base64 field can vary, so we'll convert it to the wildcard that our database uses and we'll just resume doing a straight match like all other algorithm names.
+    alg_name_original = alg_name
+    if alg_type == 'kex' and alg_name.startswith('gss-'):
+        last_dash = alg_name.rindex('-')
+        alg_name = "%s-*" % alg_name[0:last_dash]
+
     texts = []
     if len(alg_name.strip()) == 0:
         return program_retval
@@ -161,6 +167,10 @@ def output_algorithm(out: OutputBuffer, alg_db: Dict[str, Dict[str, List[List[Op
     else:
         texts.append(('warn', 'unknown algorithm'))
         unknown_algs.append(alg_name)
+
+    # For kex GSS algorithms, now that we already did the database lookup (above), restore the original algorithm name so its reported properly in the output.
+    if alg_name != alg_name_original:
+        alg_name = alg_name_original
 
     alg_name = alg_name_with_size if alg_name_with_size is not None else alg_name
     first = True

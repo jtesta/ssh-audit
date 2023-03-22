@@ -61,6 +61,23 @@ class TestSSH2:
         w.write_int(0)
         return w.write_flush()
 
+    def _kex_payload_with_gss(self):
+        w = self.wbuf()
+        w.write(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff')
+        w.write_list(['gss-gex-sha1-dZuIebMjgUqaxvbF7hDbAw==', 'gss-gex-sha1-vz8J1E9PzLr8b1K+0remTg==', 'gss-group14-sha1-dZuIebMjgUqaxvbF7hDbAw==', 'gss-group14-sha1-vz8J1E9PzLr8b1K+0remTg==', 'gss-group14-sha256-dZuIebMjgUqaxvbF7hDbAw==', 'gss-group14-sha256-vz8J1E9PzLr8b1K+0remTg==', 'gss-group16-sha512-dZuIebMjgUqaxvbF7hDbAw==', 'gss-group16-sha512-vz8J1E9PzLr8b1K+0remTg==', 'gss-group18-sha512-dZuIebMjgUqaxvbF7hDbAw==', 'gss-group18-sha512-vz8J1E9PzLr8b1K+0remTg==', 'gss-group1-sha1-dZuIebMjgUqaxvbF7hDbAw==', 'gss-group1-sha1-vz8J1E9PzLr8b1K+0remTg==', 'gss-curve448-sha512-XXX'])
+        w.write_list(['ssh-ed25519'])
+        w.write_list(['chacha20-poly1305@openssh.com'])
+        w.write_list(['chacha20-poly1305@openssh.com'])
+        w.write_list(['hmac-sha2-512-etm@openssh.com'])
+        w.write_list(['hmac-sha2-512-etm@openssh.com'])
+        w.write_list(['none', 'zlib@openssh.com'])
+        w.write_list(['none', 'zlib@openssh.com'])
+        w.write_list([''])
+        w.write_list([''])
+        w.write_byte(False)
+        w.write_int(0)
+        return w.write_flush()
+
     def test_kex_read(self):
         kex = self.ssh2_kex.parse(self._kex_payload())
         assert kex is not None
@@ -163,3 +180,22 @@ class TestSSH2:
         lines = output_spy.flush()
         assert len(lines) == 9
         assert 'unknown message' in lines[-1]
+
+    def test_ssh2_gss_kex(self, output_spy, virtual_socket):
+        '''Ensure that GSS kex algorithms are properly parsed.'''
+
+        vsocket = virtual_socket
+        w = self.wbuf()
+        w.write_byte(self.protocol.MSG_KEXINIT)
+        w.write(self._kex_payload_with_gss())  # Use the kex with GSS algorithms.
+        vsocket.rdata.append(b'SSH-2.0-OpenSSH_7.3 ssh-audit-test\r\n')
+        vsocket.rdata.append(self._create_ssh2_packet(w.write_flush()))
+        output_spy.begin()
+        out = self.OutputBuffer()
+        self.audit(out, self._conf())
+        out.write()
+        lines = output_spy.flush()
+
+        # Ensure that none of the lines are reported as "unknown algorithm".
+        for line in lines:
+            assert line.find('unknown algorithm') == -1
