@@ -472,7 +472,7 @@ run_test() {
         exit 1
     fi
 
-    ./ssh-audit.py -j localhost:2222 > "$test_result_json"
+    ./ssh-audit.py -jj localhost:2222 > "$test_result_json"
     actual_retval=$?
     if [[ $actual_retval != "$expected_retval" ]]; then
         echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
@@ -616,8 +616,8 @@ run_policy_test() {
         exit 1
     fi
 
-    #echo "Running: ./ssh-audit.py -P \"${policy_path}\" -j localhost:2222 > ${test_result_json}"
-    ./ssh-audit.py -P "${policy_path}" -j localhost:2222 > "${test_result_json}"
+    #echo "Running: ./ssh-audit.py -P \"${policy_path}\" -jj localhost:2222 > ${test_result_json}"
+    ./ssh-audit.py -P "${policy_path}" -jj localhost:2222 > "${test_result_json}"
     actual_exit_code=$?
     if [[ ${actual_exit_code} != "${expected_exit_code}" ]]; then
         echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"

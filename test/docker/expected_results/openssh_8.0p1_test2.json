@@ -1,1 +1,191 @@
-{"banner": {"comments": null, "protocol": [2, 0], "raw": "SSH-2.0-OpenSSH_8.0", "software": "OpenSSH_8.0"}, "compression": ["none", "zlib@openssh.com"], "enc": ["chacha20-poly1305@openssh.com", "aes128-ctr", "aes192-ctr", "aes256-ctr", "aes128-gcm@openssh.com", "aes256-gcm@openssh.com"], "fingerprints": [{"hash": "UrnXIVH+7dlw8UqYocl48yUEcKrthGDQG2CPCgp7MxU", "hash_alg": "SHA256", "hostkey": "ssh-ed25519"}, {"hash": "1e:0c:7b:34:73:bf:52:41:b0:f9:d1:a9:ab:98:c7:c9", "hash_alg": "MD5", "hostkey": "ssh-ed25519"}], "kex": [{"algorithm": "curve25519-sha256"}, {"algorithm": "curve25519-sha256@libssh.org"}, {"algorithm": "ecdh-sha2-nistp256"}, {"algorithm": "ecdh-sha2-nistp384"}, {"algorithm": "ecdh-sha2-nistp521"}, {"algorithm": "diffie-hellman-group-exchange-sha256", "keysize": 2048}, {"algorithm": "diffie-hellman-group16-sha512"}, {"algorithm": "diffie-hellman-group18-sha512"}, {"algorithm": "diffie-hellman-group14-sha256"}, {"algorithm": "diffie-hellman-group14-sha1"}], "key": [{"algorithm": "ssh-ed25519"}, {"algorithm": "ssh-ed25519-cert-v01@openssh.com"}], "mac": ["umac-64-etm@openssh.com", "umac-128-etm@openssh.com", "hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com", "hmac-sha1-etm@openssh.com", "umac-64@openssh.com", "umac-128@openssh.com", "hmac-sha2-256", "hmac-sha2-512", "hmac-sha1"], "target": "localhost:2222"}
+{
+    "banner": {
+        "comments": null,
+        "protocol": [
+            2,
+            0
+        ],
+        "raw": "SSH-2.0-OpenSSH_8.0",
+        "software": "OpenSSH_8.0"
+    },
+    "compression": [
+        "none",
+        "zlib@openssh.com"
+    ],
+    "cves": [
+        {
+            "cvssv2": 7.0,
+            "description": "privilege escalation via supplemental groups",
+            "name": "CVE-2021-41617"
+        },
+        {
+            "cvssv2": 7.8,
+            "description": "command injection via anomalous argument transfers",
+            "name": "CVE-2020-15778"
+        },
+        {
+            "cvssv2": 7.8,
+            "description": "memory corruption and local code execution via pre-authentication integer overflow",
+            "name": "CVE-2019-16905"
+        },
+        {
+            "cvssv2": 5.3,
+            "description": "enumerate usernames via challenge response",
+            "name": "CVE-2016-20012"
+        }
+    ],
+    "enc": [
+        "chacha20-poly1305@openssh.com",
+        "aes128-ctr",
+        "aes192-ctr",
+        "aes256-ctr",
+        "aes128-gcm@openssh.com",
+        "aes256-gcm@openssh.com"
+    ],
+    "fingerprints": [
+        {
+            "hash": "UrnXIVH+7dlw8UqYocl48yUEcKrthGDQG2CPCgp7MxU",
+            "hash_alg": "SHA256",
+            "hostkey": "ssh-ed25519"
+        },
+        {
+            "hash": "1e:0c:7b:34:73:bf:52:41:b0:f9:d1:a9:ab:98:c7:c9",
+            "hash_alg": "MD5",
+            "hostkey": "ssh-ed25519"
+        }
+    ],
+    "kex": [
+        {
+            "algorithm": "curve25519-sha256"
+        },
+        {
+            "algorithm": "curve25519-sha256@libssh.org"
+        },
+        {
+            "algorithm": "ecdh-sha2-nistp256"
+        },
+        {
+            "algorithm": "ecdh-sha2-nistp384"
+        },
+        {
+            "algorithm": "ecdh-sha2-nistp521"
+        },
+        {
+            "algorithm": "diffie-hellman-group-exchange-sha256",
+            "keysize": 2048
+        },
+        {
+            "algorithm": "diffie-hellman-group16-sha512"
+        },
+        {
+            "algorithm": "diffie-hellman-group18-sha512"
+        },
+        {
+            "algorithm": "diffie-hellman-group14-sha256"
+        },
+        {
+            "algorithm": "diffie-hellman-group14-sha1"
+        }
+    ],
+    "key": [
+        {
+            "algorithm": "ssh-ed25519"
+        },
+        {
+            "algorithm": "ssh-ed25519-cert-v01@openssh.com"
+        }
+    ],
+    "mac": [
+        "umac-64-etm@openssh.com",
+        "umac-128-etm@openssh.com",
+        "hmac-sha2-256-etm@openssh.com",
+        "hmac-sha2-512-etm@openssh.com",
+        "hmac-sha1-etm@openssh.com",
+        "umac-64@openssh.com",
+        "umac-128@openssh.com",
+        "hmac-sha2-256",
+        "hmac-sha2-512",
+        "hmac-sha1"
+    ],
+    "recommendations": {
+        "critical": {
+            "del": {
+                "kex": [
+                    {
+                        "name": "diffie-hellman-group14-sha1",
+                        "notes": ""
+                    },
+                    {
+                        "name": "ecdh-sha2-nistp256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "ecdh-sha2-nistp384",
+                        "notes": ""
+                    },
+                    {
+                        "name": "ecdh-sha2-nistp521",
+                        "notes": ""
+                    }
+                ],
+                "mac": [
+                    {
+                        "name": "hmac-sha1",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-sha1-etm@openssh.com",
+                        "notes": ""
+                    }
+                ]
+            }
+        },
+        "informational": {
+            "add": {
+                "key": [
+                    {
+                        "name": "rsa-sha2-256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "rsa-sha2-512",
+                        "notes": ""
+                    }
+                ]
+            }
+        },
+        "warning": {
+            "del": {
+                "kex": [
+                    {
+                        "name": "diffie-hellman-group14-sha256",
+                        "notes": ""
+                    }
+                ],
+                "mac": [
+                    {
+                        "name": "hmac-sha2-256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-sha2-512",
+                        "notes": ""
+                    },
+                    {
+                        "name": "umac-64@openssh.com",
+                        "notes": ""
+                    },
+                    {
+                        "name": "umac-128@openssh.com",
+                        "notes": ""
+                    },
+                    {
+                        "name": "umac-64-etm@openssh.com",
+                        "notes": ""
+                    }
+                ]
+            }
+        }
+    },
+    "target": "localhost:2222"
+}

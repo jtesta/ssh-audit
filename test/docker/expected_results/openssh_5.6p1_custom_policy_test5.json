@@ -1,1 +1,31 @@
-{"errors": [{"actual": ["hmac-md5", "hmac-sha1", "umac-64@openssh.com", "hmac-ripemd160", "hmac-ripemd160@openssh.com", "hmac-sha1-96", "hmac-md5-96"], "expected_optional": [""], "expected_required": ["hmac-md5", "hmac-sha1", "umac-64@openssh.com", "hmac-ripemd160", "hmac-ripemd160@openssh.com", "hmac_alg1", "hmac-md5-96"], "mismatched_field": "MACs"}], "host": "localhost", "passed": false, "policy": "Docker policy: test5 (version 1)"}
+{
+    "errors": [
+        {
+            "actual": [
+                "hmac-md5",
+                "hmac-sha1",
+                "umac-64@openssh.com",
+                "hmac-ripemd160",
+                "hmac-ripemd160@openssh.com",
+                "hmac-sha1-96",
+                "hmac-md5-96"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "hmac-md5",
+                "hmac-sha1",
+                "umac-64@openssh.com",
+                "hmac-ripemd160",
+                "hmac-ripemd160@openssh.com",
+                "hmac_alg1",
+                "hmac-md5-96"
+            ],
+            "mismatched_field": "MACs"
+        }
+    ],
+    "host": "localhost",
+    "passed": false,
+    "policy": "Docker policy: test5 (version 1)"
+}

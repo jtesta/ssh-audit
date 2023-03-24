@@ -1,1 +1,32 @@
-{"errors": [{"actual": ["aes128-ctr", "aes192-ctr", "aes256-ctr", "arcfour256", "arcfour128", "aes128-cbc", "3des-cbc", "blowfish-cbc", "cast128-cbc", "aes192-cbc", "aes256-cbc", "arcfour", "rijndael-cbc@lysator.liu.se"], "expected_optional": [""], "expected_required": ["cipher_alg1", "cipher_alg2"], "mismatched_field": "Ciphers"}], "host": "localhost", "passed": false, "policy": "Docker policy: test4 (version 1)"}
+{
+    "errors": [
+        {
+            "actual": [
+                "aes128-ctr",
+                "aes192-ctr",
+                "aes256-ctr",
+                "arcfour256",
+                "arcfour128",
+                "aes128-cbc",
+                "3des-cbc",
+                "blowfish-cbc",
+                "cast128-cbc",
+                "aes192-cbc",
+                "aes256-cbc",
+                "arcfour",
+                "rijndael-cbc@lysator.liu.se"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "cipher_alg1",
+                "cipher_alg2"
+            ],
+            "mismatched_field": "Ciphers"
+        }
+    ],
+    "host": "localhost",
+    "passed": false,
+    "policy": "Docker policy: test4 (version 1)"
+}

@@ -1,1 +1,6 @@
-{"errors": [], "host": "localhost", "passed": true, "policy": "Docker poliicy: test7 (version 1)"}
+{
+    "errors": [],
+    "host": "localhost",
+    "passed": true,
+    "policy": "Docker poliicy: test7 (version 1)"
+}

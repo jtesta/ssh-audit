@@ -1,1 +1,106 @@
-{"banner": {"comments": null, "protocol": [2, 0], "raw": "SSH-2.0-OpenSSH_8.0", "software": "OpenSSH_8.0"}, "compression": ["none", "zlib@openssh.com"], "enc": ["chacha20-poly1305@openssh.com", "aes256-gcm@openssh.com", "aes128-gcm@openssh.com", "aes256-ctr", "aes192-ctr", "aes128-ctr"], "fingerprints": [{"hash": "UrnXIVH+7dlw8UqYocl48yUEcKrthGDQG2CPCgp7MxU", "hash_alg": "SHA256", "hostkey": "ssh-ed25519"}, {"hash": "1e:0c:7b:34:73:bf:52:41:b0:f9:d1:a9:ab:98:c7:c9", "hash_alg": "MD5", "hostkey": "ssh-ed25519"}], "kex": [{"algorithm": "curve25519-sha256"}, {"algorithm": "curve25519-sha256@libssh.org"}, {"algorithm": "diffie-hellman-group-exchange-sha256", "keysize": 2048}], "key": [{"algorithm": "ssh-ed25519"}], "mac": ["hmac-sha2-256-etm@openssh.com", "hmac-sha2-512-etm@openssh.com", "umac-128-etm@openssh.com"], "target": "localhost:2222"}
+{
+    "banner": {
+        "comments": null,
+        "protocol": [
+            2,
+            0
+        ],
+        "raw": "SSH-2.0-OpenSSH_8.0",
+        "software": "OpenSSH_8.0"
+    },
+    "compression": [
+        "none",
+        "zlib@openssh.com"
+    ],
+    "cves": [
+        {
+            "cvssv2": 7.0,
+            "description": "privilege escalation via supplemental groups",
+            "name": "CVE-2021-41617"
+        },
+        {
+            "cvssv2": 7.8,
+            "description": "command injection via anomalous argument transfers",
+            "name": "CVE-2020-15778"
+        },
+        {
+            "cvssv2": 7.8,
+            "description": "memory corruption and local code execution via pre-authentication integer overflow",
+            "name": "CVE-2019-16905"
+        },
+        {
+            "cvssv2": 5.3,
+            "description": "enumerate usernames via challenge response",
+            "name": "CVE-2016-20012"
+        }
+    ],
+    "enc": [
+        "chacha20-poly1305@openssh.com",
+        "aes256-gcm@openssh.com",
+        "aes128-gcm@openssh.com",
+        "aes256-ctr",
+        "aes192-ctr",
+        "aes128-ctr"
+    ],
+    "fingerprints": [
+        {
+            "hash": "UrnXIVH+7dlw8UqYocl48yUEcKrthGDQG2CPCgp7MxU",
+            "hash_alg": "SHA256",
+            "hostkey": "ssh-ed25519"
+        },
+        {
+            "hash": "1e:0c:7b:34:73:bf:52:41:b0:f9:d1:a9:ab:98:c7:c9",
+            "hash_alg": "MD5",
+            "hostkey": "ssh-ed25519"
+        }
+    ],
+    "kex": [
+        {
+            "algorithm": "curve25519-sha256"
+        },
+        {
+            "algorithm": "curve25519-sha256@libssh.org"
+        },
+        {
+            "algorithm": "diffie-hellman-group-exchange-sha256",
+            "keysize": 2048
+        }
+    ],
+    "key": [
+        {
+            "algorithm": "ssh-ed25519"
+        }
+    ],
+    "mac": [
+        "hmac-sha2-256-etm@openssh.com",
+        "hmac-sha2-512-etm@openssh.com",
+        "umac-128-etm@openssh.com"
+    ],
+    "recommendations": {
+        "informational": {
+            "add": {
+                "kex": [
+                    {
+                        "name": "diffie-hellman-group16-sha512",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group18-sha512",
+                        "notes": ""
+                    }
+                ],
+                "key": [
+                    {
+                        "name": "rsa-sha2-256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "rsa-sha2-512",
+                        "notes": ""
+                    }
+                ]
+            }
+        }
+    },
+    "target": "localhost:2222"
+}
