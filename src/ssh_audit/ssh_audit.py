@@ -64,8 +64,8 @@ from ssh_audit.versionvulnerabilitydb import VersionVulnerabilityDB
 # Only import colorama under Windows.  Other OSes can natively handle terminal colors.
 if sys.platform == 'win32':
     try:
-        from colorama import init as colorama_init
-        colorama_init()
+        from colorama import just_fix_windows_console
+        just_fix_windows_console()
     except ImportError:
         pass
 
