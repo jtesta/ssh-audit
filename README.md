@@ -151,7 +151,12 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
 ## Pre-Built Packages
-Pre-built packages are available for Windows (see the releases page), PyPI, Snap, and Docker.
+
+<a href="https://repology.org/project/ssh-audit/versions">
+    <img src="https://repology.org/badge/vertical-allrepos/ssh-audit.svg" alt="Packaging status" align="right">
+</a>
+
+Pre-built packages are available for Windows (see the releases page), PyPI, Snap, and Docker.  The status of various other platform packages can be found on the right (via Repology).
 
 To install from PyPI:
 ```
