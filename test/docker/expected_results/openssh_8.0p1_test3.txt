@@ -12,7 +12,9 @@
 
 [0;36m# key exchange algorithms[0m
 [0;32m(kex) curve25519-sha256                     -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
-[0;32m(kex) curve25519-sha256@libssh.org          -- [info] available since OpenSSH 6.5, Dropbear SSH 2013.62[0m
+                                            `- [info] default key exchange since OpenSSH 6.4
+[0;32m(kex) curve25519-sha256@libssh.org          -- [info] available since OpenSSH 6.4, Dropbear SSH 2013.62[0m
+                                            `- [info] default key exchange since OpenSSH 6.4
 [0;33m(kex) diffie-hellman-group-exchange-sha256 (2048-bit) -- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
                                                       `- [info] available since OpenSSH 4.4
                                                       `- [info] A bug in OpenSSH causes it to fall back to a 2048-bit modulus regardless of server configuration (https://bugzilla.mindrot.org/show_bug.cgi?id=2793)
@@ -22,7 +24,7 @@
 
 [0;36m# encryption algorithms (ciphers)[0m
 [0;32m(enc) chacha20-poly1305@openssh.com         -- [info] available since OpenSSH 6.5[0m
-                                            `- [info] default cipher since OpenSSH 6.9.
+                                            `- [info] default cipher since OpenSSH 6.9
 [0;32m(enc) aes256-gcm@openssh.com                -- [info] available since OpenSSH 6.2[0m
 [0;32m(enc) aes128-gcm@openssh.com                -- [info] available since OpenSSH 6.2[0m
 [0;32m(enc) aes256-ctr                            -- [info] available since OpenSSH 3.7, Dropbear SSH 0.52[0m
