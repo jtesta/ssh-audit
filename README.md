@@ -151,12 +151,7 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
 ## Pre-Built Packages
-
-<a href="https://repology.org/project/ssh-audit/versions">
-    <img src="https://repology.org/badge/vertical-allrepos/ssh-audit.svg" alt="Packaging status" align="right">
-</a>
-
-Pre-built packages are available for Windows (see the releases page), PyPI, Snap, and Docker.  The status of various other platform packages can be found on the right (via Repology).
+Pre-built packages are available for Windows (see the releases page), PyPI, Snap, and Docker:
 
 To install from PyPI:
 ```
@@ -174,6 +169,10 @@ $ docker pull positronsecurity/ssh-audit
 ```
 (Then run with: `docker run -it -p 2222:2222 positronsecurity/ssh-audit 10.1.1.1`)
 
+The status of various other platform packages can be found below (via Repology):
+
+<a href="https://repology.org/project/ssh-audit/versions"><img src="https://repology.org/badge/vertical-allrepos/ssh-audit.svg?columns=4" alt="Packaging status" align="center"></a>
+
 ## Web Front-End
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
@@ -187,6 +186,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added `-g` and `--gex-test` for granular GEX modulus size tests; credit [Adam Russell](https://github.com/thecliguy).
  - Snap packages now print more user-friendly error messages when permission errors are encountered.
  - JSON 'target' field now always includes port number; credit [tomatohater1337](https://github.com/tomatohater1337).
+ - JSON output now includes recommendations and CVE data.
  - Warnings are now printed for 2048-bit moduli.
  - SHA-1 algorithms now cause failures.
  - CBC mode ciphers are now warnings instead of failures.
