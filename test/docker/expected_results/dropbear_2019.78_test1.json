@@ -109,7 +109,7 @@
                 ],
                 "key": [
                     {
-                        "name": "ssh-rsa",
+                        "name": "ecdsa-sha2-nistp256",
                         "notes": ""
                     },
                     {
@@ -117,7 +117,7 @@
                         "notes": ""
                     },
                     {
-                        "name": "ecdsa-sha2-nistp256",
+                        "name": "ssh-rsa",
                         "notes": ""
                     }
                 ],

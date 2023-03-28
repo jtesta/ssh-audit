@@ -187,15 +187,15 @@
                         "notes": ""
                     },
                     {
+                        "name": "arcfour",
+                        "notes": ""
+                    },
+                    {
                         "name": "blowfish-cbc",
                         "notes": ""
                     },
                     {
                         "name": "cast128-cbc",
-                        "notes": ""
-                    },
-                    {
-                        "name": "arcfour",
                         "notes": ""
                     },
                     {
@@ -205,11 +205,11 @@
                 ],
                 "kex": [
                     {
-                        "name": "diffie-hellman-group1-sha1",
+                        "name": "diffie-hellman-group14-sha1",
                         "notes": ""
                     },
                     {
-                        "name": "diffie-hellman-group14-sha1",
+                        "name": "diffie-hellman-group1-sha1",
                         "notes": ""
                     },
                     {
@@ -219,23 +219,15 @@
                 ],
                 "key": [
                     {
-                        "name": "ssh-rsa",
+                        "name": "ssh-dss",
                         "notes": ""
                     },
                     {
-                        "name": "ssh-dss",
+                        "name": "ssh-rsa",
                         "notes": ""
                     }
                 ],
                 "mac": [
-                    {
-                        "name": "hmac-sha1",
-                        "notes": ""
-                    },
-                    {
-                        "name": "hmac-sha1-96",
-                        "notes": ""
-                    },
                     {
                         "name": "hmac-md5",
                         "notes": ""
@@ -250,6 +242,14 @@
                     },
                     {
                         "name": "hmac-ripemd160@openssh.com",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-sha1",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-sha1-96",
                         "notes": ""
                     }
                 ]

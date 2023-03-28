@@ -172,15 +172,15 @@
                         "notes": ""
                     },
                     {
-                        "name": "umac-64@openssh.com",
-                        "notes": ""
-                    },
-                    {
                         "name": "umac-128@openssh.com",
                         "notes": ""
                     },
                     {
                         "name": "umac-64-etm@openssh.com",
+                        "notes": ""
+                    },
+                    {
+                        "name": "umac-64@openssh.com",
                         "notes": ""
                     }
                 ]
