@@ -10,7 +10,7 @@
             "expected_required": [
                 "4096"
             ],
-            "mismatched_field": "RSA host key (ssh-rsa-cert-v01@openssh.com) sizes"
+            "mismatched_field": "Host key (ssh-rsa-cert-v01@openssh.com) sizes"
         },
         {
             "actual": [
@@ -22,7 +22,7 @@
             "expected_required": [
                 "4096"
             ],
-            "mismatched_field": "RSA CA key (ssh-rsa-cert-v01@openssh.com) sizes"
+            "mismatched_field": "CA signature size (ssh-rsa)"
         }
     ],
     "host": "localhost",

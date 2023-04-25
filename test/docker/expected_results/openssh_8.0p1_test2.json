@@ -92,7 +92,9 @@
             "algorithm": "ssh-ed25519"
         },
         {
-            "algorithm": "ssh-ed25519-cert-v01@openssh.com"
+            "algorithm": "ssh-ed25519-cert-v01@openssh.com",
+            "ca_algorithm": "ssh-ed25519",
+            "casize": 256
         }
     ],
     "mac": [

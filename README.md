@@ -187,6 +187,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Snap packages now print more user-friendly error messages when permission errors are encountered.
  - JSON 'target' field now always includes port number; credit [tomatohater1337](https://github.com/tomatohater1337).
  - JSON output now includes recommendations and CVE data.
+ - Mixed host key/CA key types (i.e.: RSA host keys signed with ED25519 CAs, etc.) are now properly handled.
  - Warnings are now printed for 2048-bit moduli.
  - SHA-1 algorithms now cause failures.
  - CBC mode ciphers are now warnings instead of failures.

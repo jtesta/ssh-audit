@@ -79,7 +79,7 @@ class TestSSH2:
         return w.write_flush()
 
     def test_kex_read(self):
-        kex = self.ssh2_kex.parse(self._kex_payload())
+        kex = self.ssh2_kex.parse(self.OutputBuffer, self._kex_payload())
         assert kex is not None
         assert kex.cookie == b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff'
         assert kex.kex_algorithms == ['bogus_kex1', 'bogus_kex2']
@@ -105,7 +105,7 @@ class TestSSH2:
         srv = self.ssh2_kexparty(enc, mac, compression, languages)
         if cookie is None:
             cookie = os.urandom(16)
-        kex = self.ssh2_kex(cookie, kex_algs, key_algs, cli, srv, 0)
+        kex = self.ssh2_kex(self.OutputBuffer, cookie, kex_algs, key_algs, cli, srv, 0)
         return kex
 
     def _get_kex_variat1(self):
@@ -149,7 +149,7 @@ class TestSSH2:
 
     def test_key_payload(self):
         kex1 = self._get_kex_variat1()
-        kex2 = self.ssh2_kex.parse(self._kex_payload())
+        kex2 = self.ssh2_kex.parse(self.OutputBuffer, self._kex_payload())
         assert kex1.payload == kex2.payload
 
     def test_ssh2_server_simple(self, output_spy, virtual_socket):

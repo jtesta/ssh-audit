@@ -10,7 +10,7 @@
             "expected_required": [
                 "2048"
             ],
-            "mismatched_field": "RSA CA key (ssh-rsa-cert-v01@openssh.com) sizes"
+            "mismatched_field": "CA signature size (ssh-rsa)"
         }
     ],
     "host": "localhost",

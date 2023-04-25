@@ -27,7 +27,7 @@ import traceback
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
-from ssh_audit.kexdh import KexGroupExchange_SHA1, KexGroupExchange_SHA256
+from ssh_audit.kexdh import KexDHException, KexGroupExchange_SHA1, KexGroupExchange_SHA256
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh_socket import SSH_Socket
@@ -63,8 +63,8 @@ class GEXTest:
         try:
             # Parse the server's KEX.
             _, payload = s.read_packet(2)
-            SSH2_Kex.parse(payload)
-        except Exception:
+            SSH2_Kex.parse(out, payload)
+        except KexDHException:
             out.v("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()), write_now=True)
             return False
 
@@ -98,7 +98,7 @@ class GEXTest:
             if gex_alg not in kex.kex_algorithms:
                 out.d('Server does not support the algorithm "' + gex_alg + '".', write_now=True)
             else:
-                kex_group = kex_group_class()
+                kex_group = kex_group_class(out)
                 out.d('Preparing to perform DH group exchange using ' + gex_alg + ' with min, pref and max modulus sizes of ' + str(bits_min) + ' bits, ' + str(bits_pref) + ' bits and ' + str(bits_max) + ' bits...', write_now=True)
 
                 # It has been observed that reconnecting to some SSH servers
@@ -115,7 +115,7 @@ class GEXTest:
                     kex_group.recv_reply(s, False)
                     modulus_size_returned = kex_group.get_dh_modulus_size()
                     out.d('Modulus size returned by server: ' + str(modulus_size_returned) + ' bits', write_now=True)
-                except Exception:
+                except KexDHException:
                     out.d('[exception] ' + str(traceback.format_exc()), write_now=True)
                 finally:
                     # The server is in a state that is not re-testable,
@@ -155,7 +155,7 @@ class GEXTest:
                 if GEXTest.reconnect(out, s, kex, gex_alg) is False:
                     break
 
-                kex_group = kex_group_class()
+                kex_group = kex_group_class(out)
                 smallest_modulus = -1
 
                 # First try a range of weak sizes.
@@ -169,7 +169,7 @@ class GEXTest:
                     smallest_modulus = kex_group.get_dh_modulus_size()
                     out.d('Modulus size returned by server: ' + str(smallest_modulus) + ' bits', write_now=True)
 
-                except Exception:
+                except KexDHException:
                     out.d('[exception] ' + str(traceback.format_exc()), write_now=True)
                 finally:
                     s.close()
@@ -194,8 +194,8 @@ class GEXTest:
                         kex_group.recv_reply(s, False)
                         smallest_modulus = kex_group.get_dh_modulus_size()
                         out.d('Modulus size returned by server: ' + str(smallest_modulus) + ' bits', write_now=True)
-                    except Exception:
-                        out.d('[exception] ' + str(traceback.format_exc()), write_now=True)
+                    except KexDHException as e:
+                        out.d('Exception when testing DH group exchange ' + gex_alg + ' with modulus size ' + str(bits) + '.  (Hint: this is probably normal since the server does not support this modulus size.): ' + str(e), write_now=True)
                     finally:
                         # The server is in a state that is not re-testable,
                         # so there's nothing else to do with this open

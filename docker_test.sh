@@ -616,8 +616,8 @@ run_policy_test() {
         exit 1
     fi
 
-    #echo "Running: ./ssh-audit.py -P \"${policy_path}\" -jj localhost:2222 > ${test_result_json}"
-    ./ssh-audit.py -P "${policy_path}" -jj localhost:2222 > "${test_result_json}"
+    #echo "Running: ./ssh-audit.py -P \"${policy_path}\" -jj localhost:2222 > ${test_result_json} 2> /dev/null"
+    ./ssh-audit.py -P "${policy_path}" -jj localhost:2222 > "${test_result_json}" 2> /dev/null
     actual_exit_code=$?
     if [[ ${actual_exit_code} != "${expected_exit_code}" ]]; then
         echo -e "${test_name} ${REDB}FAILED${CLR} (expected exit code: ${expected_exit_code}; actual exit code: ${actual_exit_code}\n"

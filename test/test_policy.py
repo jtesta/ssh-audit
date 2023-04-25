@@ -2,6 +2,7 @@ import hashlib
 import pytest
 from datetime import date
 
+from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.policy import Policy
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.writebuf import WriteBuf
@@ -10,6 +11,7 @@ from ssh_audit.writebuf import WriteBuf
 class TestPolicy:
     @pytest.fixture(autouse=True)
     def init(self, ssh_audit):
+        self.OutputBuffer = OutputBuffer
         self.Policy = Policy
         self.wbuf = WriteBuf
         self.ssh2_kex = SSH2_Kex
@@ -32,7 +34,7 @@ class TestPolicy:
         w.write_list([''])
         w.write_byte(False)
         w.write_int(0)
-        return self.ssh2_kex.parse(w.write_flush())
+        return self.ssh2_kex.parse(self.OutputBuffer, w.write_flush())
 
 
     def test_builtin_policy_consistency(self):
