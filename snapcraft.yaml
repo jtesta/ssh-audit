@@ -5,7 +5,7 @@ summary: ssh-audit
 description: |
   SSH server and client security configuration auditor.  Official repository: <https://github.com/jtesta/ssh-audit>
 
-base: core20
+base: core22
 grade: stable
 confinement: strict
 

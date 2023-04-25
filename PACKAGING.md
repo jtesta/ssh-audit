@@ -54,7 +54,7 @@ To download from production server and verify:
 
 # Snap
 
-To create the snap package, run a fully-updated Ubuntu Server 20.04 VM.
+To create the snap package, run a fully-updated Ubuntu Server 22.04 VM.
 
 Create the snap package with:
 ```
