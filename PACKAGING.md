@@ -2,12 +2,12 @@
 
 An executable can only be made on a Windows host because the PyInstaller tool (https://www.pyinstaller.org/) does not support cross-compilation.
 
-1.) Install Python v3.9.x from https://www.python.org/.  To make life easier, check the option to add Python to the PATH environment variable.
+1.) Install Python v3.11.x from https://www.python.org/.  To make life easier, check the option to add Python to the PATH environment variable.
 
-2.) Using pip, install pyinstaller and colorama:
+2.) Using pip, install pyinstaller, colorama, and idna:
 
 ```
-    pip install pyinstaller colorama
+    pip install -U pyinstaller colorama idna
 ```
 
 3.) Install Cygwin (https://www.cygwin.com/).
