@@ -187,63 +187,44 @@ class HostKeyTest:
 
                     # Keys smaller than 2048 result in a failure.  Keys smaller 3072 result in a warning.  Update the database accordingly.
                     if (cert is False) and (hostkey_modulus_size < hostkey_min_good):
-                        alg_list = SSH2_KexDB.ALGORITHMS['key'][host_key_type]
-
-                        # Ensure that failure & warning lists exist.
-                        while len(alg_list) < 3:
-                            alg_list.append([])
 
                         # If the key is under 2048, add to the failure list.
                         if hostkey_modulus_size < hostkey_min_warn:
-                            alg_list[1].append('using small %d-bit modulus' % hostkey_modulus_size)
-                            if host_key_type in HostKeyTest.RSA_FAMILY:
-                                rsa_fail_comments.append(alg_list[1][-1])
-                        elif hostkey_warn_str not in alg_list[2]:  # Issue a warning about 2048-bit moduli.
-                            alg_list[2].append(hostkey_warn_str)
-                            if host_key_type in HostKeyTest.RSA_FAMILY:
-                                rsa_warn_comments.append(alg_list[2][-1])
+                            rsa_fail_comments.append('using small %d-bit modulus' % hostkey_modulus_size)
+                        elif hostkey_warn_str not in rsa_warn_comments:  # Issue a warning about 2048-bit moduli.
+                            rsa_warn_comments.append(hostkey_warn_str)
 
                     elif (cert is True) and ((hostkey_modulus_size < hostkey_min_good) or (0 < ca_modulus_size < cakey_min_good)):
-                        alg_list = SSH2_KexDB.ALGORITHMS['key'][host_key_type]
-
-                        # Ensure that failure & warning lists exist.
-                        while len(alg_list) < 3:
-                            alg_list.append([])
-
                         # If the host key is smaller than 2048-bit/224-bit, flag this as a failure.
                         if hostkey_modulus_size < hostkey_min_warn:
-                            alg_list[1].append('using small %d-bit hostkey modulus' % hostkey_modulus_size)
-                            if host_key_type in HostKeyTest.RSA_FAMILY:
-                                rsa_fail_comments.append(alg_list[1][-1])
+                            rsa_fail_comments.append('using small %d-bit hostkey modulus' % hostkey_modulus_size)
                         # Otherwise, this is just a warning.
-                        elif (hostkey_modulus_size < hostkey_min_good) and (hostkey_warn_str not in alg_list[2]):
-                            alg_list[2].append(hostkey_warn_str)
-                            if host_key_type in HostKeyTest.RSA_FAMILY:
-                                rsa_warn_comments.append(alg_list[2][-1])
+                        elif (hostkey_modulus_size < hostkey_min_good) and (hostkey_warn_str not in rsa_warn_comments):
+                            rsa_warn_comments.append(hostkey_warn_str)
 
                         # If the CA key is smaller than 2048-bit/224-bit, flag this as a failure.
                         if 0 < ca_modulus_size < cakey_min_warn:
-                            alg_list[1].append('using small %d-bit CA key modulus' % ca_modulus_size)
-                            if host_key_type in HostKeyTest.RSA_FAMILY:
-                                rsa_fail_comments.append(alg_list[1][-1])
+                            rsa_fail_comments.append('using small %d-bit CA key modulus' % ca_modulus_size)
                         # Otherwise, this is just a warning.
-                        elif (0 < ca_modulus_size < cakey_min_good) and (cakey_warn_str not in alg_list[2]):
-                            alg_list[2].append(cakey_warn_str)
-                            if host_key_type in HostKeyTest.RSA_FAMILY:
-                                rsa_warn_comments.append(alg_list[2][-1])
+                        elif (0 < ca_modulus_size < cakey_min_good) and (cakey_warn_str not in rsa_warn_comments):
+                            rsa_warn_comments.append(cakey_warn_str)
 
                 # If this host key type is in the RSA family, then mark them all as parsed (since results in one are valid for them all).
                 if host_key_type in HostKeyTest.RSA_FAMILY:
                     for rsa_type in HostKeyTest.RSA_FAMILY:
                         host_key_types[rsa_type]['parsed'] = True
-                        if rsa_type != host_key_type:
-                            # If the current key is a member of the RSA family, then populate all RSA family members with the same
-                            # failure and/or warning comments.
-                            while len(SSH2_KexDB.ALGORITHMS['key'][rsa_type]) < 3:
-                                SSH2_KexDB.ALGORITHMS['key'][rsa_type].append([])
-                            if rsa_fail_comments:
-                                SSH2_KexDB.ALGORITHMS['key'][rsa_type][1].extend(rsa_fail_comments)
-                            if rsa_warn_comments:
-                                SSH2_KexDB.ALGORITHMS['key'][rsa_type][2].extend(rsa_warn_comments)
+                        # If the current key is a member of the RSA family, then populate all RSA family members with the same
+                        # failure and/or warning comments.
+                        while len(SSH2_KexDB.ALGORITHMS['key'][rsa_type]) < 3:
+                            SSH2_KexDB.ALGORITHMS['key'][rsa_type].append([])
+                        if rsa_fail_comments:
+                            SSH2_KexDB.ALGORITHMS['key'][rsa_type][1].extend(rsa_fail_comments)
+                        if rsa_warn_comments:
+                            SSH2_KexDB.ALGORITHMS['key'][rsa_type][2].extend(rsa_warn_comments)
+
                 else:
                     host_key_types[host_key_type]['parsed'] = True
+                    if rsa_fail_comments:
+                        SSH2_KexDB.ALGORITHMS['key'][rsa_type][1].extend(rsa_fail_comments)
+                    if rsa_warn_comments:
+                        SSH2_KexDB.ALGORITHMS['key'][rsa_type][2].extend(rsa_warn_comments)
