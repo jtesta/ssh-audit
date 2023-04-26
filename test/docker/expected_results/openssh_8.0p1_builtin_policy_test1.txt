@@ -1,3 +1,13 @@
 Host:   localhost:2222
-Policy: Hardened OpenSSH Server v8.0 (version 1)
-Result: [0;32m✔ Passed[0m
+Policy: Hardened OpenSSH Server v8.0 (version 2)
+Result: [0;31m❌ Failed![0m
+[0;33m
+Errors:
+  * Host key (rsa-sha2-256) sizes did not match.
+    - Expected: 4096
+    - Actual:   3072
+
+  * Host key (rsa-sha2-512) sizes did not match.
+    - Expected: 4096
+    - Actual:   3072
+[0m

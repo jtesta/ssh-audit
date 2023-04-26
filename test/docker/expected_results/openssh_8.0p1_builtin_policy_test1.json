@@ -1,6 +1,31 @@
 {
-    "errors": [],
+    "errors": [
+        {
+            "actual": [
+                "3072"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "4096"
+            ],
+            "mismatched_field": "Host key (rsa-sha2-256) sizes"
+        },
+        {
+            "actual": [
+                "3072"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "4096"
+            ],
+            "mismatched_field": "Host key (rsa-sha2-512) sizes"
+        }
+    ],
     "host": "localhost",
-    "passed": true,
-    "policy": "Hardened OpenSSH Server v8.0 (version 1)"
+    "passed": false,
+    "policy": "Hardened OpenSSH Server v8.0 (version 2)"
 }
