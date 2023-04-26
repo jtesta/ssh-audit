@@ -224,6 +224,8 @@ class HostKeyTest:
 
                 else:
                     host_key_types[host_key_type]['parsed'] = True
+                    while len(SSH2_KexDB.ALGORITHMS['key'][rsa_type]) < 3:
+                        SSH2_KexDB.ALGORITHMS['key'][rsa_type].append([])
                     if key_fail_comments:
                         SSH2_KexDB.ALGORITHMS['key'][rsa_type][1].extend(key_fail_comments)
                     if key_warn_comments:
