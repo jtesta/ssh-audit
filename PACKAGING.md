@@ -4,15 +4,9 @@ An executable can only be made on a Windows host because the PyInstaller tool (h
 
 1.) Install Python v3.11.x from https://www.python.org/.  To make life easier, check the option to add Python to the PATH environment variable.
 
-2.) Using pip, install pyinstaller, colorama, and idna:
+2.) Install Cygwin (https://www.cygwin.com/).
 
-```
-    pip install -U pyinstaller colorama idna
-```
-
-3.) Install Cygwin (https://www.cygwin.com/).
-
-4.) Create the executable with:
+3.) Install/update package dependencies and create the executable with:
 
 ```
     $ ./build_windows_executable.sh
