@@ -62,7 +62,7 @@ from ssh_audit.utils import Utils
 from ssh_audit.versionvulnerabilitydb import VersionVulnerabilityDB
 
 
-no_idna_workaround = False
+# no_idna_workaround = False
 
 # Only import colorama under Windows.  Other OSes can natively handle terminal colors.
 if sys.platform == 'win32':
@@ -73,12 +73,12 @@ if sys.platform == 'win32':
         pass
 
     # This is a workaround for a Python bug that causes a crash on Windows when multiple threads are used (see https://github.com/python/cpython/issues/73474).  Importing the idna module and using it in a no-op seems to fix the issue.  Otherwise, if idna isn't available at run-time, force single threaded scans.
-    try:
-        import idna  # noqa: F401
-
-        ''.encode('idna')
-    except ImportError:
-        no_idna_workaround = True
+    # try:
+    #     import idna  # noqa: F401
+    #
+    #     ''.encode('idna')
+    # except ImportError:
+    #     no_idna_workaround = True
 
 
 def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
@@ -766,13 +766,13 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.target_file = a
 
             # If we're on Windows, and we can't use the idna workaround, force only one thread to be used (otherwise a crash would occur).
-            if no_idna_workaround:
-                print("\nWARNING: the idna module was not found on this system, thus only single-threaded scanning will be done (this is a workaround for this Windows-specific crash: https://github.com/python/cpython/issues/73474).  Multi-threaded scanning can be enabled by installing the idna module (pip install idna).\n")
-                aconf.threads = 1
+            # if no_idna_workaround:
+            #    print("\nWARNING: the idna module was not found on this system, thus only single-threaded scanning will be done (this is a workaround for this Windows-specific crash: https://github.com/python/cpython/issues/73474).  Multi-threaded scanning can be enabled by installing the idna module (pip install idna).\n")
+            #    aconf.threads = 1
         elif o == '--threads':
             aconf.threads = int(a)
-            if no_idna_workaround:
-                aconf.threads = 1
+            # if no_idna_workaround:
+            #    aconf.threads = 1
         elif o in ('-L', '--list-policies'):
             aconf.list_policies = True
         elif o == '--lookup':

@@ -189,7 +189,6 @@ For convenience, a web front-end on top of the command-line tool is available at
  - JSON output now includes recommendations and CVE data.
  - Mixed host key/CA key types (i.e.: RSA host keys signed with ED25519 CAs, etc.) are now properly handled.
  - Warnings are now printed for 2048-bit moduli.
- - Fixed Windows-specific crash when multiple threads were used.
  - SHA-1 algorithms now cause failures.
  - CBC mode ciphers are now warnings instead of failures.
  - Generic failure/warning messages replaced with more specific reasons (i.e.: 'using weak cipher' => 'using broken RC4 cipher').

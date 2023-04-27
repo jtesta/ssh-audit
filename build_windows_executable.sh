@@ -49,8 +49,8 @@ if [[ "$(python -V)" != "Python 3."* ]]; then
 fi
 
 # Install/update package dependencies.
-echo "Installing/updating pyinstaller, colorama, and idna packages..."
-pip install -U pyinstaller colorama idna
+echo "Installing/updating pyinstaller and colorama packages..."
+pip install -U pyinstaller colorama
 echo
 
 # Prompt for the version to release.
