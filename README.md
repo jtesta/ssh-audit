@@ -178,7 +178,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 
-### v2.9.0
+### v2.9.0 (2023-04-29)
  - Dropped support for Python 3.6, as it reached EOL at the end of 2021.
  - Added Ubuntu Server & Client 22.04 hardening policies.
  - Removed experimental warning tag from `sntrup761x25519-sha512@openssh.com`.
