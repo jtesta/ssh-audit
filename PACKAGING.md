@@ -18,7 +18,7 @@ An executable can only be made on a Windows host because the PyInstaller tool (h
 To create package and upload to test server:
 
 ```
-    $ sudo apt install python3-virtualenv
+    $ sudo apt install python3-virtualenv python3.8-venv
     $ make -f Makefile.pypi
     $ make -f Makefile.pypi uploadtest
 ```
@@ -58,7 +58,9 @@ Create the snap package with:
 Upload the snap with:
 
 ```
-    $ snapcraft login
+    $ snapcraft export-login ~/snap_creds.txt
+    $ export SNAPCRAFT_STORE_CREDENTIALS=$(cat ~/snap_creds.txt)
+    $ snapcraft upload --release=beta ssh-audit_*.snap
     $ snapcraft upload --release=stable ssh-audit_*.snap
 ```
 
