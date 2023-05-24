@@ -10,6 +10,9 @@ all:
 		--tag positronsecurity/ssh-audit:latest \
 		.
 
+local-build:
+	docker build -t positronsecurity/ssh-audit:${VERSION} .
+
 upload:
 	docker login
 	docker buildx build \
