@@ -77,6 +77,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'curve25519-sha256': [['7.4,d2018.76'], [], [], [INFO_DEFAULT_OPENSSH_KEX]],
             'curve25519-sha256@libssh.org': [['6.4,d2013.62,l10.6.0'], [], [], [INFO_DEFAULT_OPENSSH_KEX]],
             'curve448-sha512': [[]],
+            'curve448-sha512@libssh.org': [[]],
             'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [FAIL_SHA1], [WARN_2048BIT_MODULUS]],
             'diffie-hellman-group14-sha224@ssh.com': [[]],
             'diffie-hellman-group14-sha256': [['7.3,d2016.73'], [], [WARN_2048BIT_MODULUS]],

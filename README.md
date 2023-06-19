@@ -178,6 +178,9 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 
+### v3.0.0-dev (2023-??-??)
+ - Added 1 new key exchange: `curve448-sha512@libssh.org`.
+
 ### v2.9.0 (2023-04-29)
  - Dropped support for Python 3.6, as it reached EOL at the end of 2021.
  - Added Ubuntu Server & Client 22.04 hardening policies.
