@@ -7,7 +7,7 @@ class Test_SSH2_KexDB:
 
     @pytest.fixture(autouse=True)
     def init(self):
-        self.db = SSH2_KexDB.ALGORITHMS
+        self.db = SSH2_KexDB.get_db()
 
     def test_ssh2_kexdb(self):
         '''Ensures that the SSH2_KexDB.ALGORITHMS dictionary is in the right format.'''

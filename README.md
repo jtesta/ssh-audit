@@ -179,6 +179,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v3.0.0-dev (2023-??-??)
+ - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).
  - Added 1 new key exchange: `curve448-sha512@libssh.org`.
 
 ### v2.9.0 (2023-04-29)

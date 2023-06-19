@@ -216,16 +216,18 @@ class HostKeyTest:
 
                         # If the current key is a member of the RSA family, then populate all RSA family members with the same
                         # failure and/or warning comments.
-                        while len(SSH2_KexDB.ALGORITHMS['key'][rsa_type]) < 3:
-                            SSH2_KexDB.ALGORITHMS['key'][rsa_type].append([])
+                        db = SSH2_KexDB.get_db()
+                        while len(db['key'][rsa_type]) < 3:
+                            db['key'][rsa_type].append([])
 
-                        SSH2_KexDB.ALGORITHMS['key'][rsa_type][1].extend(key_fail_comments)
-                        SSH2_KexDB.ALGORITHMS['key'][rsa_type][2].extend(key_warn_comments)
+                        db['key'][rsa_type][1].extend(key_fail_comments)
+                        db['key'][rsa_type][2].extend(key_warn_comments)
 
                 else:
                     host_key_types[host_key_type]['parsed'] = True
-                    while len(SSH2_KexDB.ALGORITHMS['key'][host_key_type]) < 3:
-                        SSH2_KexDB.ALGORITHMS['key'][host_key_type].append([])
+                    db = SSH2_KexDB.get_db()
+                    while len(db['key'][host_key_type]) < 3:
+                        db['key'][host_key_type].append([])
 
-                    SSH2_KexDB.ALGORITHMS['key'][host_key_type][1].extend(key_fail_comments)
-                    SSH2_KexDB.ALGORITHMS['key'][host_key_type][2].extend(key_warn_comments)
+                    db['key'][host_key_type][1].extend(key_fail_comments)
+                    db['key'][host_key_type][2].extend(key_warn_comments)

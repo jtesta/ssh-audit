@@ -54,7 +54,7 @@ class Algorithms:
     def ssh1(self) -> Optional['Algorithms.Item']:
         if self.ssh1kex is None:
             return None
-        item = Algorithms.Item(1, SSH1_KexDB.ALGORITHMS)
+        item = Algorithms.Item(1, SSH1_KexDB.get_db())
         item.add('key', ['ssh-rsa1'])
         item.add('enc', self.ssh1kex.supported_ciphers)
         item.add('aut', self.ssh1kex.supported_authentications)
@@ -64,7 +64,7 @@ class Algorithms:
     def ssh2(self) -> Optional['Algorithms.Item']:
         if self.ssh2kex is None:
             return None
-        item = Algorithms.Item(2, SSH2_KexDB.ALGORITHMS)
+        item = Algorithms.Item(2, SSH2_KexDB.get_db())
         item.add('kex', self.ssh2kex.kex_algorithms)
         item.add('key', self.ssh2kex.key_algorithms)
         item.add('enc', self.ssh2kex.server.encryption)

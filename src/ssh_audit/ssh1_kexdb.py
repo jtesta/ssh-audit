@@ -22,6 +22,9 @@
    THE SOFTWARE.
 """
 # pylint: disable=unused-import
+import copy
+import threading
+
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
@@ -34,7 +37,9 @@ class SSH1_KexDB:  # pylint: disable=too-few-public-methods
     FAIL_NA_UNSAFE = 'not implemented in OpenSSH (server), unsafe algorithm'
     TEXT_CIPHER_IDEA = 'cipher used by commercial SSH'
 
-    ALGORITHMS: Dict[str, Dict[str, List[List[Optional[str]]]]] = {
+    DB_PER_THREAD: Dict[int, Dict[str, Dict[str, List[List[Optional[str]]]]]] = {}
+
+    MASTER_DB: Dict[str, Dict[str, List[List[Optional[str]]]]] = {
         'key': {
             'ssh-rsa1': [['1.2.2']],
         },
@@ -56,3 +61,24 @@ class SSH1_KexDB:  # pylint: disable=too-few-public-methods
             'kerberos': [['1.2.2', '3.6'], [FAIL_OPENSSH37_REMOVE]],
         }
     }
+
+
+    @staticmethod
+    def get_db() -> Dict[str, Dict[str, List[List[Optional[str]]]]]:
+        '''Returns a copy of the MASTER_DB that is private to the calling thread.  This prevents multiple threads from polluting the results of other threads.'''
+        calling_thread_id = threading.get_ident()
+
+        if calling_thread_id not in SSH1_KexDB.DB_PER_THREAD:
+            SSH1_KexDB.DB_PER_THREAD[calling_thread_id] = copy.deepcopy(SSH1_KexDB.MASTER_DB)
+
+        return SSH1_KexDB.DB_PER_THREAD[calling_thread_id]
+
+
+    @staticmethod
+    def thread_exit() -> None:
+        '''Deletes the calling thread's copy of the MASTER_DB.  This is needed because, in rare circumstances, a terminated thread's ID can be re-used by new threads.'''
+
+        calling_thread_id = threading.get_ident()
+
+        if calling_thread_id in SSH1_KexDB.DB_PER_THREAD:
+            del SSH1_KexDB.DB_PER_THREAD[calling_thread_id]

@@ -208,7 +208,7 @@ class GEXTest:
                     # We flag moduli smaller than 2048 as a failure.
                     if smallest_modulus < 2048:
                         text = 'using small %d-bit modulus' % smallest_modulus
-                        lst = SSH2_KexDB.ALGORITHMS['kex'][gex_alg]
+                        lst = SSH2_KexDB.get_db()['kex'][gex_alg]
                         # For 'diffie-hellman-group-exchange-sha256', add
                         # a failure reason.
                         if len(lst) == 1:
@@ -222,7 +222,7 @@ class GEXTest:
 
                     # Moduli smaller than 3072 get flagged as a warning.
                     elif smallest_modulus < 3072:
-                        lst = SSH2_KexDB.ALGORITHMS['kex'][gex_alg]
+                        lst = SSH2_KexDB.get_db()['kex'][gex_alg]
 
                         # Ensure that a warning list exists for us to append to, below.
                         while len(lst) < 3:
