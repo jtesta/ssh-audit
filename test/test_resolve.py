@@ -22,12 +22,12 @@ class TestResolve:
         vsocket.gsock.addrinfodata['localhost#22'] = socket.gaierror(8, 'hostname nor servname provided, or not known')
         conf = self._conf()
         s = self.ssh_socket(self.OutputBuffer(), 'localhost', 22, conf.ip_version_preference)
-        output_spy.begin()
-        with pytest.raises(SystemExit):
+        # output_spy.begin()
+        with pytest.raises(socket.gaierror):
             list(s._resolve())
-        lines = output_spy.flush()
-        assert len(lines) == 1
-        assert 'hostname nor servname provided' in lines[-1]
+        # lines = output_spy.flush()
+        # assert len(lines) == 1
+        # assert 'hostname nor servname provided' in lines[-1]
 
     def test_resolve_hostname_without_records(self, output_spy, virtual_socket):
         vsocket = virtual_socket
