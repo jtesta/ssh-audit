@@ -105,8 +105,8 @@ class SSH_Socket(ReadBuf, WriteBuf):
             s.bind(('0.0.0.0', self.__port))
             s.listen()
             self.__sock_map[s.fileno()] = s
-        except Exception:
-            print("Warning: failed to listen on any IPv4 interfaces.")
+        except Exception as e:
+            print("Warning: failed to listen on any IPv4 interfaces: %s" % str(e))
 
         try:
             # Socket to listen on all IPv6 addresses.
@@ -116,8 +116,8 @@ class SSH_Socket(ReadBuf, WriteBuf):
             s.bind(('::', self.__port))
             s.listen()
             self.__sock_map[s.fileno()] = s
-        except Exception:
-            print("Warning: failed to listen on any IPv6 interfaces.")
+        except Exception as e:
+            print("Warning: failed to listen on any IPv6 interfaces: %s" % str(e))
 
         # If we failed to listen on any interfaces, terminate.
         if len(self.__sock_map.keys()) == 0:
