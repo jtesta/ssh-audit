@@ -379,6 +379,12 @@ def output_recommendations(out: OutputBuffer, algs: Algorithms, algorithm_recomm
             ret = False
         return ret
 
+    level_to_output = {
+        "informational": out.good,
+        "warning": out.warn,
+        "critical": out.fail
+    }
+
     with out:
         recommendations = get_algorithm_recommendations(algs, algorithm_recommendation_suppress_list, software, for_server=True)
 
@@ -391,15 +397,15 @@ def output_recommendations(out: OutputBuffer, algs: Algorithms, algorithm_recomm
 
                         p = '' if out.batch else ' ' * (padlen - len(name))
 
+                        fn = level_to_output[level]
+
                         if action == 'del':
-                            an, sg, fn = 'remove', '-', out.warn
+                            an, sg = 'remove', '-'
                             ret = False
-                            if level == 'critical':
-                                fn = out.fail
                         elif action == 'add':
-                            an, sg, fn = 'append', '+', out.good
+                            an, sg = 'append', '+'
                         elif action == 'chg':
-                            an, sg, fn = 'change', '!', out.fail
+                            an, sg = 'change', '!'
                             ret = False
 
                         if notes != '':
