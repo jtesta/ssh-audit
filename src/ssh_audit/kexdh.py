@@ -26,6 +26,7 @@ import binascii
 import os
 import random
 import struct
+import traceback
 
 # pylint: disable=unused-import
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
@@ -375,19 +376,22 @@ class KexGroupExchange(KexDH):
         while packet_type == Protocol.MSG_DEBUG:
             packet_type, payload = s.read_packet(2)
 
-        # Parse the modulus (p) and generator (g) values from the server.
-        ptr = 0
-        p_len = struct.unpack('>I', payload[ptr:ptr + 4])[0]
-        ptr += 4
+        try:
+            # Parse the modulus (p) and generator (g) values from the server.
+            ptr = 0
+            p_len = struct.unpack('>I', payload[ptr:ptr + 4])[0]
+            ptr += 4
 
-        p = int(binascii.hexlify(payload[ptr:ptr + p_len]), 16)
-        ptr += p_len
+            p = int(binascii.hexlify(payload[ptr:ptr + p_len]), 16)
+            ptr += p_len
 
-        g_len = struct.unpack('>I', payload[ptr:ptr + 4])[0]
-        ptr += 4
+            g_len = struct.unpack('>I', payload[ptr:ptr + 4])[0]
+            ptr += 4
 
-        g = int(binascii.hexlify(payload[ptr:ptr + g_len]), 16)
-        ptr += g_len
+            g = int(binascii.hexlify(payload[ptr:ptr + g_len]), 16)
+            ptr += g_len
+        except struct.error:
+            raise KexDHException("Error while parsing modulus and generator during GEX init: %s" % str(traceback.format_exc())) from None
 
         # Now that we got the generator and modulus, perform the DH exchange
         # like usual.
