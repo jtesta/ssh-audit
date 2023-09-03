@@ -54,24 +54,24 @@ class TestPolicy:
             assert len(required_fields) == len(Policy.BUILTIN_POLICIES[policy_name])
 
             # Ensure that at least one host key is defined.
-            assert type(Policy.BUILTIN_POLICIES[policy_name]['host_keys']) == list
+            assert type(Policy.BUILTIN_POLICIES[policy_name]['host_keys']) is list
             assert len(Policy.BUILTIN_POLICIES[policy_name]['host_keys']) > 0
 
             # Ensure that at least one key exchange is defined.
-            assert type(Policy.BUILTIN_POLICIES[policy_name]['kex']) == list
+            assert type(Policy.BUILTIN_POLICIES[policy_name]['kex']) is list
             assert len(Policy.BUILTIN_POLICIES[policy_name]['kex']) > 0
 
             # Ensure that at least one cipher is defined.
-            assert type(Policy.BUILTIN_POLICIES[policy_name]['ciphers']) == list
+            assert type(Policy.BUILTIN_POLICIES[policy_name]['ciphers']) is list
             assert len(Policy.BUILTIN_POLICIES[policy_name]['ciphers']) > 0
 
             # Ensure that at least one MAC is defined
-            assert type(Policy.BUILTIN_POLICIES[policy_name]['macs']) == list
+            assert type(Policy.BUILTIN_POLICIES[policy_name]['macs']) is list
             assert len(Policy.BUILTIN_POLICIES[policy_name]['macs']) > 0
 
             # These tests apply to server policies only.
             if Policy.BUILTIN_POLICIES[policy_name]['server_policy']:
-                assert type(Policy.BUILTIN_POLICIES[policy_name]['hostkey_sizes']) == dict
+                assert type(Policy.BUILTIN_POLICIES[policy_name]['hostkey_sizes']) is dict
                 assert len(Policy.BUILTIN_POLICIES[policy_name]['hostkey_sizes']) > 0
 
                 # Examine all the hostkey_sizes entries...
@@ -80,7 +80,7 @@ class TestPolicy:
 
                     # Ensure that 'hostkey_size' is always included and that it is an integer.
                     assert 'hostkey_size' in hostkey_data
-                    assert type(hostkey_data['hostkey_size']) == int
+                    assert type(hostkey_data['hostkey_size']) is int
 
                     # If this is an ed25519 host key, ensure its size is fixed at 256.  If its an RSA host key, ensure the size is 4096.
                     if hostkey_type.find('ed25519') != -1:
@@ -105,7 +105,7 @@ class TestPolicy:
                             assert hostkey_data['ca_key_size'] == 256
 
                 # Ensure that the 'dh_modulus_size' field is a dict.
-                assert type(Policy.BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']) == dict
+                assert type(Policy.BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']) is dict
 
                 # The 'dh_modulus_size' field should have either one entry, or be empty.
                 assert len(Policy.BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']) in range(0, 2)  # The endpoint in range() is not inclusive
