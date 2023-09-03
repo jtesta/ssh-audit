@@ -2,6 +2,9 @@ FROM python:3-slim
 
 WORKDIR /
 
+# Update the image to remediate any vulnerabilities.
+RUN apt clean && apt update && apt -y dist-upgrade && apt clean
+
 # Remove suid & sgid bits from all files.
 RUN find / -xdev -perm /6000 -exec chmod ug-s {} \; 2> /dev/null || true
 
