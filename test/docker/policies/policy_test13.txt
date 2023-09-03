@@ -23,7 +23,7 @@ hostkey_size_rsa-sha2-512 = 3072
 hostkey_size_ssh-rsa = 3072
 
 # Group exchange DH modulus sizes.
-dh_modulus_size_diffie-hellman-group-exchange-sha256 = 2048
+dh_modulus_size_diffie-hellman-group-exchange-sha256 = 4096
 
 # The host key types that must match exactly (order matters).
 host keys = rsa-sha2-512, rsa-sha2-256, ssh-rsa, ecdsa-sha2-nistp256, ssh-ed25519

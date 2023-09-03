@@ -731,7 +731,7 @@ run_openssh_test '5.6p1' 'test5' $PROGRAM_RETVAL_FAILURE
 echo
 run_openssh_test '8.0p1' 'test1' $PROGRAM_RETVAL_FAILURE
 run_openssh_test '8.0p1' 'test2' $PROGRAM_RETVAL_FAILURE
-run_openssh_test '8.0p1' 'test3' $PROGRAM_RETVAL_WARNING
+run_openssh_test '8.0p1' 'test3' $PROGRAM_RETVAL_GOOD
 echo
 run_dropbear_test '2019.78' 'test1' '-r /etc/dropbear/dropbear_rsa_host_key_1024 -r /etc/dropbear/dropbear_dss_host_key -r /etc/dropbear/dropbear_ecdsa_host_key' 3
 echo
@@ -770,10 +770,10 @@ run_custom_policy_test 'config2' 'test13' $PROGRAM_RETVAL_GOOD
 run_custom_policy_test 'config2' 'test14' $PROGRAM_RETVAL_FAILURE
 
 # Failing test for built-in OpenSSH 8.0p1 server policy (RSA host key size is 3072 instead of 4096).
-run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 2)" "8.0p1" "test1" "-o HostKeyAlgorithms=rsa-sha2-512,rsa-sha2-256,ssh-ed25519 -o KexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256 -o Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr -o MACs=hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com" $PROGRAM_RETVAL_FAILURE
+run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 3)" "8.0p1" "test1" "-o HostKeyAlgorithms=rsa-sha2-512,rsa-sha2-256,ssh-ed25519 -o KexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256 -o Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr -o MACs=hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com" $PROGRAM_RETVAL_FAILURE
 
 # Failing test for built-in OpenSSH 8.0p1 server policy (MACs not hardened).
-run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 2)" "8.0p1" "test2" "-o HostKeyAlgorithms=rsa-sha2-512,rsa-sha2-256,ssh-ed25519 -o KexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256 -o Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" $PROGRAM_RETVAL_FAILURE
+run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 3)" "8.0p1" "test2" "-o HostKeyAlgorithms=rsa-sha2-512,rsa-sha2-256,ssh-ed25519 -o KexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256 -o Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr" $PROGRAM_RETVAL_FAILURE
 
 
 if [[ $num_failures == 0 ]]; then

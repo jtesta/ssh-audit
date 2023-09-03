@@ -27,7 +27,8 @@ import traceback
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
 from typing import Callable, Optional, Union, Any  # noqa: F401
 
-from ssh_audit.kexdh import KexDHException, KexGroupExchange_SHA1, KexGroupExchange_SHA256
+from ssh_audit.banner import Banner
+from ssh_audit.kexdh import KexDHException, KexGroupExchange, KexGroupExchange_SHA1, KexGroupExchange_SHA256
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh_socket import SSH_Socket
@@ -106,24 +107,12 @@ class GEXTest:
                 # in a "connection reset by peer" error. It may be possible
                 # to recover from such an error by sleeping for some time
                 # before continuing to issue reconnects.
-                if GEXTest.reconnect(out, s, kex, gex_alg) is False:
+                modulus_size_returned, reconnect_failed = GEXTest._send_init(out, s, kex_group, kex, gex_alg, bits_min, bits_pref, bits_max)
+                if reconnect_failed:
                     out.fail('Reconnect failed.')
                     return exitcodes.FAILURE
-                try:
-                    modulus_size_returned = None
-                    kex_group.send_init_gex(s, bits_min, bits_pref, bits_max)
-                    kex_group.recv_reply(s, False)
-                    modulus_size_returned = kex_group.get_dh_modulus_size()
-                    out.d('Modulus size returned by server: ' + str(modulus_size_returned) + ' bits', write_now=True)
-                except KexDHException:
-                    out.d('[exception] ' + str(traceback.format_exc()), write_now=True)
-                finally:
-                    # The server is in a state that is not re-testable,
-                    # so there's nothing else to do with this open
-                    # connection.
-                    s.close()
 
-                if modulus_size_returned is not None:
+                if modulus_size_returned > 0:
                     if gex_alg in modulus_dict:
                         if modulus_size_returned not in modulus_dict[gex_alg]:
                             modulus_dict[gex_alg].append(modulus_size_returned)
@@ -134,7 +123,7 @@ class GEXTest:
 
     # Runs the DH moduli test against the specified target.
     @staticmethod
-    def run(out: 'OutputBuffer', s: 'SSH_Socket', kex: 'SSH2_Kex') -> None:
+    def run(out: 'OutputBuffer', s: 'SSH_Socket', banner: Optional['Banner'], kex: 'SSH2_Kex') -> None:
         GEX_ALGS = {
             'diffie-hellman-group-exchange-sha1': KexGroupExchange_SHA1,
             'diffie-hellman-group-exchange-sha256': KexGroupExchange_SHA256,
@@ -148,31 +137,14 @@ class GEXTest:
 
         # Check if the server supports any of the group-exchange
         # algorithms.  If so, test each one.
-        for gex_alg, kex_group_class in GEX_ALGS.items():
+        for gex_alg, kex_group_class in GEX_ALGS.items():  # pylint: disable=too-many-nested-blocks
             if gex_alg in kex.kex_algorithms:
                 out.d('Preparing to perform DH group exchange using ' + gex_alg + ' with min, pref and max modulus sizes of 512 bits, 1024 bits and 1536 bits...', write_now=True)
 
-                if GEXTest.reconnect(out, s, kex, gex_alg) is False:
-                    break
-
                 kex_group = kex_group_class(out)
-                smallest_modulus = -1
-
-                # First try a range of weak sizes.
-                try:
-                    kex_group.send_init_gex(s, 512, 1024, 1536)
-                    kex_group.recv_reply(s, False)
-
-                    # Its been observed that servers will return a group
-                    # larger than the requested max.  So just because we
-                    # got here, doesn't mean the server is vulnerable...
-                    smallest_modulus = kex_group.get_dh_modulus_size()
-                    out.d('Modulus size returned by server: ' + str(smallest_modulus) + ' bits', write_now=True)
-
-                except KexDHException:
-                    out.d('[exception] ' + str(traceback.format_exc()), write_now=True)
-                finally:
-                    s.close()
+                smallest_modulus, reconnect_failed = GEXTest._send_init(out, s, kex_group, kex, gex_alg, 512, 1024, 1536)
+                if reconnect_failed:
+                    break
 
                 # Try an array of specific modulus sizes... one at a time.
                 reconnect_failed = False
@@ -183,32 +155,25 @@ class GEXTest:
                     if bits >= smallest_modulus > 0:
                         break
 
-                    out.d('Preparing to perform DH group exchange using ' + gex_alg + ' with min, pref and max modulus sizes of ' + str(bits) + ' bits...', write_now=True)
+                    smallest_modulus, reconnect_failed = GEXTest._send_init(out, s, kex_group, kex, gex_alg, bits, bits, bits)
 
-                    if GEXTest.reconnect(out, s, kex, gex_alg) is False:
-                        reconnect_failed = True
-                        break
-
-                    try:
-                        kex_group.send_init_gex(s, bits, bits, bits)
-                        kex_group.recv_reply(s, False)
-                        smallest_modulus = kex_group.get_dh_modulus_size()
-                        out.d('Modulus size returned by server: ' + str(smallest_modulus) + ' bits', write_now=True)
-                    except KexDHException as e:
-                        out.d('Exception when testing DH group exchange ' + gex_alg + ' with modulus size ' + str(bits) + '.  (Hint: this is probably normal since the server does not support this modulus size.): ' + str(e), write_now=True)
-                    finally:
-                        # The server is in a state that is not re-testable,
-                        # so there's nothing else to do with this open
-                        # connection.
-                        s.close()
+                # If the smallest modulus is 2048 and the server is OpenSSH, then we may have triggered the fallback mechanism, which tends to happen in testing scenarios such as this but not in most real-world conditions (see X).  To better test this condition, we will do an additional check to see if the server supports sizes between 2048 and 4096, and consider this the definitive result.
+                openssh_test_updated = False
+                if (smallest_modulus == 2048) and (banner is not None) and (banner.software is not None) and (banner.software.find('OpenSSH') != -1):
+                    out.d('First pass found a minimum GEX modulus of 2048 against OpenSSH server.  Performing a second pass to get a more accurate result...')
+                    smallest_modulus, _ = GEXTest._send_init(out, s, kex_group, kex, gex_alg, 2048, 3072, 4096)
+                    out.d('Modulus size returned by server during second pass: %d bits' % smallest_modulus, write_now=True)
+                    openssh_test_updated = bool((smallest_modulus > 0) and (smallest_modulus != 2048))
 
                 if smallest_modulus > 0:
                     kex.set_dh_modulus_size(gex_alg, smallest_modulus)
 
+                    lst = SSH2_KexDB.get_db()['kex'][gex_alg]
+
                     # We flag moduli smaller than 2048 as a failure.
                     if smallest_modulus < 2048:
                         text = 'using small %d-bit modulus' % smallest_modulus
-                        lst = SSH2_KexDB.get_db()['kex'][gex_alg]
+
                         # For 'diffie-hellman-group-exchange-sha256', add
                         # a failure reason.
                         if len(lst) == 1:
@@ -222,7 +187,6 @@ class GEXTest:
 
                     # Moduli smaller than 3072 get flagged as a warning.
                     elif smallest_modulus < 3072:
-                        lst = SSH2_KexDB.get_db()['kex'][gex_alg]
 
                         # Ensure that a warning list exists for us to append to, below.
                         while len(lst) < 3:
@@ -233,5 +197,39 @@ class GEXTest:
                         if text not in lst[2]:
                             lst[2].append(text)
 
+                    # If we retested against OpenSSH (because its fallback mechanism was triggered), add a special note for the user.
+                    if openssh_test_updated:
+                        text = "OpenSSH's GEX fallback mechanism was triggered during testing. Very old SSH clients will still be able to create connections using a 2048-bit modulus, though modern clients will use %u. This can only be disabled by recompiling the code (see https://github.com/openssh/openssh-portable/blob/V_9_4/dh.c#L477)." % smallest_modulus
+
+                        # Ensure that an info list exists for us to append to, below.
+                        while len(lst) < 4:
+                            lst.append([])
+
+                        # Ensure this is only added once.
+                        if text not in lst[3]:
+                            lst[3].append(text)
+
                 if reconnect_failed:
                     break
+
+    @staticmethod
+    def _send_init(out: 'OutputBuffer', s: 'SSH_Socket', kex_group: 'KexGroupExchange', kex: 'SSH2_Kex', gex_alg: str, min_bits: int, pref_bits: int, max_bits: int) -> Tuple[int, bool]:
+        '''Internal function for sending the GEX initialization to the server with the minimum, preferred, and maximum modulus bits.  Returns a Tuple of the modulus size received from the server (or -1 on error) and boolean signifying that the connection to the server failed.'''
+
+        smallest_modulus = -1
+        reconnect_failed = False
+        try:
+            if GEXTest.reconnect(out, s, kex, gex_alg) is False:
+                reconnect_failed = True
+                out.d('GEXTest._send_init(%s, %u, %u, %u): reconnection failed.' % (gex_alg, min_bits, pref_bits, max_bits), write_now=True)
+            else:
+                kex_group.send_init_gex(s, min_bits, pref_bits, max_bits)
+                kex_group.recv_reply(s, False)
+                smallest_modulus = kex_group.get_dh_modulus_size()
+                out.d('GEXTest._send_init(%s, %u, %u, %u): received modulus size: %d' % (gex_alg, min_bits, pref_bits, max_bits, smallest_modulus), write_now=True)
+        except KexDHException as e:
+            out.d('GEXTest._send_init(%s, %u, %u, %u): exception when performing DH group exchange init: %s' % (gex_alg, min_bits, pref_bits, max_bits, str(e)), write_now=True)
+        finally:
+            s.close()
+
+        return smallest_modulus, reconnect_failed

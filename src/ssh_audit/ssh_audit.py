@@ -1100,7 +1100,7 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
             if aconf.gex_test != '':
                 return run_gex_granular_modulus_size_test(out, s, kex, aconf)
             else:
-                GEXTest.run(out, s, kex)
+                GEXTest.run(out, s, banner, kex)
 
         # This is a standard audit scan.
         if (aconf.policy is None) and (aconf.make_policy is False):

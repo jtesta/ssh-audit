@@ -2,13 +2,13 @@
     "errors": [
         {
             "actual": [
-                "2048"
+                "4096"
             ],
             "expected_optional": [
                 ""
             ],
             "expected_required": [
-                "4096"
+                "8192"
             ],
             "mismatched_field": "Group exchange (diffie-hellman-group-exchange-sha256) modulus sizes"
         }

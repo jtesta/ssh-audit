@@ -16,6 +16,6 @@ Result: [0;31m❌ Failed![0m
 [0;33m
 Errors:
   * Group exchange (diffie-hellman-group-exchange-sha256) modulus sizes did not match.
-    - Expected: 4096
-    - Actual:   2048
+    - Expected: 8192
+    - Actual:   4096
 [0m

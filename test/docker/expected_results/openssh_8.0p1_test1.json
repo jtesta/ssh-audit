@@ -82,7 +82,7 @@
         },
         {
             "algorithm": "diffie-hellman-group-exchange-sha256",
-            "keysize": 2048
+            "keysize": 4096
         },
         {
             "algorithm": "diffie-hellman-group16-sha512"
