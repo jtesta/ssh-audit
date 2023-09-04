@@ -1,1 +1,22 @@
-{"errors": [{"actual": ["ssh-rsa", "ssh-dss"], "expected_optional": [""], "expected_required": ["ssh-rsa", "ssh-dss", "key_alg1"], "mismatched_field": "Host keys"}], "host": "localhost", "passed": false, "policy": "Docker policy: test3 (version 1)"}
+{
+    "errors": [
+        {
+            "actual": [
+                "ssh-rsa",
+                "ssh-dss"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "ssh-rsa",
+                "ssh-dss",
+                "key_alg1"
+            ],
+            "mismatched_field": "Host keys"
+        }
+    ],
+    "host": "localhost",
+    "passed": false,
+    "policy": "Docker policy: test3 (version 1)"
+}

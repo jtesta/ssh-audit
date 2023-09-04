@@ -1,1 +1,19 @@
-{"errors": [{"actual": ["3072"], "expected_optional": [""], "expected_required": ["4096"], "mismatched_field": "RSA host key (ssh-rsa-cert-v01@openssh.com) sizes"}], "host": "localhost", "passed": false, "policy": "Docker poliicy: test9 (version 1)"}
+{
+    "errors": [
+        {
+            "actual": [
+                "3072"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "4096"
+            ],
+            "mismatched_field": "Host key (ssh-rsa-cert-v01@openssh.com) sizes"
+        }
+    ],
+    "host": "localhost",
+    "passed": false,
+    "policy": "Docker poliicy: test9 (version 1)"
+}

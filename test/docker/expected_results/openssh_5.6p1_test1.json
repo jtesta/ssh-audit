@@ -1,1 +1,272 @@
-{"banner": {"comments": null, "protocol": [2, 0], "raw": "SSH-2.0-OpenSSH_5.6", "software": "OpenSSH_5.6"}, "compression": ["none", "zlib@openssh.com"], "enc": ["aes128-ctr", "aes192-ctr", "aes256-ctr", "arcfour256", "arcfour128", "aes128-cbc", "3des-cbc", "blowfish-cbc", "cast128-cbc", "aes192-cbc", "aes256-cbc", "arcfour", "rijndael-cbc@lysator.liu.se"], "fingerprints": [{"hash": "YZ457EBcJTSxRKI3yXRgtAj3PBf5B9/F36b1SVooml4", "hash_alg": "SHA256", "hostkey": "ssh-rsa"}, {"hash": "3c:c3:38:f8:55:39:c0:4a:5a:17:89:60:2c:a1:fc:6a", "hash_alg": "MD5", "hostkey": "ssh-rsa"}], "kex": [{"algorithm": "diffie-hellman-group-exchange-sha256", "keysize": 1024}, {"algorithm": "diffie-hellman-group-exchange-sha1", "keysize": 1024}, {"algorithm": "diffie-hellman-group14-sha1"}, {"algorithm": "diffie-hellman-group1-sha1"}], "key": [{"algorithm": "ssh-rsa", "keysize": 1024}, {"algorithm": "ssh-dss"}], "mac": ["hmac-md5", "hmac-sha1", "umac-64@openssh.com", "hmac-ripemd160", "hmac-ripemd160@openssh.com", "hmac-sha1-96", "hmac-md5-96"], "target": "localhost:2222"}
+{
+    "banner": {
+        "comments": null,
+        "protocol": [
+            2,
+            0
+        ],
+        "raw": "SSH-2.0-OpenSSH_5.6",
+        "software": "OpenSSH_5.6"
+    },
+    "compression": [
+        "none",
+        "zlib@openssh.com"
+    ],
+    "cves": [
+        {
+            "cvssv2": 7.8,
+            "description": "command injection via anomalous argument transfers",
+            "name": "CVE-2020-15778"
+        },
+        {
+            "cvssv2": 5.3,
+            "description": "enumerate usernames due to timing discrepancies",
+            "name": "CVE-2018-15473"
+        },
+        {
+            "cvssv2": 5.3,
+            "description": "readonly bypass via sftp",
+            "name": "CVE-2017-15906"
+        },
+        {
+            "cvssv2": 5.3,
+            "description": "enumerate usernames via challenge response",
+            "name": "CVE-2016-20012"
+        },
+        {
+            "cvssv2": 5.5,
+            "description": "bypass command restrictions via crafted X11 forwarding data",
+            "name": "CVE-2016-3115"
+        },
+        {
+            "cvssv2": 5.0,
+            "description": "cause DoS via crafted network traffic (out of bounds read)",
+            "name": "CVE-2016-1907"
+        },
+        {
+            "cvssv2": 6.9,
+            "description": "privilege escalation via leveraging sshd uid",
+            "name": "CVE-2015-6564"
+        },
+        {
+            "cvssv2": 1.9,
+            "description": "conduct impersonation attack",
+            "name": "CVE-2015-6563"
+        },
+        {
+            "cvssv2": 5.8,
+            "description": "bypass environment restrictions via specific string before wildcard",
+            "name": "CVE-2014-2532"
+        },
+        {
+            "cvssv2": 7.5,
+            "description": "cause DoS via triggering error condition (memory corruption)",
+            "name": "CVE-2014-1692"
+        },
+        {
+            "cvssv2": 3.5,
+            "description": "leak data via debug messages",
+            "name": "CVE-2012-0814"
+        },
+        {
+            "cvssv2": 3.5,
+            "description": "cause DoS via large value in certain length field (memory consumption)",
+            "name": "CVE-2011-5000"
+        },
+        {
+            "cvssv2": 5.0,
+            "description": "cause DoS via large number of connections (slot exhaustion)",
+            "name": "CVE-2010-5107"
+        },
+        {
+            "cvssv2": 4.0,
+            "description": "cause DoS via crafted glob expression (CPU and memory consumption)",
+            "name": "CVE-2010-4755"
+        },
+        {
+            "cvssv2": 7.5,
+            "description": "bypass authentication check via crafted values",
+            "name": "CVE-2010-4478"
+        }
+    ],
+    "enc": [
+        "aes128-ctr",
+        "aes192-ctr",
+        "aes256-ctr",
+        "arcfour256",
+        "arcfour128",
+        "aes128-cbc",
+        "3des-cbc",
+        "blowfish-cbc",
+        "cast128-cbc",
+        "aes192-cbc",
+        "aes256-cbc",
+        "arcfour",
+        "rijndael-cbc@lysator.liu.se"
+    ],
+    "fingerprints": [
+        {
+            "hash": "YZ457EBcJTSxRKI3yXRgtAj3PBf5B9/F36b1SVooml4",
+            "hash_alg": "SHA256",
+            "hostkey": "ssh-rsa"
+        },
+        {
+            "hash": "3c:c3:38:f8:55:39:c0:4a:5a:17:89:60:2c:a1:fc:6a",
+            "hash_alg": "MD5",
+            "hostkey": "ssh-rsa"
+        }
+    ],
+    "kex": [
+        {
+            "algorithm": "diffie-hellman-group-exchange-sha256",
+            "keysize": 1024
+        },
+        {
+            "algorithm": "diffie-hellman-group-exchange-sha1",
+            "keysize": 1024
+        },
+        {
+            "algorithm": "diffie-hellman-group14-sha1"
+        },
+        {
+            "algorithm": "diffie-hellman-group1-sha1"
+        }
+    ],
+    "key": [
+        {
+            "algorithm": "ssh-rsa",
+            "keysize": 1024
+        },
+        {
+            "algorithm": "ssh-dss"
+        }
+    ],
+    "mac": [
+        "hmac-md5",
+        "hmac-sha1",
+        "umac-64@openssh.com",
+        "hmac-ripemd160",
+        "hmac-ripemd160@openssh.com",
+        "hmac-sha1-96",
+        "hmac-md5-96"
+    ],
+    "recommendations": {
+        "critical": {
+            "chg": {
+                "kex": [
+                    {
+                        "name": "diffie-hellman-group-exchange-sha256",
+                        "notes": "increase modulus size to 3072 bits or larger"
+                    }
+                ]
+            },
+            "del": {
+                "enc": [
+                    {
+                        "name": "3des-cbc",
+                        "notes": ""
+                    },
+                    {
+                        "name": "arcfour128",
+                        "notes": ""
+                    },
+                    {
+                        "name": "arcfour",
+                        "notes": ""
+                    },
+                    {
+                        "name": "arcfour256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "blowfish-cbc",
+                        "notes": ""
+                    },
+                    {
+                        "name": "cast128-cbc",
+                        "notes": ""
+                    },
+                    {
+                        "name": "rijndael-cbc@lysator.liu.se",
+                        "notes": ""
+                    }
+                ],
+                "kex": [
+                    {
+                        "name": "diffie-hellman-group14-sha1",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group1-sha1",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group-exchange-sha1",
+                        "notes": ""
+                    }
+                ],
+                "key": [
+                    {
+                        "name": "ssh-dss",
+                        "notes": ""
+                    },
+                    {
+                        "name": "ssh-rsa",
+                        "notes": ""
+                    }
+                ],
+                "mac": [
+                    {
+                        "name": "hmac-md5",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-md5-96",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-ripemd160",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-ripemd160@openssh.com",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-sha1",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-sha1-96",
+                        "notes": ""
+                    }
+                ]
+            }
+        },
+        "warning": {
+            "del": {
+                "enc": [
+                    {
+                        "name": "aes128-cbc",
+                        "notes": ""
+                    },
+                    {
+                        "name": "aes192-cbc",
+                        "notes": ""
+                    },
+                    {
+                        "name": "aes256-cbc",
+                        "notes": ""
+                    }
+                ],
+                "mac": [
+                    {
+                        "name": "umac-64@openssh.com",
+                        "notes": ""
+                    }
+                ]
+            }
+        }
+    },
+    "target": "localhost:2222"
+}

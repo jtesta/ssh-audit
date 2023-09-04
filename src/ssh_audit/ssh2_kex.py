@@ -22,17 +22,18 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
-# pylint: disable=unused-import
-from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
-from typing import Callable, Optional, Union, Any  # noqa: F401
+from typing import Dict, List
+from typing import Union
 
-from ssh_audit.ssh2_kexparty import SSH2_KexParty
+from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.readbuf import ReadBuf
+from ssh_audit.ssh2_kexparty import SSH2_KexParty
 from ssh_audit.writebuf import WriteBuf
 
 
 class SSH2_Kex:
-    def __init__(self, cookie: bytes, kex_algs: List[str], key_algs: List[str], cli: 'SSH2_KexParty', srv: 'SSH2_KexParty', follows: bool, unused: int = 0) -> None:
+    def __init__(self, outputbuffer: 'OutputBuffer', cookie: bytes, kex_algs: List[str], key_algs: List[str], cli: 'SSH2_KexParty', srv: 'SSH2_KexParty', follows: bool, unused: int = 0) -> None:  # pylint: disable=too-many-arguments
+        self.__outputbuffer = outputbuffer
         self.__cookie = cookie
         self.__kex_algs = kex_algs
         self.__key_algs = key_algs
@@ -41,9 +42,8 @@ class SSH2_Kex:
         self.__follows = follows
         self.__unused = unused
 
-        self.__rsa_key_sizes: Dict[str, Tuple[int, int]] = {}
-        self.__dh_modulus_sizes: Dict[str, Tuple[int, int]] = {}
-        self.__host_keys: Dict[str, bytes] = {}
+        self.__dh_modulus_sizes: Dict[str, int] = {}
+        self.__host_keys: Dict[str, Dict[str, Union[bytes, str, int]]] = {}
 
     @property
     def cookie(self) -> bytes:
@@ -75,22 +75,20 @@ class SSH2_Kex:
     def unused(self) -> int:
         return self.__unused
 
-    def set_rsa_key_size(self, rsa_type: str, hostkey_size: int, ca_size: int = -1) -> None:
-        self.__rsa_key_sizes[rsa_type] = (hostkey_size, ca_size)
-
-    def rsa_key_sizes(self) -> Dict[str, Tuple[int, int]]:
-        return self.__rsa_key_sizes
-
     def set_dh_modulus_size(self, gex_alg: str, modulus_size: int) -> None:
-        self.__dh_modulus_sizes[gex_alg] = (modulus_size, -1)
+        self.__dh_modulus_sizes[gex_alg] = modulus_size
 
-    def dh_modulus_sizes(self) -> Dict[str, Tuple[int, int]]:
+    def dh_modulus_sizes(self) -> Dict[str, int]:
         return self.__dh_modulus_sizes
 
-    def set_host_key(self, key_type: str, hostkey: bytes) -> None:
-        self.__host_keys[key_type] = hostkey
+    def set_host_key(self, key_type: str, raw_hostkey_bytes: bytes, hostkey_size: int, ca_key_type: str, ca_key_size: int) -> None:
 
-    def host_keys(self) -> Dict[str, bytes]:
+        if key_type not in self.__host_keys:
+            self.__host_keys[key_type] = {'raw_hostkey_bytes': raw_hostkey_bytes, 'hostkey_size': hostkey_size, 'ca_key_type': ca_key_type, 'ca_key_size': ca_key_size}
+        else:  # A host key may only have one CA signature...
+            self.__outputbuffer.d("WARNING: called SSH2_Kex.set_host_key() multiple times with the same host key type (%s)!  Existing info: %r, %r, %r; Duplicate (ignored) info: %r, %r, %r" % (key_type, self.__host_keys[key_type]['hostkey_size'], self.__host_keys[key_type]['ca_key_type'], self.__host_keys[key_type]['ca_key_size'], hostkey_size, ca_key_type, ca_key_size))
+
+    def host_keys(self) -> Dict[str, Dict[str, Union[bytes, str, int]]]:
         return self.__host_keys
 
     def write(self, wbuf: 'WriteBuf') -> None:
@@ -115,7 +113,7 @@ class SSH2_Kex:
         return wbuf.write_flush()
 
     @classmethod
-    def parse(cls, payload: bytes) -> 'SSH2_Kex':
+    def parse(cls, outputbuffer: 'OutputBuffer', payload: bytes) -> 'SSH2_Kex':
         buf = ReadBuf(payload)
         cookie = buf.read(16)
         kex_algs = buf.read_list()
@@ -132,5 +130,5 @@ class SSH2_Kex:
         unused = buf.read_int()
         cli = SSH2_KexParty(cli_enc, cli_mac, cli_compression, cli_languages)
         srv = SSH2_KexParty(srv_enc, srv_mac, srv_compression, srv_languages)
-        kex = cls(cookie, kex_algs, key_algs, cli, srv, follows, unused)
+        kex = cls(outputbuffer, cookie, kex_algs, key_algs, cli, srv, follows, unused)
         return kex

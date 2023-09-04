@@ -1,1 +1,184 @@
-{"banner": {"comments": null, "protocol": [2, 0], "raw": "SSH-2.0-dropbear_2019.78", "software": "dropbear_2019.78"}, "compression": ["zlib@openssh.com", "none"], "enc": ["aes128-ctr", "aes256-ctr", "aes128-cbc", "aes256-cbc", "3des-ctr", "3des-cbc"], "fingerprints": [{"hash": "CDfAU12pjQS7/91kg7gYacza0U/6PDbE04Ic3IpYxkM", "hash_alg": "SHA256", "hostkey": "ssh-rsa"}, {"hash": "63:7f:54:f7:0a:28:7f:75:0b:f4:07:0b:fc:66:51:a2", "hash_alg": "MD5", "hostkey": "ssh-rsa"}], "kex": [{"algorithm": "curve25519-sha256"}, {"algorithm": "curve25519-sha256@libssh.org"}, {"algorithm": "ecdh-sha2-nistp521"}, {"algorithm": "ecdh-sha2-nistp384"}, {"algorithm": "ecdh-sha2-nistp256"}, {"algorithm": "diffie-hellman-group14-sha256"}, {"algorithm": "diffie-hellman-group14-sha1"}, {"algorithm": "kexguess2@matt.ucc.asn.au"}], "key": [{"algorithm": "ecdsa-sha2-nistp256"}, {"algorithm": "ssh-rsa", "keysize": 1024}, {"algorithm": "ssh-dss"}], "mac": ["hmac-sha1-96", "hmac-sha1", "hmac-sha2-256"], "target": "localhost:2222"}
+{
+    "banner": {
+        "comments": null,
+        "protocol": [
+            2,
+            0
+        ],
+        "raw": "SSH-2.0-dropbear_2019.78",
+        "software": "dropbear_2019.78"
+    },
+    "compression": [
+        "zlib@openssh.com",
+        "none"
+    ],
+    "cves": [],
+    "enc": [
+        "aes128-ctr",
+        "aes256-ctr",
+        "aes128-cbc",
+        "aes256-cbc",
+        "3des-ctr",
+        "3des-cbc"
+    ],
+    "fingerprints": [
+        {
+            "hash": "CDfAU12pjQS7/91kg7gYacza0U/6PDbE04Ic3IpYxkM",
+            "hash_alg": "SHA256",
+            "hostkey": "ssh-rsa"
+        },
+        {
+            "hash": "63:7f:54:f7:0a:28:7f:75:0b:f4:07:0b:fc:66:51:a2",
+            "hash_alg": "MD5",
+            "hostkey": "ssh-rsa"
+        }
+    ],
+    "kex": [
+        {
+            "algorithm": "curve25519-sha256"
+        },
+        {
+            "algorithm": "curve25519-sha256@libssh.org"
+        },
+        {
+            "algorithm": "ecdh-sha2-nistp521"
+        },
+        {
+            "algorithm": "ecdh-sha2-nistp384"
+        },
+        {
+            "algorithm": "ecdh-sha2-nistp256"
+        },
+        {
+            "algorithm": "diffie-hellman-group14-sha256"
+        },
+        {
+            "algorithm": "diffie-hellman-group14-sha1"
+        },
+        {
+            "algorithm": "kexguess2@matt.ucc.asn.au"
+        }
+    ],
+    "key": [
+        {
+            "algorithm": "ecdsa-sha2-nistp256"
+        },
+        {
+            "algorithm": "ssh-rsa",
+            "keysize": 1024
+        },
+        {
+            "algorithm": "ssh-dss"
+        }
+    ],
+    "mac": [
+        "hmac-sha1-96",
+        "hmac-sha1",
+        "hmac-sha2-256"
+    ],
+    "recommendations": {
+        "critical": {
+            "del": {
+                "enc": [
+                    {
+                        "name": "3des-cbc",
+                        "notes": ""
+                    },
+                    {
+                        "name": "3des-ctr",
+                        "notes": ""
+                    }
+                ],
+                "kex": [
+                    {
+                        "name": "diffie-hellman-group14-sha1",
+                        "notes": ""
+                    },
+                    {
+                        "name": "ecdh-sha2-nistp256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "ecdh-sha2-nistp384",
+                        "notes": ""
+                    },
+                    {
+                        "name": "ecdh-sha2-nistp521",
+                        "notes": ""
+                    }
+                ],
+                "key": [
+                    {
+                        "name": "ecdsa-sha2-nistp256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "ssh-dss",
+                        "notes": ""
+                    },
+                    {
+                        "name": "ssh-rsa",
+                        "notes": ""
+                    }
+                ],
+                "mac": [
+                    {
+                        "name": "hmac-sha1",
+                        "notes": ""
+                    },
+                    {
+                        "name": "hmac-sha1-96",
+                        "notes": ""
+                    }
+                ]
+            }
+        },
+        "informational": {
+            "add": {
+                "enc": [
+                    {
+                        "name": "twofish128-ctr",
+                        "notes": ""
+                    },
+                    {
+                        "name": "twofish256-ctr",
+                        "notes": ""
+                    }
+                ],
+                "kex": [
+                    {
+                        "name": "diffie-hellman-group16-sha512",
+                        "notes": ""
+                    }
+                ]
+            }
+        },
+        "warning": {
+            "del": {
+                "enc": [
+                    {
+                        "name": "aes128-cbc",
+                        "notes": ""
+                    },
+                    {
+                        "name": "aes256-cbc",
+                        "notes": ""
+                    }
+                ],
+                "kex": [
+                    {
+                        "name": "diffie-hellman-group14-sha256",
+                        "notes": ""
+                    }
+                ],
+                "mac": [
+                    {
+                        "name": "hmac-sha2-256",
+                        "notes": ""
+                    }
+                ]
+            }
+        }
+    },
+    "target": "localhost:2222"
+}

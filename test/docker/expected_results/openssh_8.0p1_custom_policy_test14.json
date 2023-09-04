@@ -1,1 +1,19 @@
-{"errors": [{"actual": ["2048"], "expected_optional": [""], "expected_required": ["4096"], "mismatched_field": "Group exchange (diffie-hellman-group-exchange-sha256) modulus sizes"}], "host": "localhost", "passed": false, "policy": "Docker policy: test14 (version 1)"}
+{
+    "errors": [
+        {
+            "actual": [
+                "4096"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "8192"
+            ],
+            "mismatched_field": "Group exchange (diffie-hellman-group-exchange-sha256) modulus sizes"
+        }
+    ],
+    "host": "localhost",
+    "passed": false,
+    "policy": "Docker policy: test14 (version 1)"
+}

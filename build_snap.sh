@@ -32,8 +32,9 @@
 
 
 # Pre-requisites
-sudo apt install -y make snapcraft
-sudo snap install review-tools lxd 2> /dev/null
+sudo apt install -y make
+sudo snap install snapcraft --classic
+sudo snap install review-tools lxd
 
 # Initialize LXD.
 sudo lxd init --auto

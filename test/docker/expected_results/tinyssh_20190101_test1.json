@@ -1,1 +1,51 @@
-{"banner": {"comments": "", "protocol": [2, 0], "raw": "", "software": "tinyssh_noversion"}, "compression": ["none"], "enc": ["chacha20-poly1305@openssh.com"], "fingerprints": [{"hash": "89ocln1x7KNqnMgWffGoYtD70ksJ4FrH7BMJHa7SrwU", "hash_alg": "SHA256", "hostkey": "ssh-ed25519"}, {"hash": "dd:9c:6d:f9:b0:8c:af:fa:c2:65:81:5d:5d:56:f8:21", "hash_alg": "MD5", "hostkey": "ssh-ed25519"}], "kex": [{"algorithm": "curve25519-sha256"}, {"algorithm": "curve25519-sha256@libssh.org"}, {"algorithm": "sntrup4591761x25519-sha512@tinyssh.org"}], "key": [{"algorithm": "ssh-ed25519"}], "mac": ["hmac-sha2-256"], "target": "localhost:2222"}
+{
+    "banner": {
+        "comments": "",
+        "protocol": [
+            2,
+            0
+        ],
+        "raw": "",
+        "software": "tinyssh_noversion"
+    },
+    "compression": [
+        "none"
+    ],
+    "cves": [],
+    "enc": [
+        "chacha20-poly1305@openssh.com"
+    ],
+    "fingerprints": [
+        {
+            "hash": "89ocln1x7KNqnMgWffGoYtD70ksJ4FrH7BMJHa7SrwU",
+            "hash_alg": "SHA256",
+            "hostkey": "ssh-ed25519"
+        },
+        {
+            "hash": "dd:9c:6d:f9:b0:8c:af:fa:c2:65:81:5d:5d:56:f8:21",
+            "hash_alg": "MD5",
+            "hostkey": "ssh-ed25519"
+        }
+    ],
+    "kex": [
+        {
+            "algorithm": "curve25519-sha256"
+        },
+        {
+            "algorithm": "curve25519-sha256@libssh.org"
+        },
+        {
+            "algorithm": "sntrup4591761x25519-sha512@tinyssh.org"
+        }
+    ],
+    "key": [
+        {
+            "algorithm": "ssh-ed25519"
+        }
+    ],
+    "mac": [
+        "hmac-sha2-256"
+    ],
+    "recommendations": {},
+    "target": "localhost:2222"
+}

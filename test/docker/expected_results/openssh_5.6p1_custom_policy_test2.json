@@ -1,1 +1,23 @@
-{"errors": [{"actual": ["diffie-hellman-group-exchange-sha256", "diffie-hellman-group-exchange-sha1", "diffie-hellman-group14-sha1", "diffie-hellman-group1-sha1"], "expected_optional": [""], "expected_required": ["kex_alg1", "kex_alg2"], "mismatched_field": "Key exchanges"}], "host": "localhost", "passed": false, "policy": "Docker policy: test2 (version 1)"}
+{
+    "errors": [
+        {
+            "actual": [
+                "diffie-hellman-group-exchange-sha256",
+                "diffie-hellman-group-exchange-sha1",
+                "diffie-hellman-group14-sha1",
+                "diffie-hellman-group1-sha1"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "kex_alg1",
+                "kex_alg2"
+            ],
+            "mismatched_field": "Key exchanges"
+        }
+    ],
+    "host": "localhost",
+    "passed": false,
+    "policy": "Docker policy: test2 (version 1)"
+}

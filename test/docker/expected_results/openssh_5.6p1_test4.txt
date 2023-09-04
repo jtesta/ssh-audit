@@ -25,102 +25,79 @@
 [0;31m(kex) diffie-hellman-group-exchange-sha256 (1024-bit) -- [fail] using small 1024-bit modulus[0m
                                                       `- [info] available since OpenSSH 4.4
 [0;31m(kex) diffie-hellman-group-exchange-sha1 (1024-bit) -- [fail] using small 1024-bit modulus[0m
-[0;33m                                                    `- [warn] using weak hashing algorithm[0m
                                                     `- [info] available since OpenSSH 2.3.0
-[0;33m(kex) diffie-hellman-group14-sha1           -- [warn] using weak hashing algorithm[0m
+[0;31m(kex) diffie-hellman-group14-sha1           -- [fail] using broken SHA-1 hash algorithm[0m
 [0;33m                                            `- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
                                             `- [info] available since OpenSSH 3.9, Dropbear SSH 0.53
 [0;31m(kex) diffie-hellman-group1-sha1            -- [fail] using small 1024-bit modulus[0m
-[0;31m                                            `- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;31m                                            `- [fail] disabled (in client) since OpenSSH 7.0, logjam attack[0m
-[0;33m                                            `- [warn] using weak hashing algorithm[0m
+[0;31m                                            `- [fail] vulnerable to the Logjam attack: https://en.wikipedia.org/wiki/Logjam_(computer_security)[0m
+[0;31m                                            `- [fail] using broken SHA-1 hash algorithm[0m
                                             `- [info] available since OpenSSH 2.3.0, Dropbear SSH 0.28
+                                            `- [info] removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9
 
 [0;36m# host-key algorithms[0m
-[0;31m(key) ssh-rsa (3072-bit)                    -- [fail] using weak hashing algorithm[0m
+[0;31m(key) ssh-rsa (3072-bit)                    -- [fail] using broken SHA-1 hash algorithm[0m
                                             `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28
-                                            `- [info] a future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2
-[0;31m(key) ssh-rsa-cert-v01@openssh.com (3072-bit cert/1024-bit CA) -- [fail] using weak hashing algorithm[0m
-[0;31m                                                               `- [fail] using small 1024-bit modulus[0m
-                                                               `- [info] available since OpenSSH 5.6
-                                                               `- [info] a future deprecation notice has been issued in OpenSSH 8.2: https://www.openssh.com/txt/release-8.2
+                                            `- [info] deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8
+[0;31m(key) ssh-rsa-cert-v01@openssh.com (3072-bit cert/1024-bit RSA CA) -- [fail] using broken SHA-1 hash algorithm[0m
+[0;31m                                                                   `- [fail] using small 1024-bit CA key modulus[0m
+                                                                   `- [info] available since OpenSSH 5.6
+                                                                   `- [info] deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8
 
 [0;36m# encryption algorithms (ciphers)[0m
 [0;32m(enc) aes128-ctr                            -- [info] available since OpenSSH 3.7, Dropbear SSH 0.52[0m
 [0;32m(enc) aes192-ctr                            -- [info] available since OpenSSH 3.7[0m
 [0;32m(enc) aes256-ctr                            -- [info] available since OpenSSH 3.7, Dropbear SSH 0.52[0m
-[0;31m(enc) arcfour256                            -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
-[0;33m                                            `- [warn] using weak cipher[0m
+[0;31m(enc) arcfour256                            -- [fail] using broken RC4 cipher[0m
                                             `- [info] available since OpenSSH 4.2
-[0;31m(enc) arcfour128                            -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
-[0;33m                                            `- [warn] using weak cipher[0m
+[0;31m(enc) arcfour128                            -- [fail] using broken RC4 cipher[0m
                                             `- [info] available since OpenSSH 4.2
-[0;31m(enc) aes128-cbc                            -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] using weak cipher mode[0m
+[0;33m(enc) aes128-cbc                            -- [warn] using weak cipher mode[0m
                                             `- [info] available since OpenSSH 2.3.0, Dropbear SSH 0.28
-[0;31m(enc) 3des-cbc                              -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.4, unsafe algorithm[0m
-[0;33m                                            `- [warn] using weak cipher[0m
+[0;31m(enc) 3des-cbc                              -- [fail] using broken & deprecated 3DES cipher[0m
 [0;33m                                            `- [warn] using weak cipher mode[0m
 [0;33m                                            `- [warn] using small 64-bit block size[0m
                                             `- [info] available since OpenSSH 1.2.2, Dropbear SSH 0.28
-[0;31m(enc) blowfish-cbc                          -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;31m                                            `- [fail] disabled since Dropbear SSH 0.53[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
+[0;31m(enc) blowfish-cbc                          -- [fail] using weak & deprecated Blowfish cipher[0m
 [0;33m                                            `- [warn] using weak cipher mode[0m
 [0;33m                                            `- [warn] using small 64-bit block size[0m
                                             `- [info] available since OpenSSH 1.2.2, Dropbear SSH 0.28
-[0;31m(enc) cast128-cbc                           -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
+[0;31m(enc) cast128-cbc                           -- [fail] using weak & deprecated CAST cipher[0m
 [0;33m                                            `- [warn] using weak cipher mode[0m
 [0;33m                                            `- [warn] using small 64-bit block size[0m
                                             `- [info] available since OpenSSH 2.1.0
-[0;31m(enc) aes192-cbc                            -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] using weak cipher mode[0m
+[0;33m(enc) aes192-cbc                            -- [warn] using weak cipher mode[0m
                                             `- [info] available since OpenSSH 2.3.0
-[0;31m(enc) aes256-cbc                            -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] using weak cipher mode[0m
+[0;33m(enc) aes256-cbc                            -- [warn] using weak cipher mode[0m
                                             `- [info] available since OpenSSH 2.3.0, Dropbear SSH 0.47
-[0;31m(enc) arcfour                               -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
-[0;33m                                            `- [warn] using weak cipher[0m
+[0;31m(enc) arcfour                               -- [fail] using broken RC4 cipher[0m
                                             `- [info] available since OpenSSH 2.1.0
-[0;31m(enc) rijndael-cbc@lysator.liu.se           -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
+[0;31m(enc) rijndael-cbc@lysator.liu.se           -- [fail] using deprecated & non-standardized Rijndael cipher[0m
 [0;33m                                            `- [warn] using weak cipher mode[0m
                                             `- [info] available since OpenSSH 2.3.0
+                                            `- [info] disabled in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0
 
 [0;36m# message authentication code algorithms[0m
-[0;31m(mac) hmac-md5                              -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
+[0;31m(mac) hmac-md5                              -- [fail] using broken MD5 hash algorithm[0m
 [0;33m                                            `- [warn] using encrypt-and-MAC mode[0m
-[0;33m                                            `- [warn] using weak hashing algorithm[0m
                                             `- [info] available since OpenSSH 2.1.0, Dropbear SSH 0.28
-[0;33m(mac) hmac-sha1                             -- [warn] using encrypt-and-MAC mode[0m
-[0;33m                                            `- [warn] using weak hashing algorithm[0m
+[0;31m(mac) hmac-sha1                             -- [fail] using broken SHA-1 hash algorithm[0m
+[0;33m                                            `- [warn] using encrypt-and-MAC mode[0m
                                             `- [info] available since OpenSSH 2.1.0, Dropbear SSH 0.28
 [0;33m(mac) umac-64@openssh.com                   -- [warn] using encrypt-and-MAC mode[0m
 [0;33m                                            `- [warn] using small 64-bit tag size[0m
                                             `- [info] available since OpenSSH 4.7
-[0;31m(mac) hmac-ripemd160                        -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
+[0;31m(mac) hmac-ripemd160                        -- [fail] using deprecated RIPEMD hash algorithm[0m
 [0;33m                                            `- [warn] using encrypt-and-MAC mode[0m
                                             `- [info] available since OpenSSH 2.5.0
-[0;31m(mac) hmac-ripemd160@openssh.com            -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
+[0;31m(mac) hmac-ripemd160@openssh.com            -- [fail] using deprecated RIPEMD hash algorithm[0m
 [0;33m                                            `- [warn] using encrypt-and-MAC mode[0m
                                             `- [info] available since OpenSSH 2.1.0
-[0;31m(mac) hmac-sha1-96                          -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
+[0;31m(mac) hmac-sha1-96                          -- [fail] using broken SHA-1 hash algorithm[0m
 [0;33m                                            `- [warn] using encrypt-and-MAC mode[0m
-[0;33m                                            `- [warn] using weak hashing algorithm[0m
                                             `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.47
-[0;31m(mac) hmac-md5-96                           -- [fail] removed (in server) since OpenSSH 6.7, unsafe algorithm[0m
-[0;33m                                            `- [warn] disabled (in client) since OpenSSH 7.2, legacy algorithm[0m
+[0;31m(mac) hmac-md5-96                           -- [fail] using broken MD5 hash algorithm[0m
 [0;33m                                            `- [warn] using encrypt-and-MAC mode[0m
-[0;33m                                            `- [warn] using weak hashing algorithm[0m
                                             `- [info] available since OpenSSH 2.5.0
 
 [0;36m# fingerprints[0m
@@ -129,9 +106,6 @@
 [0;36m# algorithm recommendations (for OpenSSH 5.6)[0m
 [0;31m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 3072 bits or larger) [0m
 [0;31m(rec) -3des-cbc                             -- enc algorithm to remove [0m
-[0;31m(rec) -aes128-cbc                           -- enc algorithm to remove [0m
-[0;31m(rec) -aes192-cbc                           -- enc algorithm to remove [0m
-[0;31m(rec) -aes256-cbc                           -- enc algorithm to remove [0m
 [0;31m(rec) -arcfour                              -- enc algorithm to remove [0m
 [0;31m(rec) -arcfour128                           -- enc algorithm to remove [0m
 [0;31m(rec) -arcfour256                           -- enc algorithm to remove [0m
@@ -139,16 +113,19 @@
 [0;31m(rec) -cast128-cbc                          -- enc algorithm to remove [0m
 [0;31m(rec) -diffie-hellman-group-exchange-sha1   -- kex algorithm to remove [0m
 [0;31m(rec) -diffie-hellman-group1-sha1           -- kex algorithm to remove [0m
+[0;31m(rec) -diffie-hellman-group14-sha1          -- kex algorithm to remove [0m
 [0;31m(rec) -hmac-md5                             -- mac algorithm to remove [0m
 [0;31m(rec) -hmac-md5-96                          -- mac algorithm to remove [0m
 [0;31m(rec) -hmac-ripemd160                       -- mac algorithm to remove [0m
 [0;31m(rec) -hmac-ripemd160@openssh.com           -- mac algorithm to remove [0m
+[0;31m(rec) -hmac-sha1                            -- mac algorithm to remove [0m
 [0;31m(rec) -hmac-sha1-96                         -- mac algorithm to remove [0m
 [0;31m(rec) -rijndael-cbc@lysator.liu.se          -- enc algorithm to remove [0m
 [0;31m(rec) -ssh-rsa                              -- key algorithm to remove [0m
 [0;31m(rec) -ssh-rsa-cert-v01@openssh.com         -- key algorithm to remove [0m
-[0;33m(rec) -diffie-hellman-group14-sha1          -- kex algorithm to remove [0m
-[0;33m(rec) -hmac-sha1                            -- mac algorithm to remove [0m
+[0;33m(rec) -aes128-cbc                           -- enc algorithm to remove [0m
+[0;33m(rec) -aes192-cbc                           -- enc algorithm to remove [0m
+[0;33m(rec) -aes256-cbc                           -- enc algorithm to remove [0m
 [0;33m(rec) -umac-64@openssh.com                  -- mac algorithm to remove [0m
 
 [0;36m# additional info[0m

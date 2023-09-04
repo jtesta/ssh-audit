@@ -1,1 +1,43 @@
-{"errors": [{"actual": ["3072"], "expected_optional": [""], "expected_required": ["4096"], "mismatched_field": "RSA host key (rsa-sha2-256) sizes"}, {"actual": ["3072"], "expected_optional": [""], "expected_required": ["4096"], "mismatched_field": "RSA host key (rsa-sha2-512) sizes"}, {"actual": ["3072"], "expected_optional": [""], "expected_required": ["4096"], "mismatched_field": "RSA host key (ssh-rsa) sizes"}], "host": "localhost", "passed": false, "policy": "Docker policy: test12 (version 1)"}
+{
+    "errors": [
+        {
+            "actual": [
+                "3072"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "4096"
+            ],
+            "mismatched_field": "Host key (rsa-sha2-256) sizes"
+        },
+        {
+            "actual": [
+                "3072"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "4096"
+            ],
+            "mismatched_field": "Host key (rsa-sha2-512) sizes"
+        },
+        {
+            "actual": [
+                "3072"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "4096"
+            ],
+            "mismatched_field": "Host key (ssh-rsa) sizes"
+        }
+    ],
+    "host": "localhost",
+    "passed": false,
+    "policy": "Docker policy: test12 (version 1)"
+}
