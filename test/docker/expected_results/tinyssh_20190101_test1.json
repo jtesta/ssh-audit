@@ -1,10 +1,7 @@
 {
     "banner": {
         "comments": "",
-        "protocol": [
-            2,
-            0
-        ],
+        "protocol": "2.0",
         "raw": "",
         "software": "tinyssh_noversion"
     },
@@ -13,7 +10,15 @@
     ],
     "cves": [],
     "enc": [
-        "chacha20-poly1305@openssh.com"
+        {
+            "algorithm": "chacha20-poly1305@openssh.com",
+            "notes": {
+                "info": [
+                    "default cipher since OpenSSH 6.9",
+                    "available since OpenSSH 6.5"
+                ]
+            }
+        }
     ],
     "fingerprints": [
         {
@@ -29,22 +34,58 @@
     ],
     "kex": [
         {
-            "algorithm": "curve25519-sha256"
+            "algorithm": "curve25519-sha256",
+            "notes": {
+                "info": [
+                    "default key exchange since OpenSSH 6.4",
+                    "available since OpenSSH 7.4, Dropbear SSH 2018.76"
+                ]
+            }
         },
         {
-            "algorithm": "curve25519-sha256@libssh.org"
+            "algorithm": "curve25519-sha256@libssh.org",
+            "notes": {
+                "info": [
+                    "default key exchange since OpenSSH 6.4",
+                    "available since OpenSSH 6.4, Dropbear SSH 2013.62"
+                ]
+            }
         },
         {
-            "algorithm": "sntrup4591761x25519-sha512@tinyssh.org"
+            "algorithm": "sntrup4591761x25519-sha512@tinyssh.org",
+            "notes": {
+                "info": [
+                    "the sntrup4591761 algorithm was withdrawn, as it may not provide strong post-quantum security",
+                    "available since OpenSSH 8.0"
+                ],
+                "warn": [
+                    "using experimental algorithm"
+                ]
+            }
         }
     ],
     "key": [
         {
-            "algorithm": "ssh-ed25519"
+            "algorithm": "ssh-ed25519",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 6.5"
+                ]
+            }
         }
     ],
     "mac": [
-        "hmac-sha2-256"
+        {
+            "algorithm": "hmac-sha2-256",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 5.9, Dropbear SSH 2013.56"
+                ],
+                "warn": [
+                    "using encrypt-and-MAC mode"
+                ]
+            }
+        }
     ],
     "recommendations": {},
     "target": "localhost:2222"

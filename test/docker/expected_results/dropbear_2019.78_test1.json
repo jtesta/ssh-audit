@@ -1,10 +1,7 @@
 {
     "banner": {
         "comments": null,
-        "protocol": [
-            2,
-            0
-        ],
+        "protocol": "2.0",
         "raw": "SSH-2.0-dropbear_2019.78",
         "software": "dropbear_2019.78"
     },
@@ -14,12 +11,70 @@
     ],
     "cves": [],
     "enc": [
-        "aes128-ctr",
-        "aes256-ctr",
-        "aes128-cbc",
-        "aes256-cbc",
-        "3des-ctr",
-        "3des-cbc"
+        {
+            "algorithm": "aes128-ctr",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 3.7, Dropbear SSH 0.52"
+                ]
+            }
+        },
+        {
+            "algorithm": "aes256-ctr",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 3.7, Dropbear SSH 0.52"
+                ]
+            }
+        },
+        {
+            "algorithm": "aes128-cbc",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 2.3.0, Dropbear SSH 0.28"
+                ],
+                "warn": [
+                    "using weak cipher mode"
+                ]
+            }
+        },
+        {
+            "algorithm": "aes256-cbc",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 2.3.0, Dropbear SSH 0.47"
+                ],
+                "warn": [
+                    "using weak cipher mode"
+                ]
+            }
+        },
+        {
+            "algorithm": "3des-ctr",
+            "notes": {
+                "fail": [
+                    "using broken & deprecated 3DES cipher"
+                ],
+                "info": [
+                    "available since Dropbear SSH 0.52"
+                ]
+            }
+        },
+        {
+            "algorithm": "3des-cbc",
+            "notes": {
+                "fail": [
+                    "using broken & deprecated 3DES cipher"
+                ],
+                "info": [
+                    "available since OpenSSH 1.2.2, Dropbear SSH 0.28"
+                ],
+                "warn": [
+                    "using weak cipher mode",
+                    "using small 64-bit block size"
+                ]
+            }
+        }
     ],
     "fingerprints": [
         {
@@ -35,46 +90,175 @@
     ],
     "kex": [
         {
-            "algorithm": "curve25519-sha256"
+            "algorithm": "curve25519-sha256",
+            "notes": {
+                "info": [
+                    "default key exchange since OpenSSH 6.4",
+                    "available since OpenSSH 7.4, Dropbear SSH 2018.76"
+                ]
+            }
         },
         {
-            "algorithm": "curve25519-sha256@libssh.org"
+            "algorithm": "curve25519-sha256@libssh.org",
+            "notes": {
+                "info": [
+                    "default key exchange since OpenSSH 6.4",
+                    "available since OpenSSH 6.4, Dropbear SSH 2013.62"
+                ]
+            }
         },
         {
-            "algorithm": "ecdh-sha2-nistp521"
+            "algorithm": "ecdh-sha2-nistp521",
+            "notes": {
+                "fail": [
+                    "using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency"
+                ],
+                "info": [
+                    "available since OpenSSH 5.7, Dropbear SSH 2013.62"
+                ]
+            }
         },
         {
-            "algorithm": "ecdh-sha2-nistp384"
+            "algorithm": "ecdh-sha2-nistp384",
+            "notes": {
+                "fail": [
+                    "using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency"
+                ],
+                "info": [
+                    "available since OpenSSH 5.7, Dropbear SSH 2013.62"
+                ]
+            }
         },
         {
-            "algorithm": "ecdh-sha2-nistp256"
+            "algorithm": "ecdh-sha2-nistp256",
+            "notes": {
+                "fail": [
+                    "using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency"
+                ],
+                "info": [
+                    "available since OpenSSH 5.7, Dropbear SSH 2013.62"
+                ]
+            }
         },
         {
-            "algorithm": "diffie-hellman-group14-sha256"
+            "algorithm": "diffie-hellman-group14-sha256",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 7.3, Dropbear SSH 2016.73"
+                ],
+                "warn": [
+                    "2048-bit modulus only provides 112-bits of symmetric strength"
+                ]
+            }
         },
         {
-            "algorithm": "diffie-hellman-group14-sha1"
+            "algorithm": "diffie-hellman-group14-sha1",
+            "notes": {
+                "fail": [
+                    "using broken SHA-1 hash algorithm"
+                ],
+                "info": [
+                    "available since OpenSSH 3.9, Dropbear SSH 0.53"
+                ],
+                "warn": [
+                    "2048-bit modulus only provides 112-bits of symmetric strength"
+                ]
+            }
         },
         {
-            "algorithm": "kexguess2@matt.ucc.asn.au"
+            "algorithm": "kexguess2@matt.ucc.asn.au",
+            "notes": {
+                "info": [
+                    "available since Dropbear SSH 2013.57"
+                ]
+            }
         }
     ],
     "key": [
         {
-            "algorithm": "ecdsa-sha2-nistp256"
+            "algorithm": "ecdsa-sha2-nistp256",
+            "notes": {
+                "fail": [
+                    "using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency"
+                ],
+                "info": [
+                    "available since OpenSSH 5.7, Dropbear SSH 2013.62"
+                ],
+                "warn": [
+                    "using weak random number generator could reveal the key"
+                ]
+            }
         },
         {
             "algorithm": "ssh-rsa",
-            "keysize": 1024
+            "keysize": 1024,
+            "notes": {
+                "fail": [
+                    "using broken SHA-1 hash algorithm",
+                    "using small 1024-bit modulus"
+                ],
+                "info": [
+                    "deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8",
+                    "available since OpenSSH 2.5.0, Dropbear SSH 0.28"
+                ]
+            }
         },
         {
-            "algorithm": "ssh-dss"
+            "algorithm": "ssh-dss",
+            "notes": {
+                "fail": [
+                    "using small 1024-bit modulus"
+                ],
+                "info": [
+                    "disabled in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0",
+                    "available since OpenSSH 2.1.0, Dropbear SSH 0.28"
+                ],
+                "warn": [
+                    "using weak random number generator could reveal the key"
+                ]
+            }
         }
     ],
     "mac": [
-        "hmac-sha1-96",
-        "hmac-sha1",
-        "hmac-sha2-256"
+        {
+            "algorithm": "hmac-sha1-96",
+            "notes": {
+                "fail": [
+                    "using broken SHA-1 hash algorithm"
+                ],
+                "info": [
+                    "available since OpenSSH 2.5.0, Dropbear SSH 0.47"
+                ],
+                "warn": [
+                    "using encrypt-and-MAC mode"
+                ]
+            }
+        },
+        {
+            "algorithm": "hmac-sha1",
+            "notes": {
+                "fail": [
+                    "using broken SHA-1 hash algorithm"
+                ],
+                "info": [
+                    "available since OpenSSH 2.1.0, Dropbear SSH 0.28"
+                ],
+                "warn": [
+                    "using encrypt-and-MAC mode"
+                ]
+            }
+        },
+        {
+            "algorithm": "hmac-sha2-256",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 5.9, Dropbear SSH 2013.56"
+                ],
+                "warn": [
+                    "using encrypt-and-MAC mode"
+                ]
+            }
+        }
     ],
     "recommendations": {
         "critical": {

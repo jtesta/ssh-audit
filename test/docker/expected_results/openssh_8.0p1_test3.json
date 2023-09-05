@@ -1,10 +1,7 @@
 {
     "banner": {
         "comments": null,
-        "protocol": [
-            2,
-            0
-        ],
+        "protocol": "2.0",
         "raw": "SSH-2.0-OpenSSH_8.0",
         "software": "OpenSSH_8.0"
     },
@@ -35,12 +32,55 @@
         }
     ],
     "enc": [
-        "chacha20-poly1305@openssh.com",
-        "aes256-gcm@openssh.com",
-        "aes128-gcm@openssh.com",
-        "aes256-ctr",
-        "aes192-ctr",
-        "aes128-ctr"
+        {
+            "algorithm": "chacha20-poly1305@openssh.com",
+            "notes": {
+                "info": [
+                    "default cipher since OpenSSH 6.9",
+                    "available since OpenSSH 6.5"
+                ]
+            }
+        },
+        {
+            "algorithm": "aes256-gcm@openssh.com",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 6.2"
+                ]
+            }
+        },
+        {
+            "algorithm": "aes128-gcm@openssh.com",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 6.2"
+                ]
+            }
+        },
+        {
+            "algorithm": "aes256-ctr",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 3.7, Dropbear SSH 0.52"
+                ]
+            }
+        },
+        {
+            "algorithm": "aes192-ctr",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 3.7"
+                ]
+            }
+        },
+        {
+            "algorithm": "aes128-ctr",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 3.7, Dropbear SSH 0.52"
+                ]
+            }
+        }
     ],
     "fingerprints": [
         {
@@ -56,25 +96,69 @@
     ],
     "kex": [
         {
-            "algorithm": "curve25519-sha256"
+            "algorithm": "curve25519-sha256",
+            "notes": {
+                "info": [
+                    "default key exchange since OpenSSH 6.4",
+                    "available since OpenSSH 7.4, Dropbear SSH 2018.76"
+                ]
+            }
         },
         {
-            "algorithm": "curve25519-sha256@libssh.org"
+            "algorithm": "curve25519-sha256@libssh.org",
+            "notes": {
+                "info": [
+                    "default key exchange since OpenSSH 6.4",
+                    "available since OpenSSH 6.4, Dropbear SSH 2013.62"
+                ]
+            }
         },
         {
             "algorithm": "diffie-hellman-group-exchange-sha256",
-            "keysize": 4096
+            "keysize": 4096,
+            "notes": {
+                "info": [
+                    "OpenSSH's GEX fallback mechanism was triggered during testing. Very old SSH clients will still be able to create connections using a 2048-bit modulus, though modern clients will use 4096. This can only be disabled by recompiling the code (see https://github.com/openssh/openssh-portable/blob/V_9_4/dh.c#L477).",
+                    "available since OpenSSH 4.4"
+                ]
+            }
         }
     ],
     "key": [
         {
-            "algorithm": "ssh-ed25519"
+            "algorithm": "ssh-ed25519",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 6.5"
+                ]
+            }
         }
     ],
     "mac": [
-        "hmac-sha2-256-etm@openssh.com",
-        "hmac-sha2-512-etm@openssh.com",
-        "umac-128-etm@openssh.com"
+        {
+            "algorithm": "hmac-sha2-256-etm@openssh.com",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 6.2"
+                ]
+            }
+        },
+        {
+            "algorithm": "hmac-sha2-512-etm@openssh.com",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 6.2"
+                ]
+            }
+        },
+        {
+            "algorithm": "umac-128-etm@openssh.com",
+            "notes": {
+                "info": [
+                    "available since OpenSSH 6.2"
+                ]
+            }
+        }
     ],
     "recommendations": {
         "informational": {

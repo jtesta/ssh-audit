@@ -901,26 +901,32 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
 
 def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[str, Union[str, float]]], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None, software: Optional[Software] = None, algorithms: Optional[Algorithms] = None, algorithm_recommendation_suppress_list: Optional[List[str]] = None) -> Any:  # pylint: disable=too-many-arguments
 
-    def fetch_notes(algorithm, alg_type) -> dict:
-        alg_db = SSH2_KexDB.ALGORITHMS
+    def fetch_notes(algorithm: str, alg_type: str) -> Dict[str, List[Optional[str]]]:
+        '''Returns a dictionary containing the messages in the "fail", "warn", and "info" levels for this algorithm.'''
+        alg_db = SSH2_KexDB.get_db()
         alg_info = {}
         if algorithm in alg_db[alg_type]:
             alg_desc = alg_db[alg_type][algorithm]
-            ldesc = len(alg_desc)
-            for idx, level in enumerate(['fail', 'warn', 'info']):
-                if level == 'info':
-                    versions = alg_desc[0]
-                    since_text = Algorithm.get_since_text(versions)
-                    if since_text is not None and len(since_text) > 0:
-                        alg_info['since'] = since_text
-                idx = idx + 1
-                if ldesc > idx:
-                    for t in alg_desc[idx]:
-                        if t is None:
-                            continue
-                        alg_info[level] = t
+            alg_desc_len = len(alg_desc)
+
+            # If a list for the failure notes exists, add it to the return value.  Similarly, add the related lists for the warnings and informational notes.
+            if (alg_desc_len >= 2) and (len(alg_desc[1]) > 0):
+                alg_info["fail"] = alg_desc[1]
+            if (alg_desc_len >= 3) and (len(alg_desc[2]) > 0):
+                alg_info["warn"] = alg_desc[2]
+            if (alg_desc_len >= 4) and (len(alg_desc[3]) > 0):
+                alg_info["info"] = alg_desc[3]
+
+            # Add information about when this algorithm was implemented in OpenSSH/Dropbear.
+            since_text = Algorithm.get_since_text(alg_desc[0])
+            if (since_text is not None) and (len(since_text) > 0):
+                # Add the "info" key with an empty list if the if-block above didn't create it already.
+                if "info" not in alg_info:
+                    alg_info["info"] = []
+                alg_info["info"].append(since_text)
         else:
-            alg_info['warn'] = 'Unknown Algorithm'
+            alg_info["fail"] = [SSH2_KexDB.FAIL_UNKNOWN]
+
         return alg_info
 
     banner_str = ''
@@ -989,7 +995,7 @@ def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[s
                     entry['casize'] = ca_size
             res['key'].append(entry)
 
-        res['enc'] = [] 
+        res['enc'] = []
         for algorithm in kex.server.encryption:
             alg_notes = fetch_notes(algorithm, 'enc')
             entry = {

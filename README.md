@@ -186,6 +186,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Refined GEX testing against OpenSSH servers: when the fallback mechanism is suspected of being triggered, perform an additional test to obtain more accurate results.
  - The color of all notes will be printed in green when the related algorithm is rated good.
  - Prioritized host key certificate algorithms for Ubuntu 22.04 LTS client policy.
+ - Added failure, warning, and info notes to JSON output (note that this results in a breaking change to the banner protocol, "enc", and "mac" fields); credit [Bareq Al-Azzawi](https://github.com/BareqAZ).
  - Added built-in policy for OpenSSH 9.4.
  - Added 1 new key exchange: `curve448-sha512@libssh.org`.
 
