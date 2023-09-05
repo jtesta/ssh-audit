@@ -901,13 +901,35 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
 
 def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[str, Union[str, float]]], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None, software: Optional[Software] = None, algorithms: Optional[Algorithms] = None, algorithm_recommendation_suppress_list: Optional[List[str]] = None) -> Any:  # pylint: disable=too-many-arguments
 
+    def fetch_notes(algorithm, alg_type) -> dict:
+        alg_db = SSH2_KexDB.ALGORITHMS
+        alg_info = {}
+        if algorithm in alg_db[alg_type]:
+            alg_desc = alg_db[alg_type][algorithm]
+            ldesc = len(alg_desc)
+            for idx, level in enumerate(['fail', 'warn', 'info']):
+                if level == 'info':
+                    versions = alg_desc[0]
+                    since_text = Algorithm.get_since_text(versions)
+                    if since_text is not None and len(since_text) > 0:
+                        alg_info['since'] = since_text
+                idx = idx + 1
+                if ldesc > idx:
+                    for t in alg_desc[idx]:
+                        if t is None:
+                            continue
+                        alg_info[level] = t
+        else:
+            alg_info['warn'] = 'Unknown Algorithm'
+        return alg_info
+
     banner_str = ''
     banner_protocol = None
     banner_software = None
     banner_comments = None
     if banner is not None:
         banner_str = str(banner)
-        banner_protocol = banner.protocol
+        banner_protocol = '.'.join(str(x) for x in banner.protocol)
         banner_software = banner.software
         banner_comments = banner.comments
 
@@ -932,19 +954,22 @@ def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[s
         res['kex'] = []
         dh_alg_sizes = kex.dh_modulus_sizes()
         for algorithm in kex.kex_algorithms:
+            alg_notes = fetch_notes(algorithm, 'kex')
             entry: Any = {
                 'algorithm': algorithm,
+                'notes': alg_notes,
             }
             if algorithm in dh_alg_sizes:
                 hostkey_size = dh_alg_sizes[algorithm]
                 entry['keysize'] = hostkey_size
             res['kex'].append(entry)
-
         res['key'] = []
         host_keys = kex.host_keys()
         for algorithm in kex.key_algorithms:
+            alg_notes = fetch_notes(algorithm, 'key')
             entry = {
                 'algorithm': algorithm,
+                'notes': alg_notes,
             }
             if algorithm in host_keys:
                 hostkey_info = host_keys[algorithm]
@@ -964,8 +989,24 @@ def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[s
                     entry['casize'] = ca_size
             res['key'].append(entry)
 
-        res['enc'] = kex.server.encryption
-        res['mac'] = kex.server.mac
+        res['enc'] = [] 
+        for algorithm in kex.server.encryption:
+            alg_notes = fetch_notes(algorithm, 'enc')
+            entry = {
+                'algorithm': algorithm,
+                'notes': alg_notes,
+            }
+            res['enc'].append(entry)
+
+        res['mac'] = []
+        for algorithm in kex.server.mac:
+            alg_notes = fetch_notes(algorithm, 'mac')
+            entry = {
+                'algorithm': algorithm,
+                'notes': alg_notes,
+            }
+            res['mac'].append(entry)
+
         res['fingerprints'] = []
         host_keys = kex.host_keys()
 
