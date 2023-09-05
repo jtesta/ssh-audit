@@ -55,10 +55,10 @@ usage() {
 PLATFORM="$(uname -s)"
 
 # This script is intended for use on Linux and Cygwin only.
-case "$PLATFORM" in
+case "${PLATFORM}" in
   Linux | CYGWIN*) ;;
   *)
-    echo "Platform not supported: $PLATFORM"
+    echo "Platform not supported: ${PLATFORM}"
     exit 1
     ;;
 esac
@@ -67,12 +67,12 @@ MAN_PAGE=./ssh-audit.1
 GLOBALS_PY=./src/ssh_audit/globals.py
 
 while getopts "m: g: h" OPTION; do
-    case "$OPTION" in
+    case "${OPTION}" in
         m)
-            MAN_PAGE="$OPTARG"
+            MAN_PAGE="${OPTARG}"
             ;;
         g)
-            GLOBALS_PY="$OPTARG"
+            GLOBALS_PY="${OPTARG}"
             ;;
         h)
             usage
@@ -88,10 +88,10 @@ done
 
 # Check that the specified files exist.
 [[ -f "$MAN_PAGE" ]] || { echo >&2 "man page file not found: $MAN_PAGE"; exit 1; }
-[[ -f "$GLOBALS_PY" ]] || { echo >&2 "globals.py file not found: $GLOBALS_PY"; exit 1; }
+[[ -f "${GLOBALS_PY}" ]] || { echo >&2 "globals.py file not found: ${GLOBALS_PY}"; exit 1; }
 
 # Check that the 'ul' (do underlining) binary exists.
-if [[ "$PLATFORM" == "Linux" ]]; then
+if [[ "${PLATFORM}" == "Linux" ]]; then
     command -v ul >/dev/null 2>&1 || { echo >&2 "ul not found."; exit 1; }
 fi
 
@@ -99,10 +99,10 @@ fi
 command -v sed >/dev/null 2>&1 || { echo >&2 "sed not found."; exit 1; }
 
 # Reset the globals.py file, in case it was modified from a prior run.
-git checkout $GLOBALS_PY > /dev/null 2>&1
+git checkout "${GLOBALS_PY}" > /dev/null 2>&1
 
 # Remove the Windows man page placeholder from 'globals.py'.
-sed -i '/^WINDOWS_MAN_PAGE/d' "$GLOBALS_PY"
+sed -i '/^WINDOWS_MAN_PAGE/d' "${GLOBALS_PY}"
 
 echo "Processing man page at ${MAN_PAGE} and placing output into ${GLOBALS_PY}..."
 
@@ -116,15 +116,15 @@ echo "Processing man page at ${MAN_PAGE} and placing output into ${GLOBALS_PY}..
 #     escape sequence. Not required under Cygwin because man outputs ANSI escape
 #     codes automatically.
 
-echo WINDOWS_MAN_PAGE = '"""' >> "$GLOBALS_PY"
+echo WINDOWS_MAN_PAGE = '"""' >> "${GLOBALS_PY}"
 
-if [[ "$PLATFORM" == CYGWIN* ]]; then
-    MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
+if [[ "${PLATFORM}" == CYGWIN* ]]; then
+    MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "${MAN_PAGE}" | sed $'s/\u2010/-/g' >> "${GLOBALS_PY}"
 else
-    MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "$MAN_PAGE" | ul | sed $'s/\u2010/-/g' >> "$GLOBALS_PY"
+    MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "${MAN_PAGE}" | ul | sed $'s/\u2010/-/g' >> "${GLOBALS_PY}"
 fi
 
-echo '"""' >> "$GLOBALS_PY"
+echo '"""' >> "${GLOBALS_PY}"
 
 echo "Done."
 exit 0
