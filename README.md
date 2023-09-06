@@ -182,13 +182,17 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).
  - Hostname resolution failure no longer causes scans against multiple hosts to terminate unexpectedly; credit [Dani Cuesta](https://github.com/daniel-cues).
  - Algorithm recommendations resulting from warnings are now printed in yellow instead of red; credit [Adam Russell](https://github.com/thecliguy).
+  - Added failure, warning, and info notes to JSON output (note that this results in a breaking change to the banner protocol, "enc", and "mac" fields); credit [Bareq Al-Azzawi](https://github.com/BareqAZ).
  - Fixed crash during GEX tests.
  - Refined GEX testing against OpenSSH servers: when the fallback mechanism is suspected of being triggered, perform an additional test to obtain more accurate results.
  - The color of all notes will be printed in green when the related algorithm is rated good.
  - Prioritized host key certificate algorithms for Ubuntu 22.04 LTS client policy.
- - Added failure, warning, and info notes to JSON output (note that this results in a breaking change to the banner protocol, "enc", and "mac" fields); credit [Bareq Al-Azzawi](https://github.com/BareqAZ).
+ - Marked all NIST K-, B-, and T-curves as unproven since they are so rarely used.
  - Added built-in policy for OpenSSH 9.4.
- - Added 1 new key exchange: `curve448-sha512@libssh.org`.
+ - Added 12 new host keys: `ecdsa-sha2-curve25519`, `ecdsa-sha2-nistb233`, `ecdsa-sha2-nistb409`, `ecdsa-sha2-nistk163`, `ecdsa-sha2-nistk233`, `ecdsa-sha2-nistk283`, `ecdsa-sha2-nistk409`, `ecdsa-sha2-nistp224`, `ecdsa-sha2-nistp192`, `ecdsa-sha2-nistt571`, `ssh-dsa`, `x509v3-sign-rsa-sha256`.
+ - Added 15 new key exchanges: `curve448-sha512@libssh.org`, `ecdh-nistp256-kyber-512r3-sha256-d00@openquantumsafe.org`, `ecdh-nistp384-kyber-768r3-sha384-d00@openquantumsafe.org`, `ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org`, `ecdh-sha2-brainpoolp256r1@genua.de`, `ecdh-sha2-brainpoolp384r1@genua.de`, `ecdh-sha2-brainpoolp521r1@genua.de`, `kexAlgoDH14SHA1`, `kexAlgoDH1SHA1`, `kexAlgoECDH256`, `kexAlgoECDH384`, `kexAlgoECDH521`, `sm2kep-sha2-nistp256`, `x25519-kyber-512r3-sha256-d00@amazon.com`, `x25519-kyber512-sha512@aws.amazon.com`.
+ - Added 8 new ciphers: `aes192-gcm@openssh.com`, `cast128-12-cbc`, `cast128-12-cfb`, `cast128-12-ecb`, `cast128-12-ofb`, `des-cfb`, `des-ecb`, `des-ofb`.
+ - Added 14 new MACs: `cbcmac-3des`, `cbcmac-aes`, `cbcmac-blowfish`, `cbcmac-des`, `cbcmac-rijndael`, `cbcmac-twofish`, `hmac-sha256-96`, `md5`, `md5-8`, `ripemd160`, `ripemd160-8`, `sha1`, `sha1-8`, `umac-128`.
 
 ### v2.9.0 (2023-04-29)
  - Dropped support for Python 3.6, as it reached EOL at the end of 2021.
