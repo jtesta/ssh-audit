@@ -178,7 +178,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 
-### v3.0.0-dev (2023-??-??)
+### v3.0.0 (2023-09-07)
  - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).
  - Hostname resolution failure no longer causes scans against multiple hosts to terminate unexpectedly; credit [Dani Cuesta](https://github.com/daniel-cues).
  - Algorithm recommendations resulting from warnings are now printed in yellow instead of red; credit [Adam Russell](https://github.com/thecliguy).
