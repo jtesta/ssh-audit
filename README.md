@@ -182,7 +182,8 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).
  - Hostname resolution failure no longer causes scans against multiple hosts to terminate unexpectedly; credit [Dani Cuesta](https://github.com/daniel-cues).
  - Algorithm recommendations resulting from warnings are now printed in yellow instead of red; credit [Adam Russell](https://github.com/thecliguy).
-  - Added failure, warning, and info notes to JSON output (note that this results in a breaking change to the banner protocol, "enc", and "mac" fields); credit [Bareq Al-Azzawi](https://github.com/BareqAZ).
+ - Added failure, warning, and info notes to JSON output (note that this results in a breaking change to the banner protocol, "enc", and "mac" fields); credit [Bareq Al-Azzawi](https://github.com/BareqAZ).
+ - Docker Makefile now creates multi-arch builds for amd64, arm64, and armv7; credit [Sebastian Cohnen](https://github.com/tisba).
  - Fixed crash during GEX tests.
  - Refined GEX testing against OpenSSH servers: when the fallback mechanism is suspected of being triggered, perform an additional test to obtain more accurate results.
  - The color of all notes will be printed in green when the related algorithm is rated good.
