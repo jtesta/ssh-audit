@@ -18,7 +18,7 @@ An executable can only be made on a Windows host because the PyInstaller tool (h
 To create package and upload to test server:
 
 ```
-    $ sudo apt install python3-virtualenv python3.8-venv
+    $ sudo apt install python3-virtualenv python3.10-venv
     $ make -f Makefile.pypi
     $ make -f Makefile.pypi uploadtest
 ```
@@ -67,13 +67,13 @@ Upload the snap with:
 
 # Docker
 
-Build image with:
+Build a local image with:
 
 ```
     $ make -f Makefile.docker
 ```
 
-Then upload it to Dockerhub with:
+Create a multi-architecture build and upload it to Dockerhub with:
 
 ```
     $ make -f Makefile.docker upload

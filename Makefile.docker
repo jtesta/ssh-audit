@@ -4,13 +4,6 @@ ifeq ($(VERSION),)
 endif
 
 all:
-	docker buildx build \
-		--platform linux/amd64,linux/arm64,linux/arm/v7 \
-		--tag positronsecurity/ssh-audit:${VERSION} \
-		--tag positronsecurity/ssh-audit:latest \
-		.
-
-local-build:
 	docker build -t positronsecurity/ssh-audit:${VERSION} .
 
 upload:
