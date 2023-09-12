@@ -456,9 +456,9 @@ run_test() {
         test_name="TinySSH ${version} ${test_number}"
     fi
 
-    cid=$(docker run -d -p 2222:22 "${IMAGE_NAME}:${IMAGE_VERSION}" ${server_exec})
+    #echo "Running: docker run --rm -d -p 2222:22 $IMAGE_NAME:$IMAGE_VERSION ${server_exec}"
+    cid=$(docker run --rm -d -p 2222:22 "${IMAGE_NAME}:${IMAGE_VERSION}" ${server_exec})
     retval=$?
-    #echo "Running: docker run -d -p 2222:22 $IMAGE_NAME:$IMAGE_VERSION ${server_exec}"
     if [[ ${retval} != 0 ]]; then
         echo -e "${REDB}Failed to run docker image! (exit code: ${retval})${CLR}"
         exit 1
@@ -603,8 +603,8 @@ run_policy_test() {
     expected_exit_code=$6
 
 
-    #echo "Running: docker run -d -p 2222:22 $IMAGE_NAME:$IMAGE_VERSION ${server_exec}"
-    cid=$(docker run -d -p 2222:22 "${IMAGE_NAME}:${IMAGE_VERSION}" ${server_exec})
+    #echo "Running: docker run --rm -d -p 2222:22 $IMAGE_NAME:$IMAGE_VERSION ${server_exec}"
+    cid=$(docker run --rm -d -p 2222:22 "${IMAGE_NAME}:${IMAGE_VERSION}" ${server_exec})
     retval=$?
     if [[ ${retval} != 0 ]]; then
         echo -e "${REDB}Failed to run docker image! (exit code: ${retval})${CLR}"
