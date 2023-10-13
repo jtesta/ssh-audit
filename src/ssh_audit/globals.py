@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
    THE SOFTWARE.
 """
 # The version to display.
-VERSION = 'v3.0.0-dev'
+VERSION = 'v3.1.0-dev'
 
 # SSH software to impersonate
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.2'

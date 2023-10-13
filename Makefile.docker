@@ -5,9 +5,12 @@ endif
 
 all:
 	docker build -t positronsecurity/ssh-audit:${VERSION} .
-	docker tag positronsecurity/ssh-audit:${VERSION} positronsecurity/ssh-audit:latest
 
 upload:
 	docker login
-	docker push positronsecurity/ssh-audit:${VERSION}
-	docker push positronsecurity/ssh-audit:latest
+	docker buildx build \
+		--platform linux/amd64,linux/arm64,linux/arm/v7 \
+		--tag positronsecurity/ssh-audit:${VERSION} \
+		--tag positronsecurity/ssh-audit:latest \
+		--push \
+		.

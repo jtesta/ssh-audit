@@ -107,47 +107,52 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'diffie-hellman-group-exchange-sha256@ssh.com': [[]],
             'diffie-hellman-group-exchange-sha384@ssh.com': [[]],
             'diffie-hellman-group-exchange-sha512@ssh.com': [[]],
+            'ecdh-nistp256-kyber-512r3-sha256-d00@openquantumsafe.org': [[], [FAIL_NSA_BACKDOORED_CURVE]],
+            'ecdh-nistp384-kyber-768r3-sha384-d00@openquantumsafe.org': [[], [FAIL_NSA_BACKDOORED_CURVE]],
+            'ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'ecdh-sha2-1.2.840.10045.3.1.1': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-192 / secp192r1
             'ecdh-sha2-1.2.840.10045.3.1.7': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-256 / secp256r1
             'ecdh-sha2-1.3.132.0.10': [[]],  # ECDH over secp256k1 (i.e.: the Bitcoin curve)
-            'ecdh-sha2-1.3.132.0.16': [[]],  # sect283k1
-            'ecdh-sha2-1.3.132.0.1': [[], [FAIL_SMALL_ECC_MODULUS]],  # sect163k1
-            'ecdh-sha2-1.3.132.0.26': [[], [FAIL_SMALL_ECC_MODULUS]],  # sect233k1
+            'ecdh-sha2-1.3.132.0.16': [[], [FAIL_UNPROVEN]],  # sect283k1
+            'ecdh-sha2-1.3.132.0.1': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect163k1
+            'ecdh-sha2-1.3.132.0.26': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect233k1
             'ecdh-sha2-1.3.132.0.27': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # sect233r1
             'ecdh-sha2-1.3.132.0.33': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-224 / secp224r1
             'ecdh-sha2-1.3.132.0.34': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-384 / secp384r1
             'ecdh-sha2-1.3.132.0.35': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-521 / secp521r1
-            'ecdh-sha2-1.3.132.0.36': [[]],  # sect409k1
+            'ecdh-sha2-1.3.132.0.36': [[], [FAIL_UNPROVEN]],  # sect409k1
             'ecdh-sha2-1.3.132.0.37': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # sect409r1
-            'ecdh-sha2-1.3.132.0.38': [[]],  # sect571k1
+            'ecdh-sha2-1.3.132.0.38': [[], [FAIL_UNPROVEN]],  # sect571k1
 
             # Note: the base64 strings, according to draft 6 of RFC5656, is Base64(MD5(DER(OID))).  The final RFC5656 dropped the base64 strings in favor of plain OID concatenation, but apparently some SSH servers implement them anyway.  See: https://datatracker.ietf.org/doc/html/draft-green-secsh-ecc-06#section-9.2
-            'ecdh-sha2-4MHB+NBt3AlaSRQ7MnB4cg==': [[], [FAIL_SMALL_ECC_MODULUS]],  # sect163k1
+            'ecdh-sha2-4MHB+NBt3AlaSRQ7MnB4cg==': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect163k1
             'ecdh-sha2-5pPrSUQtIaTjUSt5VZNBjg==': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-192 / secp192r1
             'ecdh-sha2-9UzNcgwTlEnSCECZa7V1mw==': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-256 / secp256r1
+            'ecdh-sha2-brainpoolp256r1@genua.de': [[], [FAIL_UNPROVEN]],
+            'ecdh-sha2-brainpoolp384r1@genua.de': [[], [FAIL_UNPROVEN]],
+            'ecdh-sha2-brainpoolp521r1@genua.de': [[], [FAIL_UNPROVEN]],
             'ecdh-sha2-curve25519': [[], []],
             'ecdh-sha2-D3FefCjYoJ/kfXgAyLddYA==': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # sect409r1
             'ecdh-sha2-h/SsxnLCtRBh7I9ATyeB3A==': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-521 / secp521r1
-            'ecdh-sha2-m/FtSAmrV4j/Wy6RVUaK7A==': [[]],  # sect409k1
-            'ecdh-sha2-mNVwCXAoS1HGmHpLvBC94w==': [[]],  # sect571k1
-
-            'ecdh-sha2-nistb233': [[]],  # The NIST P-curves are suspected as being backdoored; this isn't a P-curve.
-            'ecdh-sha2-nistb409': [[]],  # Not a NIST P-curve.
-            'ecdh-sha2-nistk163': [[], [FAIL_SMALL_ECC_MODULUS]],    # Not a NIST P-curve.
-            'ecdh-sha2-nistk233': [[]],  # Not a NIST P-curve.
-            'ecdh-sha2-nistk283': [[]],  # Not a NIST P-curve.
-            'ecdh-sha2-nistk409': [[]],  # Not a NIST P-curve.
+            'ecdh-sha2-m/FtSAmrV4j/Wy6RVUaK7A==': [[], [FAIL_UNPROVEN]],  # sect409k1
+            'ecdh-sha2-mNVwCXAoS1HGmHpLvBC94w==': [[], [FAIL_UNPROVEN]],  # sect571k1
+            'ecdh-sha2-nistb233': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],
+            'ecdh-sha2-nistb409': [[], [FAIL_UNPROVEN]],
+            'ecdh-sha2-nistk163': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],
+            'ecdh-sha2-nistk233': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],
+            'ecdh-sha2-nistk283': [[], [FAIL_UNPROVEN]],
+            'ecdh-sha2-nistk409': [[], [FAIL_UNPROVEN]],
             'ecdh-sha2-nistp192': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'ecdh-sha2-nistp224': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'ecdh-sha2-nistp256': [['5.7,d2013.62,l10.6.0'], [FAIL_NSA_BACKDOORED_CURVE]],
             'ecdh-sha2-nistp384': [['5.7,d2013.62'], [FAIL_NSA_BACKDOORED_CURVE]],
             'ecdh-sha2-nistp521': [['5.7,d2013.62'], [FAIL_NSA_BACKDOORED_CURVE]],
-            'ecdh-sha2-nistt571': [[]],  # Not a NIST P-curve.
+            'ecdh-sha2-nistt571': [[], [FAIL_UNPROVEN]],
             'ecdh-sha2-qCbG5Cn/jjsZ7nBeR7EnOA==': [[FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # sect233r1
             'ecdh-sha2-qcFQaMAMGhTziMT0z+Tuzw==': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-384 / secp384r1
-            'ecdh-sha2-VqBg4QRPjxx1EXZdV0GdWQ==': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-224 / secp224r1
-            'ecdh-sha2-wiRIU8TKjMZ418sMqlqtvQ==': [[]],  # sect283k1
-            'ecdh-sha2-zD/b3hu/71952ArpUG4OjQ==': [[], [FAIL_SMALL_ECC_MODULUS]],  # sect233k1
+            'ecdh-sha2-VqBg4QRPjxx1EXZdV0GdWQ==': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_SMALL_ECC_MODULUS]],  # NIST P-224 / secp224r1
+            'ecdh-sha2-wiRIU8TKjMZ418sMqlqtvQ==': [[], [FAIL_UNPROVEN]],  # sect283k1
+            'ecdh-sha2-zD/b3hu/71952ArpUG4OjQ==': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect233k1
             'ecmqv-sha2': [[], [FAIL_UNPROVEN]],
             'ext-info-c': [[]],  # Extension negotiation (RFC 8308)
             'ext-info-s': [[]],  # Extension negotiation (RFC 8308)
@@ -168,15 +173,22 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'gss-nistp256-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'gss-nistp384-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'gss-nistp521-sha512-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-
             'kexAlgoCurve25519SHA256': [[]],
+            'kexAlgoDH14SHA1': [[], [FAIL_SHA1], [WARN_2048BIT_MODULUS]],
+            'kexAlgoDH1SHA1': [[], [FAIL_1024BIT_MODULUS, FAIL_LOGJAM_ATTACK, FAIL_SHA1]],
+            'kexAlgoECDH256': [[], [FAIL_NSA_BACKDOORED_CURVE]],
+            'kexAlgoECDH384': [[], [FAIL_NSA_BACKDOORED_CURVE]],
+            'kexAlgoECDH521': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'kexguess2@matt.ucc.asn.au': [['d2013.57']],
             'm383-sha384@libassh.org': [[], [FAIL_UNPROVEN]],
             'm511-sha512@libassh.org': [[], [FAIL_UNPROVEN]],
             'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS, FAIL_SHA1]],
             'rsa2048-sha256': [[], [], [WARN_2048BIT_MODULUS]],
+            'sm2kep-sha2-nistp256': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_UNTRUSTED]],
             'sntrup4591761x25519-sha512@tinyssh.org': [['8.0', '8.4'], [], [WARN_EXPERIMENTAL], [INFO_WITHDRAWN_PQ_ALG]],
             'sntrup761x25519-sha512@openssh.com': [['8.5'], [], []],
+            'x25519-kyber-512r3-sha256-d00@amazon.com': [[]],
+            'x25519-kyber512-sha512@aws.amazon.com': [[]],
         },
         'key': {
             'dsa2048-sha224@libassh.org': [[], [FAIL_UNPROVEN], [WARN_2048BIT_MODULUS]],
@@ -184,12 +196,22 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'dsa3072-sha256@libassh.org': [[], [FAIL_UNPROVEN]],
             'ecdsa-sha2-1.3.132.0.10-cert-v01@openssh.com': [[], [FAIL_UNKNOWN]],
             'ecdsa-sha2-1.3.132.0.10': [[], [], [WARN_RNDSIG_KEY]],  # ECDSA over secp256k1 (i.e.: the Bitcoin curve)
+            'ecdsa-sha2-curve25519': [[], [], [WARN_RNDSIG_KEY]],  # ECDSA with Curve25519?  Bizarre...
+            'ecdsa-sha2-nistb233': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_RNDSIG_KEY]],
+            'ecdsa-sha2-nistb409': [[], [FAIL_UNPROVEN], [WARN_RNDSIG_KEY]],
+            'ecdsa-sha2-nistk163': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_RNDSIG_KEY]],
+            'ecdsa-sha2-nistk233': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_RNDSIG_KEY]],
+            'ecdsa-sha2-nistk283': [[], [FAIL_UNPROVEN], [WARN_RNDSIG_KEY]],
+            'ecdsa-sha2-nistk409': [[], [FAIL_UNPROVEN], [WARN_RNDSIG_KEY]],
+            'ecdsa-sha2-nistp224': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_SMALL_ECC_MODULUS], [WARN_RNDSIG_KEY]],
+            'ecdsa-sha2-nistp192': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_SMALL_ECC_MODULUS], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp256': [['5.7,d2013.62,l10.6.4'], [FAIL_NSA_BACKDOORED_CURVE], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp256-cert-v01@openssh.com': [['5.7'], [FAIL_NSA_BACKDOORED_CURVE], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp384': [['5.7,d2013.62,l10.6.4'], [FAIL_NSA_BACKDOORED_CURVE], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp384-cert-v01@openssh.com': [['5.7'], [FAIL_NSA_BACKDOORED_CURVE], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp521': [['5.7,d2013.62,l10.6.4'], [FAIL_NSA_BACKDOORED_CURVE], [WARN_RNDSIG_KEY]],
             'ecdsa-sha2-nistp521-cert-v01@openssh.com': [['5.7'], [FAIL_NSA_BACKDOORED_CURVE], [WARN_RNDSIG_KEY]],
+            'ecdsa-sha2-nistt571': [[], [FAIL_UNPROVEN], [WARN_RNDSIG_KEY]],
             'eddsa-e382-shake256@libassh.org': [[], [FAIL_UNPROVEN]],
             'eddsa-e521-shake256@libassh.org': [[], [FAIL_UNPROVEN]],
             'null': [[], [FAIL_PLAINTEXT]],
@@ -206,6 +228,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'spi-sign-rsa': [[]],
             'spki-sign-dss': [[], [FAIL_1024BIT_MODULUS]],
             'spki-sign-rsa': [[], [FAIL_1024BIT_MODULUS]],
+            'ssh-dsa': [[], [FAIL_1024BIT_MODULUS], [WARN_RNDSIG_KEY]],
             'ssh-dss': [['2.1.0,d0.28,l10.2', '6.9'], [FAIL_1024BIT_MODULUS], [WARN_RNDSIG_KEY], [INFO_DISABLED_IN_OPENSSH70]],
             'ssh-dss-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_1024BIT_MODULUS], [WARN_RNDSIG_KEY], [INFO_DISABLED_IN_OPENSSH70]],
             'ssh-dss-cert-v01@openssh.com': [['5.6', '6.9'], [FAIL_1024BIT_MODULUS], [WARN_RNDSIG_KEY]],
@@ -247,6 +270,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'x509v3-sign-rsa': [[], [FAIL_SHA1]],
             'x509v3-sign-rsa-sha1': [[], [FAIL_SHA1]],
             'x509v3-sign-rsa-sha224@ssh.com': [[]],
+            'x509v3-sign-rsa-sha256': [[]],
             'x509v3-sign-rsa-sha256@ssh.com': [[]],
             'x509v3-sign-rsa-sha384@ssh.com': [[]],
             'x509v3-sign-rsa-sha512@ssh.com': [[]],
@@ -268,6 +292,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'aes128-gcm@openssh.com': [['6.2']],
             'aes192-cbc': [['2.3.0,l10.2', '6.6', None], [], [WARN_CIPHER_MODE]],
             'aes192-ctr': [['3.7,l10.4.1']],
+            'aes192-gcm@openssh.com': [[], [], [], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],
             'aes256-cbc': [['2.3.0,d0.47,l10.2', '6.6', None], [], [WARN_CIPHER_MODE]],
             'aes256-ctr': [['3.7,d0.52,l10.4.1']],
             'aes256-gcm': [[]],
@@ -295,6 +320,10 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'camellia256-ctr@openssh.org': [[]],
             'cast128-12-cbc@ssh.com': [[], [FAIL_CAST], [WARN_CIPHER_MODE]],
             'cast128-cbc': [['2.1.0', '6.6', '7.1'], [FAIL_CAST], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
+            'cast128-12-cbc': [[], [FAIL_CAST], [WARN_CIPHER_MODE]],
+            'cast128-12-cfb': [[], [FAIL_CAST], [WARN_CIPHER_MODE]],
+            'cast128-12-ecb': [[], [FAIL_CAST], [WARN_CIPHER_MODE]],
+            'cast128-12-ofb': [[], [FAIL_CAST], [WARN_CIPHER_MODE]],
             'cast128-cfb': [[], [FAIL_CAST], [WARN_CIPHER_MODE]],
             'cast128-ctr': [[], [FAIL_CAST]],
             'cast128-ecb': [[], [FAIL_CAST], [WARN_CIPHER_MODE]],
@@ -303,6 +332,9 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'chacha20-poly1305@openssh.com': [['6.5'], [], [], [INFO_DEFAULT_OPENSSH_CIPHER]],
             'crypticore128@ssh.com': [[], [FAIL_UNPROVEN]],
             'des-cbc': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
+            'des-cfb': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
+            'des-ecb': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
+            'des-ofb': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
             'des-cbc-ssh1': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
             'des-cbc@ssh.com': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
             'des': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
@@ -346,6 +378,12 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'AEAD_AES_256_GCM': [[]],
             'aes128-gcm': [[]],
             'aes256-gcm': [[]],
+            'cbcmac-3des': [[], [FAIL_UNPROVEN, FAIL_3DES]],
+            'cbcmac-aes': [[], [FAIL_UNPROVEN]],
+            'cbcmac-blowfish': [[], [FAIL_UNPROVEN, FAIL_BLOWFISH]],
+            'cbcmac-des': [[], [FAIL_UNPROVEN, FAIL_DES]],
+            'cbcmac-rijndael': [[], [FAIL_UNPROVEN, FAIL_RIJNDAEL]],
+            'cbcmac-twofish': [[], [FAIL_UNPROVEN]],
             'chacha20-poly1305@openssh.com': [[], [], [], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],  # Despite the @openssh.com tag, this was never shipped as a MAC in OpenSSH (only as a cipher); it is only implemented as a MAC in Syncplify.
             'crypticore-mac@ssh.com': [[], [FAIL_UNPROVEN]],
             'hmac-md5': [['2.1.0,d0.28', '6.6', '7.1'], [FAIL_MD5], [WARN_ENCRYPT_AND_MAC]],
@@ -375,6 +413,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'hmac-sha2-512-etm@openssh.com': [['6.2']],
             'hmac-sha256-2@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],
             'hmac-sha256-96@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]],
+            'hmac-sha256-96': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE]],
             'hmac-sha256@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],
             'hmac-sha256': [[], [], [WARN_ENCRYPT_AND_MAC]],
             'hmac-sha2-56': [[], [], [WARN_TAG_SIZE, WARN_ENCRYPT_AND_MAC]],
@@ -386,7 +425,14 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'hmac-sha512@ssh.com': [[], [], [WARN_ENCRYPT_AND_MAC]],
             'hmac-sha512': [[], [], [WARN_ENCRYPT_AND_MAC]],
             'hmac-whirlpool': [[], [], [WARN_ENCRYPT_AND_MAC]],
+            'md5':  [[], [FAIL_PLAINTEXT]],
+            'md5-8':  [[], [FAIL_PLAINTEXT]],
             'none': [['d2013.56'], [FAIL_PLAINTEXT]],
+            'ripemd160':  [[], [FAIL_PLAINTEXT]],
+            'ripemd160-8':  [[], [FAIL_PLAINTEXT]],
+            'sha1':  [[], [FAIL_PLAINTEXT]],
+            'sha1-8':  [[], [FAIL_PLAINTEXT]],
+            'umac-128': [[], [], [WARN_ENCRYPT_AND_MAC]],
             'umac-128-etm@openssh.com': [['6.2']],
             'umac-128@openssh.com': [['6.2'], [], [WARN_ENCRYPT_AND_MAC]],
             'umac-32@openssh.com': [[], [], [WARN_ENCRYPT_AND_MAC, WARN_TAG_SIZE], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],
