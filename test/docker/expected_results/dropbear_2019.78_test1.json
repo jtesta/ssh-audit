@@ -143,6 +143,9 @@
         {
             "algorithm": "diffie-hellman-group14-sha256",
             "notes": {
+                "fail": [
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
+                ],
                 "info": [
                     "available since OpenSSH 7.3, Dropbear SSH 2016.73"
                 ],
@@ -155,7 +158,8 @@
             "algorithm": "diffie-hellman-group14-sha1",
             "notes": {
                 "fail": [
-                    "using broken SHA-1 hash algorithm"
+                    "using broken SHA-1 hash algorithm",
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
                 ],
                 "info": [
                     "available since OpenSSH 3.9, Dropbear SSH 0.53"
@@ -279,6 +283,10 @@
                         "notes": ""
                     },
                     {
+                        "name": "diffie-hellman-group14-sha256",
+                        "notes": ""
+                    },
+                    {
                         "name": "ecdh-sha2-nistp256",
                         "notes": ""
                     },
@@ -328,12 +336,6 @@
                         "name": "twofish256-ctr",
                         "notes": ""
                     }
-                ],
-                "kex": [
-                    {
-                        "name": "diffie-hellman-group16-sha512",
-                        "notes": ""
-                    }
                 ]
             }
         },
@@ -346,12 +348,6 @@
                     },
                     {
                         "name": "aes256-cbc",
-                        "notes": ""
-                    }
-                ],
-                "kex": [
-                    {
-                        "name": "diffie-hellman-group14-sha256",
                         "notes": ""
                     }
                 ],

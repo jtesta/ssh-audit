@@ -117,6 +117,9 @@
             "algorithm": "diffie-hellman-group-exchange-sha256",
             "keysize": 4096,
             "notes": {
+                "fail": [
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
+                ],
                 "info": [
                     "OpenSSH's GEX fallback mechanism was triggered during testing. Very old SSH clients will still be able to create connections using a 2048-bit modulus, though modern clients will use 4096. This can only be disabled by recompiling the code (see https://github.com/openssh/openssh-portable/blob/V_9_4/dh.c#L477).",
                     "available since OpenSSH 4.4"
@@ -161,18 +164,18 @@
         }
     ],
     "recommendations": {
-        "informational": {
-            "add": {
+        "critical": {
+            "del": {
                 "kex": [
                     {
-                        "name": "diffie-hellman-group16-sha512",
-                        "notes": ""
-                    },
-                    {
-                        "name": "diffie-hellman-group18-sha512",
+                        "name": "diffie-hellman-group-exchange-sha256",
                         "notes": ""
                     }
-                ],
+                ]
+            }
+        },
+        "informational": {
+            "add": {
                 "key": [
                     {
                         "name": "rsa-sha2-256",
