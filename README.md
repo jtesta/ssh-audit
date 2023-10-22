@@ -32,7 +32,7 @@
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - policy scans to ensure adherence to a hardened/standard configuration;
 - runs on Linux and Windows;
-- supports Python 3.7 - 3.11;
+- supports Python 3.7 - 3.12;
 - no dependencies
 
 ## Usage
@@ -177,6 +177,9 @@ The status of various other platform packages can be found below (via Repology):
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
+
+### v3.1.0-dev (???)
+ - Added Python 3.12 to Tox tests.
 
 ### v3.0.0 (2023-09-07)
  - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).
