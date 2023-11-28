@@ -32,7 +32,7 @@
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - policy scans to ensure adherence to a hardened/standard configuration;
 - runs on Linux and Windows;
-- supports Python 3.7 - 3.12;
+- supports Python 3.8 - 3.12;
 - no dependencies
 
 ## Usage
@@ -183,6 +183,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - In server policies, reduced expected DH modulus sizes from 4096 to 3072 to match online hardening guides (note that 3072-bit moduli provide the equivalent of 128-bit symmetric security).
  - In Ubuntu 22.04 client policy, moved host key types `sk-ssh-ed25519@openssh.com` and `ssh-ed25519` to the end of all certificate types.
  - Re-organized option host key types for OpenSSH 9.2 server policy to correspond with updated Debian 12 hardening guide.
+ - Dropped support for Python 3.7 (EOL was reached in June 2023).
 
 ### v3.0.0 (2023-09-07)
  - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).
