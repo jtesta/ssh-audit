@@ -279,7 +279,8 @@
             "algorithm": "diffie-hellman-group14-sha1",
             "notes": {
                 "fail": [
-                    "using broken SHA-1 hash algorithm"
+                    "using broken SHA-1 hash algorithm",
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
                 ],
                 "info": [
                     "available since OpenSSH 3.9, Dropbear SSH 0.53"
@@ -295,7 +296,8 @@
                 "fail": [
                     "using small 1024-bit modulus",
                     "vulnerable to the Logjam attack: https://en.wikipedia.org/wiki/Logjam_(computer_security)",
-                    "using broken SHA-1 hash algorithm"
+                    "using broken SHA-1 hash algorithm",
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
                 ],
                 "info": [
                     "removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9",
@@ -437,14 +439,6 @@
     ],
     "recommendations": {
         "critical": {
-            "chg": {
-                "kex": [
-                    {
-                        "name": "diffie-hellman-group-exchange-sha256",
-                        "notes": "increase modulus size to 3072 bits or larger"
-                    }
-                ]
-            },
             "del": {
                 "enc": [
                     {
@@ -487,6 +481,10 @@
                     },
                     {
                         "name": "diffie-hellman-group-exchange-sha1",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group-exchange-sha256",
                         "notes": ""
                     }
                 ],

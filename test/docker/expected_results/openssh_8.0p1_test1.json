@@ -160,6 +160,9 @@
             "algorithm": "diffie-hellman-group-exchange-sha256",
             "keysize": 4096,
             "notes": {
+                "fail": [
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
+                ],
                 "info": [
                     "OpenSSH's GEX fallback mechanism was triggered during testing. Very old SSH clients will still be able to create connections using a 2048-bit modulus, though modern clients will use 4096. This can only be disabled by recompiling the code (see https://github.com/openssh/openssh-portable/blob/V_9_4/dh.c#L477).",
                     "available since OpenSSH 4.4"
@@ -169,6 +172,9 @@
         {
             "algorithm": "diffie-hellman-group16-sha512",
             "notes": {
+                "fail": [
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
+                ],
                 "info": [
                     "available since OpenSSH 7.3, Dropbear SSH 2016.73"
                 ]
@@ -177,6 +183,9 @@
         {
             "algorithm": "diffie-hellman-group18-sha512",
             "notes": {
+                "fail": [
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
+                ],
                 "info": [
                     "available since OpenSSH 7.3"
                 ]
@@ -185,6 +194,9 @@
         {
             "algorithm": "diffie-hellman-group14-sha256",
             "notes": {
+                "fail": [
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
+                ],
                 "info": [
                     "available since OpenSSH 7.3, Dropbear SSH 2016.73"
                 ],
@@ -197,7 +209,8 @@
             "algorithm": "diffie-hellman-group14-sha1",
             "notes": {
                 "fail": [
-                    "using broken SHA-1 hash algorithm"
+                    "using broken SHA-1 hash algorithm",
+                    "vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com"
                 ],
                 "info": [
                     "available since OpenSSH 3.9, Dropbear SSH 0.53"
@@ -379,6 +392,22 @@
                         "notes": ""
                     },
                     {
+                        "name": "diffie-hellman-group14-sha256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group16-sha512",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group18-sha512",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group-exchange-sha256",
+                        "notes": ""
+                    },
+                    {
                         "name": "ecdh-sha2-nistp256",
                         "notes": ""
                     },
@@ -415,12 +444,6 @@
         },
         "warning": {
             "del": {
-                "kex": [
-                    {
-                        "name": "diffie-hellman-group14-sha256",
-                        "notes": ""
-                    }
-                ],
                 "mac": [
                     {
                         "name": "hmac-sha2-256",

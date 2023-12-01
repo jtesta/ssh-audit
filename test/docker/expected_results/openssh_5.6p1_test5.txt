@@ -27,11 +27,13 @@
 [0;31m(kex) diffie-hellman-group-exchange-sha1 (1024-bit) -- [fail] using small 1024-bit modulus[0m
                                                     `- [info] available since OpenSSH 2.3.0
 [0;31m(kex) diffie-hellman-group14-sha1           -- [fail] using broken SHA-1 hash algorithm[0m
+[0;31m                                            `- [fail] vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com[0m
 [0;33m                                            `- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
                                             `- [info] available since OpenSSH 3.9, Dropbear SSH 0.53
 [0;31m(kex) diffie-hellman-group1-sha1            -- [fail] using small 1024-bit modulus[0m
 [0;31m                                            `- [fail] vulnerable to the Logjam attack: https://en.wikipedia.org/wiki/Logjam_(computer_security)[0m
 [0;31m                                            `- [fail] using broken SHA-1 hash algorithm[0m
+[0;31m                                            `- [fail] vulnerable to the DHEater DOS attacks: CVE-2002-20001 and CVE-2022-40735. More info: https://dheatattack.com[0m
                                             `- [info] available since OpenSSH 2.3.0, Dropbear SSH 0.28
                                             `- [info] removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9
 
@@ -103,7 +105,6 @@
 [0;32m(fin) ssh-rsa: SHA256:nsWtdJ9Z67Vrf7OsUzQov7esXhsWAfVppArGh25u244[0m
 
 [0;36m# algorithm recommendations (for OpenSSH 5.6)[0m
-[0;31m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 3072 bits or larger) [0m
 [0;31m(rec) -3des-cbc                             -- enc algorithm to remove [0m
 [0;31m(rec) -arcfour                              -- enc algorithm to remove [0m
 [0;31m(rec) -arcfour128                           -- enc algorithm to remove [0m
@@ -111,6 +112,7 @@
 [0;31m(rec) -blowfish-cbc                         -- enc algorithm to remove [0m
 [0;31m(rec) -cast128-cbc                          -- enc algorithm to remove [0m
 [0;31m(rec) -diffie-hellman-group-exchange-sha1   -- kex algorithm to remove [0m
+[0;31m(rec) -diffie-hellman-group-exchange-sha256 -- kex algorithm to remove [0m
 [0;31m(rec) -diffie-hellman-group1-sha1           -- kex algorithm to remove [0m
 [0;31m(rec) -diffie-hellman-group14-sha1          -- kex algorithm to remove [0m
 [0;31m(rec) -hmac-md5                             -- mac algorithm to remove [0m
