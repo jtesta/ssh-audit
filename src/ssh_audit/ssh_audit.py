@@ -447,7 +447,7 @@ def output_info(out: OutputBuffer, software: Optional['Software'], client_audit:
         out.sep()
 
 
-def post_process_findings(banner: Optional[Banner], algs: Algorithms) -> List[str]:
+def post_process_findings(banner: Optional[Banner], algs: Algorithms, client_audit: bool) -> List[str]:
     '''Perform post-processing on scan results before reporting them to the user.  Returns a list of algorithms that should not be recommended'''
 
 
@@ -466,6 +466,45 @@ def post_process_findings(banner: Optional[Banner], algs: Algorithms) -> List[st
         # Ensure that this algorithm doesn't appear in the recommendations section since the user cannot control this OpenSSH bug.
         algorithm_recommendation_suppress_list.append('diffie-hellman-group-exchange-sha256')
 
+    # Check for the Terrapin vulnerability (CVE-2023-48795), and mark the vulnerable algorithms.
+    if algs.ssh2kex is not None and \
+       ((client_audit and 'kex-strict-c-v00@openssh.com' not in algs.ssh2kex.kex_algorithms) or (not client_audit and 'kex-strict-s-v00@openssh.com' not in algs.ssh2kex.kex_algorithms)):  # Strict KEX marker is not present.
+
+        def add_terrapin_warning(db: Dict[str, Dict[str, List[List[Optional[str]]]]], category: str, algorithm_name: str) -> None:
+            while len(db[category][algorithm_name]) < 3:
+                db[category][algorithm_name].append([])
+
+            db[category][algorithm_name][2].append("vulnerable to the Terrapin attack (CVE-2023-48795), allowing message prefix truncation")
+
+        db = SSH2_KexDB.get_db()
+
+        # Without the strict KEX marker, these algorithms are always vulnerable.
+        add_terrapin_warning(db, "enc", "chacha20-poly1305")
+        add_terrapin_warning(db, "enc", "chacha20-poly1305@openssh.com")
+
+        cbc_ciphers = []
+        etm_macs = []
+
+        # Find the list of CBC ciphers the peer supports.
+        ciphers_supported = algs.ssh2kex.client.encryption if client_audit else algs.ssh2kex.server.encryption
+        for cipher in ciphers_supported:
+            if cipher.endswith("-cbc"):
+                cbc_ciphers.append(cipher)
+
+        # Find the list of ETM MACs the peer supports.
+        macs_supported = algs.ssh2kex.client.mac if client_audit else algs.ssh2kex.server.mac
+        for mac in macs_supported:
+            if mac.endswith("-etm@openssh.com"):
+                etm_macs.append(mac)
+
+        # If at least one CBC cipher and at least one ETM MAC is supported, mark them all as vulnerable.
+        if len(cbc_ciphers) > 0 and len(etm_macs) > 0:
+            for cipher in cbc_ciphers:
+                add_terrapin_warning(db, "enc", cipher)
+
+            for mac in etm_macs:
+                add_terrapin_warning(db, "mac", mac)
+
     return algorithm_recommendation_suppress_list
 
 
@@ -478,7 +517,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
     algs = Algorithms(pkm, kex)
 
     # Perform post-processing on the findings to make final adjustments before outputting the results.
-    algorithm_recommendation_suppress_list = post_process_findings(banner, algs)
+    algorithm_recommendation_suppress_list = post_process_findings(banner, algs, client_audit)
 
     with out:
         if print_target:
