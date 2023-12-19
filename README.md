@@ -179,12 +179,13 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v3.1.0-dev (???)
+ - Added test for the Terrapin message prefix truncation vulnerability ([CVE-2023-48795](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-48795)).
+ - Dropped support for Python 3.7 (EOL was reached in June 2023).
  - Added Python 3.12 to Tox tests.
  - In server policies, reduced expected DH modulus sizes from 4096 to 3072 to match online hardening guides (note that 3072-bit moduli provide the equivalent of 128-bit symmetric security).
  - In Ubuntu 22.04 client policy, moved host key types `sk-ssh-ed25519@openssh.com` and `ssh-ed25519` to the end of all certificate types.
+ - Updated Ubuntu Server & Client policies for 20.04 and 22.04 to account for key exchange list changes due to Terrapin vulnerability patches.
  - Re-organized option host key types for OpenSSH 9.2 server policy to correspond with updated Debian 12 hardening guide.
- - Dropped support for Python 3.7 (EOL was reached in June 2023).
- - Added test for the Terrapin message prefix truncation vulnerability ([CVE-2023-48795](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-48795)).
 
 ### v3.0.0 (2023-09-07)
  - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).

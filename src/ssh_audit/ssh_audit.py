@@ -431,7 +431,7 @@ def output_recommendations(out: OutputBuffer, algs: Algorithms, algorithm_recomm
 
 
 # Output additional information & notes.
-def output_info(out: OutputBuffer, software: Optional['Software'], client_audit: bool, any_problems: bool, is_json_output: bool) -> None:
+def output_info(out: OutputBuffer, software: Optional['Software'], client_audit: bool, any_problems: bool, is_json_output: bool, additional_notes: str) -> None:
     with out:
         # Tell user that PuTTY cannot be hardened at the protocol-level.
         if client_audit and (software is not None) and (software.product == Product.PuTTY):
@@ -441,17 +441,66 @@ def output_info(out: OutputBuffer, software: Optional['Software'], client_audit:
         if any_problems:
             out.warn('(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>')
 
+        # Add any additional notes.
+        if len(additional_notes) > 0:
+            out.warn("(nfo) %s" % additional_notes)
+
     if not out.is_section_empty() and not is_json_output:
         out.head('# additional info')
         out.flush_section()
         out.sep()
 
 
-def post_process_findings(banner: Optional[Banner], algs: Algorithms, client_audit: bool) -> List[str]:
+def post_process_findings(banner: Optional[Banner], algs: Algorithms, client_audit: bool) -> Tuple[List[str], str]:
     '''Perform post-processing on scan results before reporting them to the user.  Returns a list of algorithms that should not be recommended'''
+
+    def _add_terrapin_warning(db: Dict[str, Dict[str, List[List[Optional[str]]]]], category: str, algorithm_name: str) -> None:
+        '''Adds a warning regarding the Terrapin vulnerability for the specified algorithm.'''
+        # Ensure that a slot for warnings exists for this algorithm.
+        while len(db[category][algorithm_name]) < 3:
+            db[category][algorithm_name].append([])
+
+        db[category][algorithm_name][2].append("vulnerable to the Terrapin attack (CVE-2023-48795), allowing message prefix truncation")
+
+    def _get_chacha_ciphers_enabled(algs: Algorithms) -> List[str]:
+        '''Returns a list of chacha20-poly1305 ciphers that the peer supports.'''
+        ret = []
+
+        if algs.ssh2kex is not None:
+            ciphers_supported = algs.ssh2kex.client.encryption if client_audit else algs.ssh2kex.server.encryption
+            for cipher in ciphers_supported:
+                if cipher.startswith("chacha20-poly1305"):
+                    ret.append(cipher)
+
+        return ret
+
+    def _get_cbc_ciphers_enabled(algs: Algorithms) -> List[str]:
+        '''Returns a list of CBC ciphers that the peer supports.'''
+        ret = []
+
+        if algs.ssh2kex is not None:
+            ciphers_supported = algs.ssh2kex.client.encryption if client_audit else algs.ssh2kex.server.encryption
+            for cipher in ciphers_supported:
+                if cipher.endswith("-cbc"):
+                    ret.append(cipher)
+
+        return ret
+
+    def _get_etm_macs_enabled(algs: Algorithms) -> List[str]:
+        '''Returns a list of ETM MACs that the peer supports.'''
+        ret = []
+
+        if algs.ssh2kex is not None:
+            macs_supported = algs.ssh2kex.client.mac if client_audit else algs.ssh2kex.server.mac
+            for mac in macs_supported:
+                if mac.endswith("-etm@openssh.com"):
+                    ret.append(mac)
+
+        return ret
 
 
     algorithm_recommendation_suppress_list = []
+    algs_to_note = []
 
     # If the server is OpenSSH, and the diffie-hellman-group-exchange-sha256 key exchange was found with modulus size 2048, add a note regarding the bug that causes the server to support 2048-bit moduli no matter the configuration.
     if (algs.ssh2kex is not None and 'diffie-hellman-group-exchange-sha256' in algs.ssh2kex.kex_algorithms and 'diffie-hellman-group-exchange-sha256' in algs.ssh2kex.dh_modulus_sizes() and algs.ssh2kex.dh_modulus_sizes()['diffie-hellman-group-exchange-sha256'] == 2048) and (banner is not None and banner.software is not None and banner.software.find('OpenSSH') != -1):
@@ -467,45 +516,46 @@ def post_process_findings(banner: Optional[Banner], algs: Algorithms, client_aud
         algorithm_recommendation_suppress_list.append('diffie-hellman-group-exchange-sha256')
 
     # Check for the Terrapin vulnerability (CVE-2023-48795), and mark the vulnerable algorithms.
+    kex_strict_marker = False
     if algs.ssh2kex is not None and \
-       ((client_audit and 'kex-strict-c-v00@openssh.com' not in algs.ssh2kex.kex_algorithms) or (not client_audit and 'kex-strict-s-v00@openssh.com' not in algs.ssh2kex.kex_algorithms)):  # Strict KEX marker is not present.
+       ((client_audit and 'kex-strict-c-v00@openssh.com' in algs.ssh2kex.kex_algorithms) or (not client_audit and 'kex-strict-s-v00@openssh.com' in algs.ssh2kex.kex_algorithms)):  # Strict KEX marker is present.
+        kex_strict_marker = True
 
-        def add_terrapin_warning(db: Dict[str, Dict[str, List[List[Optional[str]]]]], category: str, algorithm_name: str) -> None:
-            while len(db[category][algorithm_name]) < 3:
-                db[category][algorithm_name].append([])
+    db = SSH2_KexDB.get_db()
 
-            db[category][algorithm_name][2].append("vulnerable to the Terrapin attack (CVE-2023-48795), allowing message prefix truncation")
+    # Without the strict KEX marker, the chacha20-poly1305 ciphers are always vulnerable.
+    for chacha_cipher in _get_chacha_ciphers_enabled(algs):
+        if kex_strict_marker:
+            # Inform the user that the target is correctly configured, but another peer may still choose this algorithm without using strict KEX negotiation, which would still result in vulnerability.
+            algs_to_note.append(chacha_cipher)
+        else:
+            _add_terrapin_warning(db, "enc", chacha_cipher)
 
-        db = SSH2_KexDB.get_db()
+    cbc_ciphers_enabled = _get_cbc_ciphers_enabled(algs)
+    etm_macs_enabled = _get_etm_macs_enabled(algs)
 
-        # Without the strict KEX marker, these algorithms are always vulnerable.
-        add_terrapin_warning(db, "enc", "chacha20-poly1305")
-        add_terrapin_warning(db, "enc", "chacha20-poly1305@openssh.com")
+    # Without the strict KEX marker, if at least one CBC cipher and at least one ETM MAC is supported, mark them all as vulnerable.
+    if len(cbc_ciphers_enabled) > 0 and len(etm_macs_enabled) > 0:
+        for cipher in cbc_ciphers_enabled:
+            if kex_strict_marker:
+                # Inform the user that the target is correctly configured, but another peer may still choose this algorithm without using strict KEX negotiation, which would still result in vulnerability.
+                algs_to_note.append(cipher)
+            else:
+                _add_terrapin_warning(db, "enc", cipher)
 
-        cbc_ciphers = []
-        etm_macs = []
+        for mac in etm_macs_enabled:
+            if kex_strict_marker:
+                # Inform the user that the target is correctly configured, but another peer may still choose this algorithm without using strict KEX negotiation, which would still result in vulnerability.
+                algs_to_note.append(mac)
+            else:
+                _add_terrapin_warning(db, "mac", mac)
 
-        # Find the list of CBC ciphers the peer supports.
-        ciphers_supported = algs.ssh2kex.client.encryption if client_audit else algs.ssh2kex.server.encryption
-        for cipher in ciphers_supported:
-            if cipher.endswith("-cbc"):
-                cbc_ciphers.append(cipher)
+    # Return a note telling the user that, while this target is properly configured, if connected to a vulnerable peer, then a vulnerable connection is still possible.
+    notes = ""
+    if len(algs_to_note) > 0:
+        notes = "Be aware that, while this target properly supports the strict key exchange method (via the kex-strict-?-v00@openssh.com marker) needed to protect against the Terrapin vulnerability (CVE-2023-48795), all peers must also support this feature as well, otherwise the vulnerability will still be present.  The following algorithms would allow an unpatched peer to create vulnerable SSH channels with this target: %s" % ", ".join(algs_to_note)
 
-        # Find the list of ETM MACs the peer supports.
-        macs_supported = algs.ssh2kex.client.mac if client_audit else algs.ssh2kex.server.mac
-        for mac in macs_supported:
-            if mac.endswith("-etm@openssh.com"):
-                etm_macs.append(mac)
-
-        # If at least one CBC cipher and at least one ETM MAC is supported, mark them all as vulnerable.
-        if len(cbc_ciphers) > 0 and len(etm_macs) > 0:
-            for cipher in cbc_ciphers:
-                add_terrapin_warning(db, "enc", cipher)
-
-            for mac in etm_macs:
-                add_terrapin_warning(db, "mac", mac)
-
-    return algorithm_recommendation_suppress_list
+    return algorithm_recommendation_suppress_list, notes
 
 
 # Returns a exitcodes.* flag to denote if any failures or warnings were encountered.
@@ -517,7 +567,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
     algs = Algorithms(pkm, kex)
 
     # Perform post-processing on the findings to make final adjustments before outputting the results.
-    algorithm_recommendation_suppress_list = post_process_findings(banner, algs, client_audit)
+    algorithm_recommendation_suppress_list, additional_notes = post_process_findings(banner, algs, client_audit)
 
     with out:
         if print_target:
@@ -597,7 +647,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
 
     output_fingerprints(out, algs, aconf.json)
     perfect_config = output_recommendations(out, algs, algorithm_recommendation_suppress_list, software, aconf.json, maxlen)
-    output_info(out, software, client_audit, not perfect_config, aconf.json)
+    output_info(out, software, client_audit, not perfect_config, aconf.json, additional_notes)
 
     if aconf.json:
         out.reset()

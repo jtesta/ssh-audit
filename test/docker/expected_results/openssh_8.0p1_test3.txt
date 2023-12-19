@@ -22,8 +22,9 @@
 [0;32m(key) ssh-ed25519                           -- [info] available since OpenSSH 6.5[0m
 
 [0;36m# encryption algorithms (ciphers)[0m
-[0;32m(enc) chacha20-poly1305@openssh.com         -- [info] available since OpenSSH 6.5[0m
-[0;32m                                            `- [info] default cipher since OpenSSH 6.9[0m
+[0;33m(enc) chacha20-poly1305@openssh.com         -- [warn] vulnerable to the Terrapin attack (CVE-2023-48795), allowing message prefix truncation[0m
+                                            `- [info] available since OpenSSH 6.5
+                                            `- [info] default cipher since OpenSSH 6.9
 [0;32m(enc) aes256-gcm@openssh.com                -- [info] available since OpenSSH 6.2[0m
 [0;32m(enc) aes128-gcm@openssh.com                -- [info] available since OpenSSH 6.2[0m
 [0;32m(enc) aes256-ctr                            -- [info] available since OpenSSH 3.7, Dropbear SSH 0.52[0m
@@ -43,4 +44,8 @@
 [0;32m(rec) +diffie-hellman-group18-sha512        -- kex algorithm to append [0m
 [0;32m(rec) +rsa-sha2-256                         -- key algorithm to append [0m
 [0;32m(rec) +rsa-sha2-512                         -- key algorithm to append [0m
+[0;33m(rec) -chacha20-poly1305@openssh.com        -- enc algorithm to remove [0m
+
+[0;36m# additional info[0m
+[0;33m(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>[0m
 

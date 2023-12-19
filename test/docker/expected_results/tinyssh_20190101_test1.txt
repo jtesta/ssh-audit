@@ -16,8 +16,9 @@
 [0;32m(key) ssh-ed25519                             -- [info] available since OpenSSH 6.5[0m
 
 [0;36m# encryption algorithms (ciphers)[0m
-[0;32m(enc) chacha20-poly1305@openssh.com           -- [info] available since OpenSSH 6.5[0m
-[0;32m                                              `- [info] default cipher since OpenSSH 6.9[0m
+[0;33m(enc) chacha20-poly1305@openssh.com           -- [warn] vulnerable to the Terrapin attack (CVE-2023-48795), allowing message prefix truncation[0m
+                                              `- [info] available since OpenSSH 6.5
+                                              `- [info] default cipher since OpenSSH 6.9
 
 [0;36m# message authentication code algorithms[0m
 [0;33m(mac) hmac-sha2-256                           -- [warn] using encrypt-and-MAC mode[0m

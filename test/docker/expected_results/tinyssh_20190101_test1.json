@@ -16,6 +16,9 @@
                 "info": [
                     "default cipher since OpenSSH 6.9",
                     "available since OpenSSH 6.5"
+                ],
+                "warn": [
+                    "vulnerable to the Terrapin attack (CVE-2023-48795), allowing message prefix truncation"
                 ]
             }
         }
