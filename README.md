@@ -186,6 +186,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - In Ubuntu 22.04 client policy, moved host key types `sk-ssh-ed25519@openssh.com` and `ssh-ed25519` to the end of all certificate types.
  - Updated Ubuntu Server & Client policies for 20.04 and 22.04 to account for key exchange list changes due to Terrapin vulnerability patches.
  - Re-organized option host key types for OpenSSH 9.2 server policy to correspond with updated Debian 12 hardening guide.
+ - Added built-in policies for OpenSSH 9.5 and 9.6.
 
 ### v3.0.0 (2023-09-07)
  - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).
