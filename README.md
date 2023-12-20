@@ -151,7 +151,7 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
 ## Pre-Built Packages
-Pre-built packages are available for Windows (see the releases page), PyPI, Snap, and Docker:
+Pre-built packages are available for Windows (see the [Releases](https://github.com/jtesta/ssh-audit/releases) page), PyPI, Snap, and Docker:
 
 To install from PyPI:
 ```
@@ -178,16 +178,16 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 
-### v3.1.0-dev (???)
+### v3.1.0 (2023-12-20)
  - Added test for the Terrapin message prefix truncation vulnerability ([CVE-2023-48795](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-48795)).
  - Dropped support for Python 3.7 (EOL was reached in June 2023).
- - Added Python 3.12 to Tox tests.
- - In server policies, reduced expected DH modulus sizes from 4096 to 3072 to match online hardening guides (note that 3072-bit moduli provide the equivalent of 128-bit symmetric security).
+ - Added Python 3.12 support.
+ - In server policies, reduced expected DH modulus sizes from 4096 to 3072 to match the [online hardening guides](https://ssh-audit.com/hardening_guides.html) (note that 3072-bit moduli provide the equivalent of 128-bit symmetric security).
  - In Ubuntu 22.04 client policy, moved host key types `sk-ssh-ed25519@openssh.com` and `ssh-ed25519` to the end of all certificate types.
  - Updated Ubuntu Server & Client policies for 20.04 and 22.04 to account for key exchange list changes due to Terrapin vulnerability patches.
  - Re-organized option host key types for OpenSSH 9.2 server policy to correspond with updated Debian 12 hardening guide.
  - Added built-in policies for OpenSSH 9.5 and 9.6.
- - Added an "additional_notes" field to the JSON output.
+ - Added an `additional_notes` field to the JSON output.
 
 ### v3.0.0 (2023-09-07)
  - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).
