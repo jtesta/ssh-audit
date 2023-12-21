@@ -491,7 +491,7 @@ def post_process_findings(banner: Optional[Banner], algs: Algorithms, client_aud
         if algs.ssh2kex is not None:
             ciphers_supported = algs.ssh2kex.client.encryption if client_audit else algs.ssh2kex.server.encryption
             for cipher in ciphers_supported:
-                if cipher.endswith("-cbc"):
+                if cipher.endswith("-cbc") or cipher.endswith("-cbc@openssh.org") or cipher.endswith("-cbc@ssh.com") or cipher == "rijndael-cbc@lysator.liu.se":
                     ret.append(cipher)
 
         return ret
@@ -501,7 +501,7 @@ def post_process_findings(banner: Optional[Banner], algs: Algorithms, client_aud
         ret = []
 
         for cipher in db["enc"]:
-            if cipher.endswith("-cbc") and cipher not in _get_cbc_ciphers_enabled(algs):
+            if (cipher.endswith("-cbc") or cipher.endswith("-cbc@openssh.org") or cipher.endswith("-cbc@ssh.com") or cipher == "rijndael-cbc@lysator.liu.se") and cipher not in _get_cbc_ciphers_enabled(algs):
                 ret.append(cipher)
 
         return ret

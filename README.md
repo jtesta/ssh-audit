@@ -178,6 +178,9 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 
+### v3.2.0 (???)
+ - Expanded filter of CBC ciphers to flag for the Terrapin vulnerability.  It now includes more rarely found ciphers.
+
 ### v3.1.0 (2023-12-20)
  - Added test for the Terrapin message prefix truncation vulnerability ([CVE-2023-48795](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-48795)).
  - Dropped support for Python 3.7 (EOL was reached in June 2023).
