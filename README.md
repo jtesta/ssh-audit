@@ -178,7 +178,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 
-### v3.2.0 (???)
+### v3.2.0-dev (???)
  - Expanded filter of CBC ciphers to flag for the Terrapin vulnerability.  It now includes more rarely found ciphers.
 
 ### v3.1.0 (2023-12-20)
