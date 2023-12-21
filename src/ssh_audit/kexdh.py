@@ -80,7 +80,7 @@ class KexDH:  # pragma: nocover
     # contains the host key, among other things.  Function returns the host
     # key blob (from which the fingerprint can be calculated).
     def recv_reply(self, s: 'SSH_Socket', parse_host_key_size: bool = True) -> Optional[bytes]:
-        # Reset the CA info, in case it was set from a prior invokation.
+        # Reset the CA info, in case it was set from a prior invocation.
         self.__hostkey_type = ''
         self.__hostkey_e = 0  # pylint: disable=unused-private-member
         self.__hostkey_n = 0  # pylint: disable=unused-private-member
@@ -100,7 +100,7 @@ class KexDH:  # pragma: nocover
             # A connection error occurred.  We can't parse anything, so just
             # return.  The host key modulus (and perhaps certificate modulus)
             # will remain at length 0.
-            self.out.d("KexDH.recv_reply(): received packge_type == -1.")
+            self.out.d("KexDH.recv_reply(): received package_type == -1.")
             return None
 
         # Get the host key blob, F, and signature.
