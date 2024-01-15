@@ -419,11 +419,11 @@ macs = %s
             hostkey_types = list(self._hostkey_sizes.keys())
             hostkey_types.sort()  # Sorted to make testing output repeatable.
             for hostkey_type in hostkey_types:
-                expected_hostkey_size = self._hostkey_sizes[hostkey_type]['hostkey_size']
+                expected_hostkey_size = cast(int, self._hostkey_sizes[hostkey_type]['hostkey_size'])
                 server_host_keys = kex.host_keys()
                 if hostkey_type in server_host_keys:
-                    actual_hostkey_size = server_host_keys[hostkey_type]['hostkey_size']
-                    if actual_hostkey_size != expected_hostkey_size:
+                    actual_hostkey_size = cast(int, server_host_keys[hostkey_type]['hostkey_size'])
+                    if actual_hostkey_size < expected_hostkey_size:
                         ret = False
                         self._append_error(errors, 'Host key (%s) sizes' % hostkey_type, [str(expected_hostkey_size)], None, [str(actual_hostkey_size)])
 
@@ -439,7 +439,7 @@ macs = %s
                             ret = False
                             self._append_error(errors, 'CA signature type', [expected_ca_key_type], None, [actual_ca_key_type])
                         # Ensure that the actual and expected signature sizes match.
-                        elif actual_ca_key_size != expected_ca_key_size:
+                        elif actual_ca_key_size < expected_ca_key_size:
                             ret = False
                             self._append_error(errors, 'CA signature size (%s)' % actual_ca_key_type, [str(expected_ca_key_size)], None, [str(actual_ca_key_size)])
 
@@ -462,7 +462,7 @@ macs = %s
                 expected_dh_modulus_size = self._dh_modulus_sizes[dh_modulus_type]
                 if dh_modulus_type in kex.dh_modulus_sizes():
                     actual_dh_modulus_size = kex.dh_modulus_sizes()[dh_modulus_type]
-                    if expected_dh_modulus_size != actual_dh_modulus_size:
+                    if expected_dh_modulus_size > actual_dh_modulus_size:
                         ret = False
                         self._append_error(errors, 'Group exchange (%s) modulus sizes' % dh_modulus_type, [str(expected_dh_modulus_size)], None, [str(actual_dh_modulus_size)])
 
