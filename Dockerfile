@@ -1,21 +1,13 @@
-FROM python:3-slim
-
-WORKDIR /
-
-# Update the image to remediate any vulnerabilities.
-RUN apt clean && apt update && apt -y dist-upgrade && apt clean && rm -rf /var/lib/apt/lists/*
-
-# Remove suid & sgid bits from all files.
-RUN find / -xdev -perm /6000 -exec chmod ug-s {} \; 2> /dev/null || true
-
+#syntax=docker/dockerfile:1.6.0
+FROM scratch AS tmp
 # Copy the ssh-audit code.
-COPY ssh-audit.py .
-COPY src/ .
+COPY ssh-audit.py /home/nonroot/
+COPY src/ /home/nonroot/
 
+FROM cgr.dev/chainguard/python:latest AS runtime
+# Copy files collected in tmp container
+COPY --from=tmp --chown=nonroot:nonroot /home/nonroot/ /home/nonroot/
 # Allow listening on 2222/tcp for client auditing.
 EXPOSE 2222
 
-# Drop root privileges.
-USER nobody:nogroup
-
-ENTRYPOINT ["python3", "/ssh-audit.py"]
+ENTRYPOINT ["python3", "/home/nonroot/ssh-audit.py"]
