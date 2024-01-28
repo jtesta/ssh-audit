@@ -106,7 +106,8 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     uout.info('        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without\n                                    connecting to a server')
     uout.info('   -M,  --make-policy=<policy.txt>  creates a policy based on the target server\n                                    (i.e.: the target server has the ideal\n                                    configuration that other servers should\n                                    adhere to)')
     uout.info('   -m,  --manual           print the man page (Windows only)')
-    uout.info('   -n,  --no-colors        disable colors')
+    uout.info('   -n,  --no-colors        disable colors (automatic when the NO_COLOR')
+    uout.info('                                  environment variable is set)')
     uout.info('   -p,  --port=<port>      port to connect')
     uout.info('   -P,  --policy=<policy.txt>  run a policy test using the specified policy')
     uout.info('   -t,  --timeout=<secs>   timeout (in seconds) for connection and reading\n                               (default: 5)')
@@ -858,6 +859,11 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     aconf = AuditConf()
 
     enable_colors = not any(i in args for i in ['--no-colors', '-n'])
+
+    # Disable colors if the NO_COLOR environment variable is set.
+    if "NO_COLOR" in os.environ:
+        enable_colors = False
+
     aconf.colors = enable_colors
     out.use_colors = enable_colors
 
