@@ -814,6 +814,7 @@ def list_policies(out: OutputBuffer) -> None:
         out.fail("Error: no built-in policies found!")
     else:
         out.info("\nHint: Use -P and provide the full name of a policy to run a policy scan with.\n")
+        out.info("Note: the general OpenSSH policies apply to the official releases only. OS distributions may back-port changes that cause failures (for example, Debian 11 back-ported the strict KEX mode into their package of OpenSSH v8.4, whereas it was only officially added to OpenSSH v9.6 and later).  In these cases, consider creating a custom policy (-M option).\n")
     out.write()
 
 
