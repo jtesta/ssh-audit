@@ -3,7 +3,7 @@
 #
 #   The MIT License (MIT)
 #
-#   Copyright (C) 2021 Joe Testa (jtesta@positronsecurity.com)
+#   Copyright (C) 2021-2024 Joe Testa (jtesta@positronsecurity.com)
 #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy
 #   of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,9 @@ sudo lxd init --auto
 rm -rf parts/ prime/ snap/ stage/ build/ dist/ src/*.egg-info/ ssh-audit*.snap
 git checkout snapcraft.yaml 2> /dev/null
 git checkout src/ssh_audit/globals.py 2> /dev/null
+
+# Add the built-in manual page.
+./add_builtin_man_page.sh
 
 # Get the version from the globals.py file.
 version=$(grep VERSION src/ssh_audit/globals.py | awk 'BEGIN {FS="="} ; {print $2}' | tr -d '[:space:]')

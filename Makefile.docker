@@ -4,6 +4,7 @@ ifeq ($(VERSION),)
 endif
 
 all:
+	./add_builtin_man_page.sh
 	docker buildx create --name multiarch --use || exit 0
 	docker buildx build \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \

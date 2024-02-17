@@ -30,8 +30,8 @@ SSH_HEADER = 'SSH-{0}-OpenSSH_8.2'
 # The URL to the Github issues tracker.
 GITHUB_ISSUES_URL = 'https://github.com/jtesta/ssh-audit/issues'
 
-# The man page.  Only filled in on Windows systems.
-WINDOWS_MAN_PAGE = ''
+# The man page.  Only filled in on Docker, PyPI, Snap, and Windows builds.
+BUILTIN_MAN_PAGE = ''
 
 # True when installed from a Snap package, otherwise False.
 SNAP_PACKAGE = False

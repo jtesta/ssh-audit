@@ -3,7 +3,7 @@
 #
 #   The MIT License (MIT)
 #
-#   Copyright (C) 2021 Joe Testa (jtesta@positronsecurity.com)
+#   Copyright (C) 2021-2024 Joe Testa (jtesta@positronsecurity.com)
 #   Copyright (C) 2021 Adam Russell (<adam[at]thecliguy[dot]co[dot]uk>)
 #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -26,22 +26,21 @@
 #
 
 ################################################################################
-# update_windows_man_page.sh
+# add_builtin_man_page.sh
 #
 # PURPOSE
-#   Since Windows lacks a manual reader it's necessary to provide an alternative
-#   means of reading the man page.
+#   Since some platforms lack a manual reader it's necessary to provide an
+#   alternative means of reading the man page.
 #
 #   This script should be run as part of the ssh-audit packaging process for
-#   Windows. It populates the 'WINDOWS_MAN_PAGE' variable in 'globals.py' with
-#   the contents of the man page. Windows users can then print the content of
-#   'WINDOWS_MAN_PAGE' by invoking ssh-audit with the manual parameters
-#   (--manual / -m).
+#   Docker, PyPI, Snap, and Windows. It populates the 'BUILTIN_MAN_PAGE'
+#   variable in 'globals.py' with the contents of the man page. Users can then
+#   see the man page with "ssh-audit [--manual|-m]".
 #
-#   Cygwin is required.
+#   Linux or Cygwin is required to run this script.
 #
 # USAGE
-#   update_windows_man_page.sh [-m <path-to-man-page>] [-g <path-to-globals.py>]
+#   add_builtin_man_page.sh [-m <path-to-man-page>] [-g <path-to-globals.py>]
 #
 ################################################################################
 
@@ -102,7 +101,7 @@ command -v sed >/dev/null 2>&1 || { echo >&2 "sed not found."; exit 1; }
 git checkout "${GLOBALS_PY}" > /dev/null 2>&1
 
 # Remove the Windows man page placeholder from 'globals.py'.
-sed -i '/^WINDOWS_MAN_PAGE/d' "${GLOBALS_PY}"
+sed -i '/^BUILTIN_MAN_PAGE/d' "${GLOBALS_PY}"
 
 echo "Processing man page at ${MAN_PAGE} and placing output into ${GLOBALS_PY}..."
 
@@ -116,7 +115,7 @@ echo "Processing man page at ${MAN_PAGE} and placing output into ${GLOBALS_PY}..
 #     escape sequence. Not required under Cygwin because man outputs ANSI escape
 #     codes automatically.
 
-echo WINDOWS_MAN_PAGE = '"""' >> "${GLOBALS_PY}"
+echo BUILTIN_MAN_PAGE = '"""' >> "${GLOBALS_PY}"
 
 if [[ "${PLATFORM}" == CYGWIN* ]]; then
     MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "${MAN_PAGE}" | sed $'s/\u2010/-/g' >> "${GLOBALS_PY}"

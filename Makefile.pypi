@@ -1,4 +1,5 @@
 all:
+	./add_builtin_man_page.sh
 	rm -rf /tmp/pypi_upload
 	virtualenv -p /usr/bin/python3 /tmp/pypi_upload/
 	cp -R src /tmp/pypi_upload/

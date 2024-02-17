@@ -39,7 +39,7 @@ from typing import cast, Callable, Optional, Union, Any  # noqa: F401
 from ssh_audit.globals import SNAP_PACKAGE
 from ssh_audit.globals import SNAP_PERMISSIONS_ERROR
 from ssh_audit.globals import VERSION
-from ssh_audit.globals import WINDOWS_MAN_PAGE
+from ssh_audit.globals import BUILTIN_MAN_PAGE
 from ssh_audit.algorithm import Algorithm
 from ssh_audit.algorithms import Algorithms
 from ssh_audit.auditconf import AuditConf
@@ -1416,23 +1416,21 @@ def target_worker_thread(host: str, port: int, shared_aconf: AuditConf) -> Tuple
     return ret, string_output
 
 
-def windows_manual(out: OutputBuffer) -> int:
-    '''Prints the man page on Windows.  Returns an exitcodes.* flag.'''
+def builtin_manual(out: OutputBuffer) -> int:
+    '''Prints the man page (Docker, PyPI, Snap, and Windows builds only).  Returns an exitcodes.* flag.'''
 
-    retval = exitcodes.GOOD
 
-    if sys.platform != 'win32':
-        out.fail("The '-m' and '--manual' parameters are reserved for use on Windows only.\nUsers of other operating systems should read the man page.")
-        retval = exitcodes.FAILURE
-        return retval
+    builtin_man_page = BUILTIN_MAN_PAGE
+    if builtin_man_page == "":
+        out.fail("The '-m' and '--manual' parameters are reserved for use in Docker, PyPI, Snap,\nand Windows builds only.  Users of other platforms should read the system man\npage.")
+        return exitcodes.FAILURE
 
     # If colors are disabled, strip the ANSI color codes from the man page.
-    windows_man_page = WINDOWS_MAN_PAGE
     if not out.use_colors:
-        windows_man_page = re.sub(r'\x1b\[\d+?m', '', windows_man_page)
+        builtin_man_page = re.sub(r'\x1b\[\d+?m', '', builtin_man_page)
 
-    out.info(windows_man_page)
-    return retval
+    out.info(builtin_man_page)
+    return exitcodes.GOOD
 
 
 def get_permitted_syntax_for_gex_test() -> Dict[str, str]:
@@ -1526,7 +1524,7 @@ def main() -> int:
         # to output a plain text version of the man page.
         if (sys.platform == 'win32') and ('colorama' not in sys.modules):
             out.use_colors = False
-        retval = windows_manual(out)
+        retval = builtin_manual(out)
         out.write()
         sys.exit(retval)
 
