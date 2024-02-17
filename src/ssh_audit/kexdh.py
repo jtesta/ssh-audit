@@ -212,6 +212,15 @@ class KexDH:  # pragma: nocover
                 # CA's modulus.  Bingo.
                 ca_key_n, ca_key_n_len, ptr = KexDH.__get_bytes(ca_key, ptr)  # pylint: disable=unused-variable
 
+                if ca_key_type.startswith("ecdsa-sha2-nistp") and ca_key_n_len > 0:
+                    self.out.d("Found ecdsa-sha2-nistp* CA key type.")
+
+                    # 0x04 signifies that this is an uncompressed public key (meaning that full X and Y values are provided in ca_key_n.
+                    if ca_key_n[0] == 4:
+                        ca_key_n_len = ca_key_n_len - 1  # Subtract the 0x04 byte.
+                        ca_key_n_len = int(ca_key_n_len / 2)  # Divide by 2 since the modulus is the size of either the X or Y value.
+
+
         else:
             self.out.d("Certificate type %u found; this is not usually valid in the context of a host key!  Skipping it..." % cert_type)
 
