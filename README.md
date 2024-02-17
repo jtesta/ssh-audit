@@ -57,7 +57,8 @@ usage: ssh-audit.py [options] <host>
    -L,  --list-policies    list all the official, built-in policies
         --lookup=<alg1,alg2,...>    looks up an algorithm(s) without
                                     connecting to a server
-   -m,  --manual           print the man page (Windows only)
+   -m,  --manual           print the man page (Docker, PyPI, Snap, and Windows
+                                    builds only)
    -M,  --make-policy=<policy.txt>  creates a policy based on the target server
                                     (i.e.: the target server has the ideal
                                     configuration that other servers should
