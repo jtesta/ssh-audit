@@ -187,6 +187,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Snap builds are now architecture-independent.
  - Gracefully handle rare exceptions (i.e.: crashes) while performing GEX tests.
  - Added built-in policy for OpenSSH 9.7.
+ - Changed Docker base image from `python:3-slim` to `python:3-alpine`, resulting in a 59% reduction in image size; credit [Daniel Thamdrup](https://github.com/dallemon).
 
 ### v3.1.0 (2023-12-20)
  - Added test for the Terrapin message prefix truncation vulnerability ([CVE-2023-48795](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-48795)).
