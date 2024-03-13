@@ -365,11 +365,8 @@ def output_recommendations(out: OutputBuffer, algs: Algorithms, algorithm_recomm
         for cve_list in VersionVulnerabilityDB.CVE['PuTTY']:
             vuln_version = float(cve_list[1])
             cvssv2_severity = cve_list[4]
-
-            if vuln_version > max_vuln_version:
-                max_vuln_version = vuln_version
-            if cvssv2_severity > max_cvssv2_severity:
-                max_cvssv2_severity = cvssv2_severity
+            max_vuln_version = max(vuln_version, max_vuln_version)
+            max_cvssv2_severity = max(cvssv2_severity, max_cvssv2_severity)
 
         fn = out.warn
         if max_cvssv2_severity > 8.0:
