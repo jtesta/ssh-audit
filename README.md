@@ -186,6 +186,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - The built-in man page (`-m`, `--manual`) is now available on Docker, PyPI, and Snap builds, in addition to the Windows build.
  - Snap builds are now architecture-independent.
  - Gracefully handle rare exceptions (i.e.: crashes) while performing GEX tests.
+ - Added built-in policy for OpenSSH 9.7.
 
 ### v3.1.0 (2023-12-20)
  - Added test for the Terrapin message prefix truncation vulnerability ([CVE-2023-48795](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-48795)).
