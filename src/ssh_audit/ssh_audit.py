@@ -102,7 +102,8 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     uout.info('                   <x-y[:step]>')
     uout.info('   -j,  --json             JSON output (use -jj to enable indents)')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
-    uout.info('   -L,  --list-policies    list all the official, built-in policies')
+    uout.info('   -L,  --list-policies    list all the official, built-in policies. Use with -v')
+    uout.info('                               to view policy change logs.')
     uout.info('        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without\n                                    connecting to a server')
     uout.info('   -M,  --make-policy=<policy.txt>  creates a policy based on the target server\n                                    (i.e.: the target server has the ideal\n                                    configuration that other servers should\n                                    adhere to)')
     uout.info('   -m,  --manual           print the man page (Windows only)')
@@ -794,10 +795,10 @@ def get_algorithm_recommendations(algs: Optional[Algorithms], algorithm_recommen
     return ret
 
 
-def list_policies(out: OutputBuffer) -> None:
+def list_policies(out: OutputBuffer, verbose: bool) -> None:
     '''Prints a list of server & client policies.'''
 
-    server_policy_names, client_policy_names = Policy.list_builtin_policies()
+    server_policy_names, client_policy_names = Policy.list_builtin_policies(verbose)
 
     if len(server_policy_names) > 0:
         out.head('\nServer policies:\n')
@@ -812,6 +813,7 @@ def list_policies(out: OutputBuffer) -> None:
         out.fail("Error: no built-in policies found!")
     else:
         out.info("\nHint: Use -P and provide the full name of a policy to run a policy scan with.\n")
+        out.info("Hint: Use -L -v to also see the change log for each policy.\n")
         out.info("Note: the general OpenSSH policies apply to the official releases only. OS distributions may back-port changes that cause failures (for example, Debian 11 back-ported the strict KEX mode into their package of OpenSSH v8.4, whereas it was only officially added to OpenSSH v9.6 and later).  In these cases, consider creating a custom policy (-M option).\n")
     out.write()
 
@@ -966,7 +968,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
         return aconf
 
     if aconf.list_policies:
-        list_policies(out)
+        list_policies(out, aconf.verbose)
         sys.exit(exitcodes.GOOD)
 
     if aconf.client_audit is False and aconf.target_file is None:

@@ -438,20 +438,24 @@ macs = %s
 
 
     @staticmethod
-    def list_builtin_policies() -> Tuple[List[str], List[str]]:
+    def list_builtin_policies(verbose: bool) -> Tuple[List[str], List[str]]:
         '''Returns two lists: a list of names of built-in server policies, and a list of names of built-in client policies, respectively.'''
-        server_policy_names = []
-        client_policy_names = []
+        server_policy_descriptions = []
+        client_policy_descriptions = []
 
         for policy_name, policy in BUILTIN_POLICIES.items():
-            if policy['server_policy']:
-                server_policy_names.append(policy_name)
-            else:
-                client_policy_names.append(policy_name)
+            policy_description = policy_name
+            if verbose:
+                policy_description = "{:s}: {:s}".format(policy_name, policy['changelog'])
 
-        server_policy_names.sort()
-        client_policy_names.sort()
-        return server_policy_names, client_policy_names
+            if policy['server_policy']:
+                server_policy_descriptions.append(policy_description)
+            else:
+                client_policy_descriptions.append(policy_description)
+
+        server_policy_descriptions.sort()
+        client_policy_descriptions.sort()
+        return server_policy_descriptions, client_policy_descriptions
 
 
     @staticmethod

@@ -54,7 +54,8 @@ usage: ssh-audit.py [options] <host>
                    <x-y[:step]>
    -j,  --json             JSON output (use -jj to enable indents)
    -l,  --level=<level>    minimum output level (info|warn|fail)
-   -L,  --list-policies    list all the official, built-in policies
+   -L,  --list-policies    list all the official, built-in policies. Use with -v
+                               to view policy change logs.
         --lookup=<alg1,alg2,...>    looks up an algorithm(s) without
                                     connecting to a server
    -m,  --manual           print the man page (Docker, PyPI, Snap, and Windows
@@ -188,6 +189,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Gracefully handle rare exceptions (i.e.: crashes) while performing GEX tests.
  - Added built-in policy for OpenSSH 9.7.
  - Changed Docker base image from `python:3-slim` to `python:3-alpine`, resulting in a 59% reduction in image size; credit [Daniel Thamdrup](https://github.com/dallemon).
+ - Built-in policies now include a change log (use `-L -v` to view them).
  - Added 1 new key exchange algorithm: `gss-nistp384-sha384-*`.
 
 ### v3.1.0 (2023-12-20)

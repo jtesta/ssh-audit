@@ -42,17 +42,22 @@ class TestPolicy:
         '''Ensure that the BUILTIN_POLICIES struct is consistent.'''
 
         for policy_name in BUILTIN_POLICIES:
+
+            # Ensure that all required fields are present.
+            required_fields = ['version', 'changelog', 'banner', 'compressions', 'host_keys', 'optional_host_keys', 'kex', 'ciphers', 'macs', 'hostkey_sizes', 'dh_modulus_sizes', 'server_policy']
+            for field in required_fields:
+                assert field in BUILTIN_POLICIES[policy_name]
+
             # Ensure that the policy name ends with " (version X)", where X is the 'version' field.
             version_str = " (version %s)" % BUILTIN_POLICIES[policy_name]['version']
             assert policy_name.endswith(version_str)
 
-            # Ensure that all required fields are present.
-            required_fields = ['version', 'banner', 'compressions', 'host_keys', 'optional_host_keys', 'kex', 'ciphers', 'macs', 'hostkey_sizes', 'dh_modulus_sizes', 'server_policy']
-            for field in required_fields:
-                assert field in BUILTIN_POLICIES[policy_name]
-
             # Ensure no extra fields are present.
             assert len(required_fields) == len(BUILTIN_POLICIES[policy_name])
+
+            # Ensure that the changelog field is a string and non-empty.
+            assert type(BUILTIN_POLICIES[policy_name]['changelog']) is str
+            assert len(BUILTIN_POLICIES[policy_name]['changelog']) > 0
 
             # Ensure that at least one host key is defined.
             assert type(BUILTIN_POLICIES[policy_name]['host_keys']) is list
@@ -126,7 +131,7 @@ class TestPolicy:
             assert Policy.load_builtin_policy(policy_name) is not None
 
         # Ensure that both server and client policy names are returned.
-        server_policy_names, client_policy_names = Policy.list_builtin_policies()
+        server_policy_names, client_policy_names = Policy.list_builtin_policies(False)
         assert len(server_policy_names) > 0
         assert len(client_policy_names) > 0
 
