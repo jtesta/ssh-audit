@@ -802,11 +802,11 @@ def list_policies(out: OutputBuffer, verbose: bool) -> None:
 
     if len(server_policy_names) > 0:
         out.head('\nServer policies:\n')
-        out.info("  * \"%s\"" % "\"\n  * \"".join(server_policy_names))
+        out.info("  * %s" % "\n  * ".join(server_policy_names))
 
     if len(client_policy_names) > 0:
         out.head('\nClient policies:\n')
-        out.info("  * \"%s\"" % "\"\n  * \"".join(client_policy_names))
+        out.info("  * %s" % "\n  * ".join(client_policy_names))
 
     out.sep()
     if len(server_policy_names) == 0 and len(client_policy_names) == 0:

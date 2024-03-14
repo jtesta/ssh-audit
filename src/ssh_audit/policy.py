@@ -444,9 +444,11 @@ macs = %s
         client_policy_descriptions = []
 
         for policy_name, policy in BUILTIN_POLICIES.items():
-            policy_description = policy_name
+            policy_description = ""
             if verbose:
-                policy_description = "{:s}: {:s}".format(policy_name, policy['changelog'])
+                policy_description = "\"{:s}\": {:s}".format(policy_name, policy['changelog'])
+            else:
+                policy_description = "\"{:s}\"".format(policy_name)
 
             if policy['server_policy']:
                 server_policy_descriptions.append(policy_description)
