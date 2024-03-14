@@ -2,6 +2,7 @@ import hashlib
 import pytest
 from datetime import date
 
+from ssh_audit.builtin_policies import BUILTIN_POLICIES
 from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.policy import Policy
 from ssh_audit.ssh2_kex import SSH2_Kex
@@ -40,43 +41,43 @@ class TestPolicy:
     def test_builtin_policy_consistency(self):
         '''Ensure that the BUILTIN_POLICIES struct is consistent.'''
 
-        for policy_name in Policy.BUILTIN_POLICIES:
+        for policy_name in BUILTIN_POLICIES:
             # Ensure that the policy name ends with " (version X)", where X is the 'version' field.
-            version_str = " (version %s)" % Policy.BUILTIN_POLICIES[policy_name]['version']
+            version_str = " (version %s)" % BUILTIN_POLICIES[policy_name]['version']
             assert policy_name.endswith(version_str)
 
             # Ensure that all required fields are present.
             required_fields = ['version', 'banner', 'compressions', 'host_keys', 'optional_host_keys', 'kex', 'ciphers', 'macs', 'hostkey_sizes', 'dh_modulus_sizes', 'server_policy']
             for field in required_fields:
-                assert field in Policy.BUILTIN_POLICIES[policy_name]
+                assert field in BUILTIN_POLICIES[policy_name]
 
             # Ensure no extra fields are present.
-            assert len(required_fields) == len(Policy.BUILTIN_POLICIES[policy_name])
+            assert len(required_fields) == len(BUILTIN_POLICIES[policy_name])
 
             # Ensure that at least one host key is defined.
-            assert type(Policy.BUILTIN_POLICIES[policy_name]['host_keys']) is list
-            assert len(Policy.BUILTIN_POLICIES[policy_name]['host_keys']) > 0
+            assert type(BUILTIN_POLICIES[policy_name]['host_keys']) is list
+            assert len(BUILTIN_POLICIES[policy_name]['host_keys']) > 0
 
             # Ensure that at least one key exchange is defined.
-            assert type(Policy.BUILTIN_POLICIES[policy_name]['kex']) is list
-            assert len(Policy.BUILTIN_POLICIES[policy_name]['kex']) > 0
+            assert type(BUILTIN_POLICIES[policy_name]['kex']) is list
+            assert len(BUILTIN_POLICIES[policy_name]['kex']) > 0
 
             # Ensure that at least one cipher is defined.
-            assert type(Policy.BUILTIN_POLICIES[policy_name]['ciphers']) is list
-            assert len(Policy.BUILTIN_POLICIES[policy_name]['ciphers']) > 0
+            assert type(BUILTIN_POLICIES[policy_name]['ciphers']) is list
+            assert len(BUILTIN_POLICIES[policy_name]['ciphers']) > 0
 
             # Ensure that at least one MAC is defined
-            assert type(Policy.BUILTIN_POLICIES[policy_name]['macs']) is list
-            assert len(Policy.BUILTIN_POLICIES[policy_name]['macs']) > 0
+            assert type(BUILTIN_POLICIES[policy_name]['macs']) is list
+            assert len(BUILTIN_POLICIES[policy_name]['macs']) > 0
 
             # These tests apply to server policies only.
-            if Policy.BUILTIN_POLICIES[policy_name]['server_policy']:
-                assert type(Policy.BUILTIN_POLICIES[policy_name]['hostkey_sizes']) is dict
-                assert len(Policy.BUILTIN_POLICIES[policy_name]['hostkey_sizes']) > 0
+            if BUILTIN_POLICIES[policy_name]['server_policy']:
+                assert type(BUILTIN_POLICIES[policy_name]['hostkey_sizes']) is dict
+                assert len(BUILTIN_POLICIES[policy_name]['hostkey_sizes']) > 0
 
                 # Examine all the hostkey_sizes entries...
-                for hostkey_type in Policy.BUILTIN_POLICIES[policy_name]['hostkey_sizes']:
-                    hostkey_data = Policy.BUILTIN_POLICIES[policy_name]['hostkey_sizes'][hostkey_type]
+                for hostkey_type in BUILTIN_POLICIES[policy_name]['hostkey_sizes']:
+                    hostkey_data = BUILTIN_POLICIES[policy_name]['hostkey_sizes'][hostkey_type]
 
                     # Ensure that 'hostkey_size' is always included and that it is an integer.
                     assert 'hostkey_size' in hostkey_data
@@ -105,21 +106,21 @@ class TestPolicy:
                             assert hostkey_data['ca_key_size'] == 256
 
                 # Ensure that the 'dh_modulus_size' field is a dict.
-                assert type(Policy.BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']) is dict
+                assert type(BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']) is dict
 
                 # The 'dh_modulus_size' field should have either one entry, or be empty.
-                assert len(Policy.BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']) in range(0, 2)  # The endpoint in range() is not inclusive
+                assert len(BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']) in range(0, 2)  # The endpoint in range() is not inclusive
 
                 # If 'diffie-hellman-group-exchange-sha256' is in the kex list, ensure that it exists in the 'dh_modulus_sizes' entry.  That entry must be defined for 2048 bits or larger.
-                if 'diffie-hellman-group-exchange-sha256' in Policy.BUILTIN_POLICIES[policy_name]['kex']:
-                    assert 'diffie-hellman-group-exchange-sha256' in Policy.BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']
-                    assert int(Policy.BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']['diffie-hellman-group-exchange-sha256']) >= 2048
+                if 'diffie-hellman-group-exchange-sha256' in BUILTIN_POLICIES[policy_name]['kex']:
+                    assert 'diffie-hellman-group-exchange-sha256' in BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']
+                    assert int(BUILTIN_POLICIES[policy_name]['dh_modulus_sizes']['diffie-hellman-group-exchange-sha256']) >= 2048
 
             else:  # Client-specific tests.
 
                 # These must be set to None for client policies, since they have no meaning otherwise.
-                assert Policy.BUILTIN_POLICIES[policy_name]['hostkey_sizes'] is None
-                assert Policy.BUILTIN_POLICIES[policy_name]['dh_modulus_sizes'] is None
+                assert BUILTIN_POLICIES[policy_name]['hostkey_sizes'] is None
+                assert BUILTIN_POLICIES[policy_name]['dh_modulus_sizes'] is None
 
             # Ensure that each built-in policy can be loaded with Policy.load_builtin_policy().
             assert Policy.load_builtin_policy(policy_name) is not None
