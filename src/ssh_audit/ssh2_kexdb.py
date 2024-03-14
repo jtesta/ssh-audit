@@ -176,6 +176,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'gss-group1-sha1-*': [[], [FAIL_1024BIT_MODULUS, FAIL_LOGJAM_ATTACK, FAIL_SHA1]],
             'gss-nistp256-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'gss-nistp384-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
+            'gss-nistp384-sha384-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'gss-nistp521-sha512-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'kexAlgoCurve25519SHA256': [[]],
             'kexAlgoDH14SHA1': [[], [FAIL_SHA1], [WARN_2048BIT_MODULUS]],
