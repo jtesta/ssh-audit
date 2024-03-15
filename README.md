@@ -190,6 +190,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added built-in policy for OpenSSH 9.7.
  - Changed Docker base image from `python:3-slim` to `python:3-alpine`, resulting in a 59% reduction in image size; credit [Daniel Thamdrup](https://github.com/dallemon).
  - Built-in policies now include a change log (use `-L -v` to view them).
+ - Added built-in policies for Amazon Linux 2023, Debian 12, and Rocky Linux 9.
  - Added 1 new key exchange algorithm: `gss-nistp384-sha384-*`.
 
 ### v3.1.0 (2023-12-20)
