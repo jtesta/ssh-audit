@@ -183,14 +183,13 @@ For convenience, a web front-end on top of the command-line tool is available at
 ### v3.2.0-dev (???)
  - Expanded filter of CBC ciphers to flag for the Terrapin vulnerability.  It now includes more rarely found ciphers.
  - Color output is disabled if the `NO_COLOR` environment variable is set (see https://no-color.org/).
- - Fixed parsing of ecdsa-sha2-nistp* CA signatures on host keys.  Additionally, they are now flagged as potentially back-doored, just as standard host keys are.
+ - Fixed parsing of `ecdsa-sha2-nistp*` CA signatures on host keys.  Additionally, they are now flagged as potentially back-doored, just as standard host keys are.
+ - Gracefully handle rare exceptions (i.e.: crashes) while performing GEX tests.
+ - Built-in policies now include a change log (use `-L -v` to view them).
+ - Added built-in policies for Amazon Linux 2023, Debian 12, OpenSSH 9.7, and Rocky Linux 9.
  - The built-in man page (`-m`, `--manual`) is now available on Docker, PyPI, and Snap builds, in addition to the Windows build.
  - Snap builds are now architecture-independent.
- - Gracefully handle rare exceptions (i.e.: crashes) while performing GEX tests.
- - Added built-in policy for OpenSSH 9.7.
  - Changed Docker base image from `python:3-slim` to `python:3-alpine`, resulting in a 59% reduction in image size; credit [Daniel Thamdrup](https://github.com/dallemon).
- - Built-in policies now include a change log (use `-L -v` to view them).
- - Added built-in policies for Amazon Linux 2023, Debian 12, and Rocky Linux 9.
  - Added 1 new key exchange algorithm: `gss-nistp384-sha384-*`.
 
 ### v3.1.0 (2023-12-20)
