@@ -12,9 +12,9 @@
 
 [0;36m# key exchange algorithms[0m
 [0;32m(kex) curve25519-sha256                     -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
-[0;32m                                            `- [info] default key exchange since OpenSSH 6.4[0m
+[0;32m                                            `- [info] default key exchange from OpenSSH 6.4 to 8.9[0m
 [0;32m(kex) curve25519-sha256@libssh.org          -- [info] available since OpenSSH 6.4, Dropbear SSH 2013.62[0m
-[0;32m                                            `- [info] default key exchange since OpenSSH 6.4[0m
+[0;32m                                            `- [info] default key exchange from OpenSSH 6.4 to 8.9[0m
 [0;32m(kex) diffie-hellman-group-exchange-sha256 (4096-bit) -- [info] available since OpenSSH 4.4[0m
 [0;32m                                                      `- [info] OpenSSH's GEX fallback mechanism was triggered during testing. Very old SSH clients will still be able to create connections using a 2048-bit modulus, though modern clients will use 4096. This can only be disabled by recompiling the code (see https://github.com/openssh/openssh-portable/blob/V_9_4/dh.c#L477).[0m
 

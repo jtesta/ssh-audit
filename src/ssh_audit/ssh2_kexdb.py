@@ -62,7 +62,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     WARN_TAG_SIZE_96 = 'using small 96-bit tag size'
 
     INFO_DEFAULT_OPENSSH_CIPHER = 'default cipher since OpenSSH 6.9'
-    INFO_DEFAULT_OPENSSH_KEX = 'default key exchange since OpenSSH 6.4'
+    INFO_DEFAULT_OPENSSH_KEX_64_TO_89 = 'default key exchange from OpenSSH 6.4 to 8.9'
+    INFO_DEFAULT_OPENSSH_KEX_90 = 'default key exchange since OpenSSH 9.0'
     INFO_DEPRECATED_IN_OPENSSH88 = 'deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8'
     INFO_DISABLED_IN_DBEAR67 = 'disabled in Dropbear SSH 2015.67'
     INFO_DISABLED_IN_OPENSSH70 = 'disabled in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
@@ -81,8 +82,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
         # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...], [info1, info2, ...]]
         'kex': {
             'Curve25519SHA256': [[]],
-            'curve25519-sha256': [['7.4,d2018.76'], [], [], [INFO_DEFAULT_OPENSSH_KEX]],
-            'curve25519-sha256@libssh.org': [['6.4,d2013.62,l10.6.0'], [], [], [INFO_DEFAULT_OPENSSH_KEX]],
+            'curve25519-sha256': [['7.4,d2018.76'], [], [], [INFO_DEFAULT_OPENSSH_KEX_64_TO_89]],
+            'curve25519-sha256@libssh.org': [['6.4,d2013.62,l10.6.0'], [], [], [INFO_DEFAULT_OPENSSH_KEX_64_TO_89]],
             'curve448-sha512': [[]],
             'curve448-sha512@libssh.org': [[]],
             'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [FAIL_SHA1], [WARN_2048BIT_MODULUS]],
@@ -191,7 +192,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'rsa2048-sha256': [[], [], [WARN_2048BIT_MODULUS]],
             'sm2kep-sha2-nistp256': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_UNTRUSTED]],
             'sntrup4591761x25519-sha512@tinyssh.org': [['8.0', '8.4'], [], [WARN_EXPERIMENTAL], [INFO_WITHDRAWN_PQ_ALG]],
-            'sntrup761x25519-sha512@openssh.com': [['8.5'], [], []],
+            'sntrup761x25519-sha512@openssh.com': [['8.5'], [], [], [INFO_DEFAULT_OPENSSH_KEX_90]],
             'x25519-kyber-512r3-sha256-d00@amazon.com': [[]],
             'x25519-kyber512-sha512@aws.amazon.com': [[]],
         },

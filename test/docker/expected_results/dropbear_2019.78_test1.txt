@@ -6,9 +6,9 @@
 
 [0;36m# key exchange algorithms[0m
 [0;32m(kex) curve25519-sha256              -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
-[0;32m                                     `- [info] default key exchange since OpenSSH 6.4[0m
+[0;32m                                     `- [info] default key exchange from OpenSSH 6.4 to 8.9[0m
 [0;32m(kex) curve25519-sha256@libssh.org   -- [info] available since OpenSSH 6.4, Dropbear SSH 2013.62[0m
-[0;32m                                     `- [info] default key exchange since OpenSSH 6.4[0m
+[0;32m                                     `- [info] default key exchange from OpenSSH 6.4 to 8.9[0m
 [0;31m(kex) ecdh-sha2-nistp521             -- [fail] using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency[0m
                                      `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
 [0;31m(kex) ecdh-sha2-nistp384             -- [fail] using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency[0m

@@ -43,7 +43,7 @@
             "algorithm": "curve25519-sha256",
             "notes": {
                 "info": [
-                    "default key exchange since OpenSSH 6.4",
+                    "default key exchange from OpenSSH 6.4 to 8.9",
                     "available since OpenSSH 7.4, Dropbear SSH 2018.76"
                 ]
             }
@@ -52,7 +52,7 @@
             "algorithm": "curve25519-sha256@libssh.org",
             "notes": {
                 "info": [
-                    "default key exchange since OpenSSH 6.4",
+                    "default key exchange from OpenSSH 6.4 to 8.9",
                     "available since OpenSSH 6.4, Dropbear SSH 2013.62"
                 ]
             }
