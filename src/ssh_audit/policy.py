@@ -431,7 +431,7 @@ macs = %s
                     actual_dh_modulus_size = kex.dh_modulus_sizes()[dh_modulus_type]
                     if expected_dh_modulus_size != actual_dh_modulus_size:
                         ret = False
-                        self._append_error(errors, 'Group exchange (%s) modulus sizes' % dh_modulus_type, [str(expected_dh_modulus_size)], [str(actual_dh_modulus_size)])
+                        self._append_error(errors, 'Group exchange (%s) modulus sizes' % dh_modulus_type, [str(expected_dh_modulus_size)], None, [str(actual_dh_modulus_size)])
 
         return ret, errors, self._get_error_str(errors, self._allow_algorithm_subset_and_reordering)
 
