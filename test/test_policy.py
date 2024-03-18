@@ -150,7 +150,7 @@ ciphers = cipher_alg1, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        assert str(policy) == "Name: [Test Policy]\nVersion: [1]\nBanner: {undefined}\nCompressions: comp_alg1\nHost Keys: key_alg1\nOptional Host Keys: {undefined}\nKey Exchanges: kex_alg1, kex_alg2\nCiphers: cipher_alg1, cipher_alg2, cipher_alg3\nMACs: mac_alg1, mac_alg2, mac_alg3\nHost Key Sizes: {undefined}\nDH Modulus Sizes: {undefined}\nServer Policy: True"
+        assert str(policy) == "Name: [Test Policy]\nVersion: [1]\nAllow Algorithm Subset and/or Reordering: False\nBanner: {undefined}\nCompressions: comp_alg1\nHost Keys: key_alg1\nOptional Host Keys: {undefined}\nKey Exchanges: kex_alg1, kex_alg2\nCiphers: cipher_alg1, cipher_alg2, cipher_alg3\nMACs: mac_alg1, mac_alg2, mac_alg3\nHost Key Sizes: {undefined}\nDH Modulus Sizes: {undefined}\nServer Policy: True"
 
 
     def test_policy_invalid_1(self):
@@ -297,7 +297,7 @@ macs = mac_alg1, mac_alg2, mac_alg3'''
         pol_data = pol_data.replace(date.today().strftime('%Y/%m/%d'), '[todays date]')
 
         # Instead of writing out the entire expected policy--line by line--just check that it has the expected hash.
-        assert hashlib.sha256(pol_data.encode('ascii')).hexdigest() == '4af7777fb57a1dad0cf438c899a11d4f625fd9276ea3bb5ef5c9fe8806cb47dc'
+        assert hashlib.sha256(pol_data.encode('ascii')).hexdigest() == '4b504b799f6b964a20ccbe8af7edd26c7b5f0e0b98070e754ea41dccdace33b4'
 
 
     def test_policy_evaluate_passing_1(self):
@@ -440,3 +440,96 @@ macs = mac_alg1, mac_alg2, XXXmismatchedXXX, mac_alg3'''
         assert len(errors) == 2
         assert error_str.find('Host keys did not match.') != -1
         assert error_str.find('MACs did not match.') != -1
+
+
+    def test_policy_evaluate_subset_passing_1(self):
+        '''Ensure that exact algorithm matches work even when subset parsing is enabled.'''
+
+        policy_data = '''name = "Test Policy"
+version = 1
+allow_algorithm_subset_and_reordering = true
+compressions = comp_alg1, comp_alg2
+host keys = key_alg1, key_alg2
+key exchanges = kex_alg1, kex_alg2
+ciphers = cipher_alg1, cipher_alg2, cipher_alg3
+macs = mac_alg1, mac_alg2, mac_alg3'''
+        policy = self.Policy(policy_data=policy_data)
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
+        assert ret is True
+        assert len(errors) == 0
+        assert error_str == ""
+
+
+    def test_policy_evaluate_subset_passing_2(self):
+        '''Ensure that subset parsing works.'''
+
+        policy_data = '''name = "Test Policy"
+version = 1
+allow_algorithm_subset_and_reordering = true
+compressions = comp_alg1, comp_alg2
+host keys = key_alg2, key_alg1, key_alg0
+key exchanges = kex_alg3, kex_alg1, kex_alg2
+ciphers = cipher_alg0, cipher_alg3, cipher_alg2, cipher_alg1
+macs = mac_alg2, mac_alg1, mac_alg3, mac_alg0'''
+        policy = self.Policy(policy_data=policy_data)
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
+        assert ret is True
+        assert len(errors) == 0
+        assert error_str == ""
+
+
+    def test_policy_evaluate_subset_failing_1(self):
+        '''Ensure that subset parsing returns a failure.'''
+
+        policy_data = '''name = "Test Policy"
+version = 1
+allow_algorithm_subset_and_reordering = true
+compressions = comp_alg1, comp_alg2
+host keys = key_alg7, key_alg8, key_alg9
+key exchanges = kex_alg7, kex_alg8, kex_alg9
+ciphers = cipher_alg7, cipher_alg8, cipher_alg9, cipher_alg10
+macs = mac_alg7, mac_alg8, mac_alg9, mac_alg10'''
+        policy = self.Policy(policy_data=policy_data)
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
+        assert ret is False
+        assert len(errors) == 4
+        assert error_str.find("Ciphers did not match.") != -1
+        assert error_str.find("Host keys did not match.") != -1
+        assert error_str.find("MACs did not match") != -1
+        assert error_str.find("Key exchanges did not match.") != -1
+
+
+    def test_policy_evaluate_subset_failing_2(self):
+        '''Ensure that subset parsing returns a failure when policy includes kex-strict-s-v00@openssh.com, but target does not.'''
+
+        policy_data = '''name = "Test Policy"
+version = 1
+allow_algorithm_subset_and_reordering = true
+compressions = comp_alg1, comp_alg2
+host keys = key_alg2, key_alg1, key_alg0
+key exchanges = kex_alg3, kex_alg1, kex_alg2, kex-strict-s-v00@openssh.com
+ciphers = cipher_alg0, cipher_alg3, cipher_alg2, cipher_alg1
+macs = mac_alg2, mac_alg1, mac_alg3, mac_alg0'''
+        policy = self.Policy(policy_data=policy_data)
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
+        assert ret is False
+        assert len(errors) == 1
+        assert error_str.find("Key exchanges did not match.") != -1
+
+
+    def test_policy_evaluate_subset_failing_3(self):
+        '''Ensure that subset parsing returns a failure when policy includes kex-strict-c-v00@openssh.com, but target does not.'''
+
+        policy_data = '''name = "Test Policy"
+version = 1
+allow_algorithm_subset_and_reordering = true
+compressions = comp_alg1, comp_alg2
+host keys = key_alg2, key_alg1, key_alg0
+key exchanges = kex_alg3, kex_alg1, kex_alg2, kex-strict-c-v00@openssh.com
+ciphers = cipher_alg0, cipher_alg3, cipher_alg2, cipher_alg1
+macs = mac_alg2, mac_alg1, mac_alg3, mac_alg0'''
+        policy = self.Policy(policy_data=policy_data)
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
+        assert ret is False
+        assert len(errors) == 1
+        assert error_str.find("Key exchanges did not match.") != -1

@@ -784,6 +784,12 @@ run_custom_policy_test "config2" "test13" "${PROGRAM_RETVAL_GOOD}"
 # Failing test with DH modulus test.
 run_custom_policy_test "config2" "test14" "${PROGRAM_RETVAL_FAILURE}"
 
+# Passing test with algorithm subset matching.
+run_custom_policy_test "config2" "test15" "${PROGRAM_RETVAL_GOOD}"
+
+# Failing test with algorithm subset matching.
+run_custom_policy_test "config2" "test16" "${PROGRAM_RETVAL_FAILURE}"
+
 # Failing test for built-in OpenSSH 8.0p1 server policy (RSA host key size is 3072 instead of 4096).
 run_builtin_policy_test "Hardened OpenSSH Server v8.0 (version 4)" "8.0p1" "test1" "-o HostKeyAlgorithms=rsa-sha2-512,rsa-sha2-256,ssh-ed25519 -o KexAlgorithms=curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256 -o Ciphers=chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr -o MACs=hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com" "${PROGRAM_RETVAL_FAILURE}"
 

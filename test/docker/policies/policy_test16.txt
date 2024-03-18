@@ -1,0 +1,13 @@
+#
+# Docker policy: test16
+#
+
+name = "Docker policy: test16"
+version = 1
+allow_algorithm_subset_and_reordering = true
+banner = "SSH-2.0-OpenSSH_8.0"
+compressions = none, zlib@openssh.com
+host keys = rsa-sha2-512, extra_hostkey_alg
+key exchanges = curve25519-sha256, extra_kex_alg
+ciphers = chacha20-poly1305@openssh.com, extra_cipher_alg
+macs = umac-64-etm@openssh.com, extra_mac_alg
