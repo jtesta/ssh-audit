@@ -40,7 +40,7 @@
             "notes": {
                 "info": [
                     "default cipher since OpenSSH 6.9",
-                    "available since OpenSSH 6.5"
+                    "available since OpenSSH 6.5, Dropbear SSH 2020.79"
                 ],
                 "warn": [
                     "vulnerable to the Terrapin attack (CVE-2023-48795), allowing message prefix truncation"
@@ -135,7 +135,7 @@
             "algorithm": "ssh-ed25519",
             "notes": {
                 "info": [
-                    "available since OpenSSH 6.5"
+                    "available since OpenSSH 6.5, Dropbear SSH 2020.79"
                 ]
             }
         }

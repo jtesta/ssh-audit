@@ -1,6 +1,6 @@
 [0;36m# general[0m
 [0;32m(gen) software: TinySSH noversion[0m
-[0;32m(gen) compatibility: OpenSSH 8.0-8.4, Dropbear SSH 2018.76+[0m
+[0;32m(gen) compatibility: OpenSSH 8.0-8.4, Dropbear SSH 2020.79+[0m
 [0;32m(gen) compression: disabled[0m
 
 [0;36m# key exchange algorithms[0m
@@ -13,11 +13,11 @@
                                               `- [info] the sntrup4591761 algorithm was withdrawn, as it may not provide strong post-quantum security
 
 [0;36m# host-key algorithms[0m
-[0;32m(key) ssh-ed25519                             -- [info] available since OpenSSH 6.5[0m
+[0;32m(key) ssh-ed25519                             -- [info] available since OpenSSH 6.5, Dropbear SSH 2020.79[0m
 
 [0;36m# encryption algorithms (ciphers)[0m
 [0;33m(enc) chacha20-poly1305@openssh.com           -- [warn] vulnerable to the Terrapin attack (CVE-2023-48795), allowing message prefix truncation[0m
-                                              `- [info] available since OpenSSH 6.5
+                                              `- [info] available since OpenSSH 6.5, Dropbear SSH 2020.79
                                               `- [info] default cipher since OpenSSH 6.9
 
 [0;36m# message authentication code algorithms[0m
