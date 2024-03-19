@@ -55,6 +55,7 @@ class Policy:
         self._dh_modulus_sizes: Optional[Dict[str, int]] = None
         self._server_policy = True
         self._allow_algorithm_subset_and_reordering = False
+        self._allow_larger_keys = False
         self._errors: List[Any] = []
 
         self._name_and_version: str = ''
@@ -114,7 +115,7 @@ class Policy:
             key = key.strip()
             val = val.strip()
 
-            if key not in ['name', 'version', 'banner', 'compressions', 'host keys', 'optional host keys', 'key exchanges', 'ciphers', 'macs', 'client policy', 'host_key_sizes', 'dh_modulus_sizes', 'allow_algorithm_subset_and_reordering'] and not key.startswith('hostkey_size_') and not key.startswith('cakey_size_') and not key.startswith('dh_modulus_size_'):
+            if key not in ['name', 'version', 'banner', 'compressions', 'host keys', 'optional host keys', 'key exchanges', 'ciphers', 'macs', 'client policy', 'host_key_sizes', 'dh_modulus_sizes', 'allow_algorithm_subset_and_reordering', 'allow_larger_keys'] and not key.startswith('hostkey_size_') and not key.startswith('cakey_size_') and not key.startswith('dh_modulus_size_'):
                 raise ValueError("invalid field found in policy: %s" % line)
 
             if key in ['name', 'banner']:
@@ -209,6 +210,8 @@ class Policy:
                 self._server_policy = False
             elif key == 'allow_algorithm_subset_and_reordering' and val.lower() == 'true':
                 self._allow_algorithm_subset_and_reordering = True
+            elif key == 'allow_larger_keys' and val.lower() == 'true':
+                self._allow_larger_keys = True
 
         if self._name is None:
             raise ValueError('The policy does not have a name field.')
@@ -296,8 +299,11 @@ name = "Custom Policy (based on %s on %s)"
 # The version of this policy (displayed in the output during scans).  Not parsed, and may be any value, including strings.
 version = 1
 
-# When false, host keys, kex, ciphers, and MAC lists must match exactly.  When true, the target host may support a subset of the specified algorithms and/or algorithms may appear in a different order; this is useful for specifying a baseline and allowing some hosts the option to implement stricter controls.
+# When false, host keys, kex, ciphers, and MAC lists must match exactly.  When true, the target host may support a subset of the specified algorithms and/or algorithms may appear in a different order; this feature is useful for specifying a baseline and allowing some hosts the option to implement stricter controls.
 allow_algorithm_subset_and_reordering = false
+
+# When false, host keys, CA keys, and Diffie-Hellman key sizes must exactly match what's specified in this policy.  When true, target systems are allowed to have larger keys; this feature is useful for specifying a baseline and allowing some hosts the option to implement stricter controls.
+allow_larger_keys = false
 
 # The banner that must match exactly.  Commented out to ignore banners, since minor variability in the banner is sometimes normal.
 # banner = "%s"
@@ -371,7 +377,8 @@ macs = %s
                 server_host_keys = kex.host_keys()
                 if hostkey_type in server_host_keys:
                     actual_hostkey_size = cast(int, server_host_keys[hostkey_type]['hostkey_size'])
-                    if actual_hostkey_size < expected_hostkey_size:
+                    if (self._allow_larger_keys and actual_hostkey_size < expected_hostkey_size) or \
+                       (not self._allow_larger_keys and actual_hostkey_size != expected_hostkey_size):
                         ret = False
                         self._append_error('Host key (%s) sizes' % hostkey_type, [str(expected_hostkey_size)], None, [str(actual_hostkey_size)])
 
@@ -387,7 +394,8 @@ macs = %s
                             ret = False
                             self._append_error('CA signature type', [expected_ca_key_type], None, [actual_ca_key_type])
                         # Ensure that the actual and expected signature sizes match.
-                        elif actual_ca_key_size < expected_ca_key_size:
+                        elif (self._allow_larger_keys and actual_ca_key_size < expected_ca_key_size) or \
+                             (not self._allow_larger_keys and actual_ca_key_size != expected_ca_key_size):
                             ret = False
                             self._append_error('CA signature size (%s)' % actual_ca_key_type, [str(expected_ca_key_size)], None, [str(actual_ca_key_size)])
 
@@ -446,7 +454,8 @@ macs = %s
                 expected_dh_modulus_size = self._dh_modulus_sizes[dh_modulus_type]
                 if dh_modulus_type in kex.dh_modulus_sizes():
                     actual_dh_modulus_size = kex.dh_modulus_sizes()[dh_modulus_type]
-                    if expected_dh_modulus_size > actual_dh_modulus_size:
+                    if (self._allow_larger_keys and actual_dh_modulus_size < expected_dh_modulus_size) or \
+                       (not self._allow_larger_keys and actual_dh_modulus_size != expected_dh_modulus_size):
                         ret = False
                         self._append_error('Group exchange (%s) modulus sizes' % dh_modulus_type, [str(expected_dh_modulus_size)], None, [str(actual_dh_modulus_size)])
 
