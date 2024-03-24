@@ -137,13 +137,45 @@ class Algorithms:
         for alg_pair in self.values:
             sshv, alg_db = alg_pair.sshv, alg_pair.db
             rec[sshv] = {}
+            
             for alg_type, alg_list in alg_pair.items():
+                list_of_weights = []
                 if alg_type == 'aut':
                     continue
+                
+                # For each alg that is already enabled. Look up its assigned weighting.
+                # If it has a higher preference than current max or something more than current min
+                # add it to the list.
+                # Sort the list as we go to ensure largest numbers are furst
+                for alg_name_lst in alg_list:
+                    for alg_name_look, alg_desc_look in alg_db[alg_type].items():
+                        if str.lower(alg_name_look) == str.lower(alg_name_lst):
+                            lst_weight = alg_desc_look[4]
+                            lst_weight = int(lst_weight[0])
+                            if not list_of_weights:
+                                list_of_weights.insert(1, int(lst_weight))
+                            elif lst_weight > max(list_of_weights):
+                                list_of_weights.insert(1, int(lst_weight))
+                                list_of_weights.sort(key=int, reverse=True)
+
+                            elif lst_weight < max(list_of_weights) and lst_weight > min(list_of_weights):
+                                list_of_weights.insert(2, int(lst_weight))
+                                list_of_weights.sort(key=int, reverse=True)
+
+                # Keep the two largest weights per ALG TYPE
+                # Discard all others.
+                # Used below.
+                while len(list_of_weights) > 2:
+                    del list_of_weights[-1]
+
                 rec[sshv][alg_type] = {'add': {}, 'del': {}, 'chg': {}}
-                for n, alg_desc in alg_db[alg_type].items():
+
+                for alg_name, alg_desc in alg_db[alg_type].items():
                     versions = alg_desc[0]
                     empty_version = False
+                    sugg_weight = alg_desc[4]
+                    sugg_weight = int(sugg_weight[0])
+
                     if len(versions) == 0 or versions[0] is None:
                         empty_version = True
                     else:
@@ -161,9 +193,11 @@ class Algorithms:
                             if (software is not None) and (software.compare_version(ssh_version) < 0):
                                 continue
                             matches = True
+
                             break
                         if not matches:
                             continue
+                    
                     adl, faults = len(alg_desc), 0
                     for i in range(1, 3):
                         if not adl > i:
@@ -171,18 +205,28 @@ class Algorithms:
                         fc = len(alg_desc[i])
                         if fc > 0:
                             faults += pow(10, 2 - i) * fc
-                    if n not in alg_list:
+
+                    if alg_name not in alg_list:
                         # Don't recommend certificate or token types; these will only appear in the server's list if they are fully configured & functional on the server.
-                        if faults > 0 or (alg_type == 'key' and (('-cert-' in n) or (n.startswith('sk-')))) or empty_version:
+                        # Never suggest an algorithm with a weight of less than 200
+                        MIN_SUGGEST_WEIGHT = 200
+                        if faults > 0 or (alg_type == 'key' and (('-cert-' in alg_name) or (alg_name.startswith('sk-')))) or empty_version or sugg_weight < MIN_SUGGEST_WEIGHT:
                             continue
-                        rec[sshv][alg_type]['add'][n] = 0
+                    
+                    # Always suggest a new algorithm if it has more weight than the strongest already enabled
+                    # or more weight than the second strongest alread enabled.
+                    # This can be changed to "if sugg_weight > max(list_of_weights):" - to only suggest stronger weights
+                    # However this will preclude the possabilty of suggesting a new "second best" for those that have more than 1 algorithm enabled.
+                    if sugg_weight > max(list_of_weights) or (sugg_weight < max(list_of_weights) and sugg_weight > min(list_of_weights)):
+                        rec[sshv][alg_type]['add'][alg_name] = 0
                     else:
                         if faults == 0:
                             continue
-                        if n in ['diffie-hellman-group-exchange-sha256', 'rsa-sha2-256', 'rsa-sha2-512', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com']:
-                            rec[sshv][alg_type]['chg'][n] = faults
+                        if alg_name in ['diffie-hellman-group-exchange-sha256', 'rsa-sha2-256', 'rsa-sha2-512', 'rsa-sha2-256-cert-v01@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com']:
+                            rec[sshv][alg_type]['chg'][alg_name] = faults
                         else:
-                            rec[sshv][alg_type]['del'][n] = faults
+                            rec[sshv][alg_type]['del'][alg_name] = faults
+                list_of_weights = []
                 # If we are working with unknown software, drop all add recommendations, because we don't know if they're valid.
                 if unknown_software:
                     rec[sshv][alg_type]['add'] = {}
