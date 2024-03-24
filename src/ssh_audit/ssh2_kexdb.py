@@ -62,7 +62,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     WARN_TAG_SIZE_96 = 'using small 96-bit tag size'
 
     INFO_DEFAULT_OPENSSH_CIPHER = 'default cipher since OpenSSH 6.9'
-    INFO_DEFAULT_OPENSSH_KEX_64_TO_89 = 'default key exchange from OpenSSH 6.4 to 8.9'
+    INFO_DEFAULT_OPENSSH_KEX_65_TO_73 = 'default key exchange from OpenSSH 6.5 to 7.3'
+    INFO_DEFAULT_OPENSSH_KEX_74_TO_89 = 'default key exchange from OpenSSH 7.4 to 8.9'
     INFO_DEFAULT_OPENSSH_KEX_90 = 'default key exchange since OpenSSH 9.0'
     INFO_DEPRECATED_IN_OPENSSH88 = 'deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8'
     INFO_DISABLED_IN_DBEAR67 = 'disabled in Dropbear SSH 2015.67'
@@ -117,8 +118,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
         # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...], [info1, info2, ...], [preference_weight]]
         'kex': {
             'Curve25519SHA256': [[], [], [], [], [STRONG_CURVE]],
-            'curve25519-sha256': [['7.4,d2018.76'], [], [], [INFO_DEFAULT_OPENSSH_KEX_64_TO_89], [STRONG_CURVE]],
-            'curve25519-sha256@libssh.org': [['6.4,d2013.62,l10.6.0'], [], [], [INFO_DEFAULT_OPENSSH_KEX_64_TO_89], [STRONG_CURVE]],
+            'curve25519-sha256': [['7.4,d2018.76'], [], [], [INFO_DEFAULT_OPENSSH_KEX_74_TO_89], [STRONG_CURVE]],
+            'curve25519-sha256@libssh.org': [['6.4,d2013.62,l10.6.0'], [], [], [INFO_DEFAULT_OPENSSH_KEX_65_TO_73], [STRONG_CURVE]],
             'curve448-sha512': [[], [], [], [], [GOOD_CURVE]],
             'curve448-sha512@libssh.org': [[], [], [], [], [GOOD_CURVE]],
             'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [FAIL_SHA1], [WARN_2048BIT_MODULUS], [], [WEIGHT_FAIL]],
@@ -258,7 +259,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'null': [[], [FAIL_PLAINTEXT], [], [], [WEIGHT_FAIL]],
             'pgp-sign-dss': [[], [FAIL_1024BIT_MODULUS], [], [], [WEIGHT_FAIL]],
             'pgp-sign-rsa': [[], [FAIL_1024BIT_MODULUS], [], [], [WEIGHT_FAIL]],
-            'rsa-sha2-256': [['7.2'], [], [], [], [2000]],
+            'rsa-sha2-256': [['7.2,d2020.79'], [], [], [], [2000]],
             'rsa-sha2-256-cert-v01@openssh.com': [['7.8'], [], [], [], [NEVER_SUGGEST_ALG]],
             'rsa-sha2-512': [['7.2'], [], [], [], [2200]],
             'rsa-sha2-512-cert-v01@openssh.com': [['7.8'], [], [], [], [NEVER_SUGGEST_ALG]],
@@ -277,7 +278,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ssh-dss-sha256@ssh.com': [[], [FAIL_1024BIT_MODULUS], [], [], [WEIGHT_FAIL]],
             'ssh-dss-sha384@ssh.com': [[], [FAIL_1024BIT_MODULUS], [], [], [WEIGHT_FAIL]],
             'ssh-dss-sha512@ssh.com': [[], [FAIL_1024BIT_MODULUS], [], [], [WEIGHT_FAIL]],
-            'ssh-ed25519': [['6.5,l10.7.0'], [], [], [], [2000]],
+            'ssh-ed25519': [['6.5,d2020.79,l10.7.0'], [], [], [], [2000]],
             'ssh-ed25519-cert-v01@openssh.com': [['6.5'], [], [], [], [NEVER_SUGGEST_ALG]],
             'ssh-ed448': [[], [], [], [], [1500]],
             'ssh-ed448-cert-v01@openssh.com': [[], [], [], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH], [NEVER_SUGGEST_ALG]],
@@ -370,7 +371,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'cast128-ecb': [[], [FAIL_CAST], [WARN_CIPHER_MODE], [], [WEIGHT_FAIL]],
             'cast128-ofb': [[], [FAIL_CAST], [WARN_CIPHER_MODE], [], [WEIGHT_FAIL]],
             'chacha20-poly1305': [[], [], [], [INFO_DEFAULT_OPENSSH_CIPHER], [WEIGHT_CHACHA]],
-            'chacha20-poly1305@openssh.com': [['6.5'], [], [], [INFO_DEFAULT_OPENSSH_CIPHER], [WEIGHT_CHACHA]],
+            'chacha20-poly1305@openssh.com': [['6.5,d2020.79'], [], [], [INFO_DEFAULT_OPENSSH_CIPHER], [WEIGHT_CHACHA]],
             'crypticore128@ssh.com': [[], [FAIL_UNPROVEN], [], [], [WEIGHT_FAIL]],
             'des-cbc': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE], [], [WEIGHT_FAIL]],
             'des-cfb': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE], [], [WEIGHT_FAIL]],

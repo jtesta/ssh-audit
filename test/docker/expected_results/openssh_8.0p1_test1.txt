@@ -1,7 +1,7 @@
 [0;36m# general[0m
 [0;32m(gen) banner: SSH-2.0-OpenSSH_8.0[0m
 [0;32m(gen) software: OpenSSH 8.0[0m
-[0;32m(gen) compatibility: OpenSSH 7.4+, Dropbear SSH 2018.76+[0m
+[0;32m(gen) compatibility: OpenSSH 7.4+, Dropbear SSH 2020.79+[0m
 [0;32m(gen) compression: enabled (zlib@openssh.com)[0m
 
 [0;36m# security[0m
@@ -12,9 +12,9 @@
 
 [0;36m# key exchange algorithms[0m
 [0;32m(kex) curve25519-sha256                     -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
-[0;32m                                            `- [info] default key exchange from OpenSSH 6.4 to 8.9[0m
+[0;32m                                            `- [info] default key exchange from OpenSSH 7.4 to 8.9[0m
 [0;32m(kex) curve25519-sha256@libssh.org          -- [info] available since OpenSSH 6.4, Dropbear SSH 2013.62[0m
-[0;32m                                            `- [info] default key exchange from OpenSSH 6.4 to 8.9[0m
+[0;32m                                            `- [info] default key exchange from OpenSSH 6.5 to 7.3[0m
 [0;31m(kex) ecdh-sha2-nistp256                    -- [fail] using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency[0m
                                             `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
 [0;31m(kex) ecdh-sha2-nistp384                    -- [fail] using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency[0m
@@ -33,18 +33,18 @@
 
 [0;36m# host-key algorithms[0m
 [0;32m(key) rsa-sha2-512 (3072-bit)               -- [info] available since OpenSSH 7.2[0m
-[0;32m(key) rsa-sha2-256 (3072-bit)               -- [info] available since OpenSSH 7.2[0m
+[0;32m(key) rsa-sha2-256 (3072-bit)               -- [info] available since OpenSSH 7.2, Dropbear SSH 2020.79[0m
 [0;31m(key) ssh-rsa (3072-bit)                    -- [fail] using broken SHA-1 hash algorithm[0m
                                             `- [info] available since OpenSSH 2.5.0, Dropbear SSH 0.28
                                             `- [info] deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8
 [0;31m(key) ecdsa-sha2-nistp256                   -- [fail] using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency[0m
 [0;33m                                            `- [warn] using weak random number generator could reveal the key[0m
                                             `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
-[0;32m(key) ssh-ed25519                           -- [info] available since OpenSSH 6.5[0m
+[0;32m(key) ssh-ed25519                           -- [info] available since OpenSSH 6.5, Dropbear SSH 2020.79[0m
 
 [0;36m# encryption algorithms (ciphers)[0m
 [0;33m(enc) chacha20-poly1305@openssh.com         -- [warn] vulnerable to the Terrapin attack (CVE-2023-48795), allowing message prefix truncation[0m
-                                            `- [info] available since OpenSSH 6.5
+                                            `- [info] available since OpenSSH 6.5, Dropbear SSH 2020.79
                                             `- [info] default cipher since OpenSSH 6.9
 [0;32m(enc) aes128-ctr                            -- [info] available since OpenSSH 3.7, Dropbear SSH 0.52[0m
 [0;32m(enc) aes192-ctr                            -- [info] available since OpenSSH 3.7[0m

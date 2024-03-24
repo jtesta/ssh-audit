@@ -1,0 +1,86 @@
+{
+    "errors": [
+        {
+            "actual": [
+                "rsa-sha2-512",
+                "rsa-sha2-256",
+                "ssh-rsa",
+                "ecdsa-sha2-nistp256",
+                "ssh-ed25519"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "rsa-sha2-512",
+                "extra_hostkey_alg"
+            ],
+            "mismatched_field": "Host keys"
+        },
+        {
+            "actual": [
+                "curve25519-sha256",
+                "curve25519-sha256@libssh.org",
+                "ecdh-sha2-nistp256",
+                "ecdh-sha2-nistp384",
+                "ecdh-sha2-nistp521",
+                "diffie-hellman-group-exchange-sha256",
+                "diffie-hellman-group16-sha512",
+                "diffie-hellman-group18-sha512",
+                "diffie-hellman-group14-sha256",
+                "diffie-hellman-group14-sha1"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "curve25519-sha256",
+                "extra_kex_alg"
+            ],
+            "mismatched_field": "Key exchanges"
+        },
+        {
+            "actual": [
+                "chacha20-poly1305@openssh.com",
+                "aes128-ctr",
+                "aes192-ctr",
+                "aes256-ctr",
+                "aes128-gcm@openssh.com",
+                "aes256-gcm@openssh.com"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "chacha20-poly1305@openssh.com",
+                "extra_cipher_alg"
+            ],
+            "mismatched_field": "Ciphers"
+        },
+        {
+            "actual": [
+                "umac-64-etm@openssh.com",
+                "umac-128-etm@openssh.com",
+                "hmac-sha2-256-etm@openssh.com",
+                "hmac-sha2-512-etm@openssh.com",
+                "hmac-sha1-etm@openssh.com",
+                "umac-64@openssh.com",
+                "umac-128@openssh.com",
+                "hmac-sha2-256",
+                "hmac-sha2-512",
+                "hmac-sha1"
+            ],
+            "expected_optional": [
+                ""
+            ],
+            "expected_required": [
+                "umac-64-etm@openssh.com",
+                "extra_mac_alg"
+            ],
+            "mismatched_field": "MACs"
+        }
+    ],
+    "host": "localhost",
+    "passed": false,
+    "policy": "Docker policy: test16 (version 1)"
+}
