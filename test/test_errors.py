@@ -17,6 +17,7 @@ class TestErrors:
         conf = self.AuditConf('localhost', 22)
         conf.colors = False
         conf.batch = True
+        conf.skip_rate_test = True
         return conf
 
     def _audit(self, spy, conf=None, exit_expected=False):

@@ -73,6 +73,7 @@ class _VirtualSocket:
         self.rdata = []
         self.sdata = []
         self.errors = {}
+        self.blocking = False
         self.gsock = _VirtualGlobalSocket(self)
 
     def _check_err(self, method):
@@ -83,11 +84,17 @@ class _VirtualSocket:
     def connect(self, address):
         return self._connect(address, False)
 
+    def connect_ex(self, address):
+        return self.connect(address)
+
     def _connect(self, address, ret=True):
         self.peer_address = address
         self._connected = True
         self._check_err('connect')
         return self if ret else None
+
+    def setblocking(self, r: bool):
+        self.blocking = r
 
     def settimeout(self, timeout):
         self.timeout = timeout

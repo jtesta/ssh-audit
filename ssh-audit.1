@@ -1,4 +1,4 @@
-.TH SSH-AUDIT 1 "March 14, 2024"
+.TH SSH-AUDIT 1 "April 18, 2024"
 .SH NAME
 \fBssh-audit\fP \- SSH server & client configuration auditor
 .SH SYNOPSIS
@@ -47,9 +47,19 @@ Enables grepable output.
 Starts a server on port 2222 to audit client software configuration.  Use -p/--port=<port> to change port and -t/--timeout=<secs> to change listen timeout.
 
 .TP
+.B     \-\-conn\-rate\-test=N[:max_rate]
+.br
+Performs a connection rate test (useful for collecting metrics related to susceptibility of the DHEat vulnerability [CVE-2002-20001]).  A successful connection is counted when the server returns a valid SSH banner.  Testing is conducted with N concurrent sockets with an optional maximum rate of connections per second.
+
+.TP
 .B -d, \-\-debug
 .br
 Enable debug output.
+
+.TP
+.B     \-\-dheat=N[:kex[:e_len]]
+.br
+Run the DHEat DoS attack (CVE-2002-20001) against the target server (which will consume all available CPU resources).  The number of concurrent sockets, N, needed to achieve this effect will be highly dependent on the CPU resources available on the target, as well as the latency between the source and target machines.  The key exchange is automatically chosen based on which would cause maximum effect, unless explicitly chosen in the second field.  Lastly, an (experimental) option allows the length in bytes of the fake e value sent to the server to be specified in the third field.  Normally, the length of e is roughly the length of the modulus of the Diffie-Hellman exchange (hence, an 8192-bit / 1024-byte value of e is sent in each connection when targeting the diffie-hellman-group18-sha512 algorithm).  Instead, it was observed that many SSH implementations accept small values, such as 4 bytes; this results in a much more network-efficient attack.
 
 .TP
 .B -g, \-\-gex-test=<x[,y,...] | min1:pref1:max1[,min2:pref2:max2,...] | x-y[:step]>
@@ -125,6 +135,11 @@ The TCP port to connect to when auditing a server, or the port to listen on when
 .B -P, \-\-policy=<"built-in policy name" | path/to/custom_policy.txt>
 .br
 Runs a policy audit against a target using the specified policy (see \fBPOLICY AUDIT\fP section for detailed description of this mode of operation).  Combine with -c/--client-audit to audit a client configuration instead of a server.  Use -L/--list-policies to list all official, built-in policies for common systems.
+
+.TP
+.B     \-\-skip\-rate\-test
+.br
+Skips the connection rate test during standard audits.  By default, a few dozen TCP connections are created with the target host to see if connection throttling is implemented (this can safely infer whether the target is vulnerable to the DHEat attack; see CVE-2002-20001).
 
 .TP
 .B -t, \-\-timeout=<secs>
@@ -270,6 +285,46 @@ To run a Diffie-Hellman Group Exchange modulus size test from 0 bits to 5120 bit
 .RS
 .nf
 ssh-audit targetserver --gex-test=0-5120:1024
+.fi
+.RE
+
+.LP
+To run the DHEat DoS attack (monitor the target server's CPU usage to determine the optimal number of concurrent sockets):
+.RS
+.nf
+ssh-audit targetserver --dheat=10
+.fi
+.RE
+
+.LP
+To run the DHEat attack and manually target the diffie-hellman-group-exchange-sha256 algorithm:
+.RS
+.nf
+ssh-audit targetserver --dheat=10:diffie-hellman-group-exchange-sha256
+.fi
+.RE
+
+.LP
+To run the DHEat attack and manually target the diffie-hellman-group-exchange-sha256 algorithm with a very small length of e (resulting in the same effect but without having to send large packets):
+.RS
+.nf
+ssh-audit targetserver --dheat=10:diffie-hellman-group-exchange-sha256:4
+.fi
+.RE
+
+.LP
+To test the number of successful connections per second that can be created with the target using 8 parallel threads (useful for detecting whether connection throttling is implemented by the target):
+.RS
+.nf
+ssh-audit targetserver --conn-rate-test=8
+.fi
+.RE
+
+.LP
+To use 8 parallel threads to create up to 100 connections per second with the target (useful for understanding how much CPU load is caused on the target simply from handling new connections vs excess modular exponentiation when performing the DHEat attack):
+.RS
+.nf
+ssh-audit targetserver --conn-rate-test=8:100
 .fi
 .RE
 

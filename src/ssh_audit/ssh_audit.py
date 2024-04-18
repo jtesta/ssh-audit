@@ -27,6 +27,7 @@ import concurrent.futures
 import copy
 import getopt
 import json
+import multiprocessing
 import os
 import re
 import sys
@@ -44,6 +45,7 @@ from ssh_audit.algorithm import Algorithm
 from ssh_audit.algorithms import Algorithms
 from ssh_audit.auditconf import AuditConf
 from ssh_audit.banner import Banner
+from ssh_audit.dheat import DHEat
 from ssh_audit import exitcodes
 from ssh_audit.fingerprint import Fingerprint
 from ssh_audit.gextest import GEXTest
@@ -96,7 +98,22 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     uout.info('   -6,  --ipv6             enable IPv6 (order of precedence)')
     uout.info('   -b,  --batch            batch output')
     uout.info('   -c,  --client-audit     starts a server on port 2222 to audit client\n                               software config (use -p to change port;\n                               use -t to change timeout)')
+    uout.info('        --conn-rate-test=N[:max_rate]  perform a connection rate test (useful')
+    uout.info('                                       for collecting metrics related to')
+    uout.info('                                       susceptibility of the DHEat vuln).')
+    uout.info('                                       Testing is conducted with N concurrent')
+    uout.info('                                       sockets with an optional maximum rate')
+    uout.info('                                       of connections per second.')
     uout.info('   -d,  --debug            debug output')
+    uout.info('        --dheat=N[:kex[:e_len]]    continuously perform the DHEat DoS attack')
+    uout.info('                                   (CVE-2002-20001) against the target using N')
+    uout.info('                                   concurrent sockets.  Optionally, a specific')
+    uout.info('                                   key exchange algorithm can be specified')
+    uout.info('                                   instead of allowing it to be automatically')
+    uout.info('                                   chosen.  Additionally, a small length of')
+    uout.info('                                   the fake e value sent to the server can')
+    uout.info('                                   be chosen for a more efficient attack (such')
+    uout.info('                                   as 4).')
     uout.info('   -g,  --gex-test=<x[,y,...]>  dh gex modulus size test')
     uout.info('                   <min1:pref1:max1[,min2:pref2:max2,...]>')
     uout.info('                   <x-y[:step]>')
@@ -111,6 +128,7 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     uout.info('                                  environment variable is set)')
     uout.info('   -p,  --port=<port>      port to connect')
     uout.info('   -P,  --policy=<policy.txt>  run a policy test using the specified policy')
+    uout.info('        --skip-rate-test   skip the connection rate test during standard audits\n                               (used to safely infer whether the DHEat attack\n                               is viable)')
     uout.info('   -t,  --timeout=<secs>   timeout (in seconds) for connection and reading\n                               (default: 5)')
     uout.info('   -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one\n                                   per line, format HOST[:PORT]).  Use --threads\n                                   to control concurrent scans.')
     uout.info('        --threads=<threads>    number of threads to use when scanning multiple\n                                   targets (-T/--targets) (default: 32)')
@@ -430,7 +448,7 @@ def output_recommendations(out: OutputBuffer, algs: Algorithms, algorithm_recomm
 
 
 # Output additional information & notes.
-def output_info(out: OutputBuffer, software: Optional['Software'], client_audit: bool, any_problems: bool, is_json_output: bool, additional_notes: str) -> None:
+def output_info(out: OutputBuffer, software: Optional['Software'], client_audit: bool, any_problems: bool, is_json_output: bool, additional_notes: List[str]) -> None:
     with out:
         # Tell user that PuTTY cannot be hardened at the protocol-level.
         if client_audit and (software is not None) and (software.product == Product.PuTTY):
@@ -441,8 +459,9 @@ def output_info(out: OutputBuffer, software: Optional['Software'], client_audit:
             out.warn('(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>')
 
         # Add any additional notes.
-        if len(additional_notes) > 0:
-            out.warn("(nfo) %s" % additional_notes)
+        for additional_note in additional_notes:
+            if len(additional_note) > 0:
+                out.warn("(nfo) %s" % additional_note)
 
     if not out.is_section_empty() and not is_json_output:
         out.head('# additional info')
@@ -450,8 +469,8 @@ def output_info(out: OutputBuffer, software: Optional['Software'], client_audit:
         out.sep()
 
 
-def post_process_findings(banner: Optional[Banner], algs: Algorithms, client_audit: bool) -> Tuple[List[str], str]:
-    '''Perform post-processing on scan results before reporting them to the user.  Returns a list of algorithms that should not be recommended'''
+def post_process_findings(banner: Optional[Banner], algs: Algorithms, client_audit: bool, dh_rate_test_notes: str) -> Tuple[List[str], List[str]]:
+    '''Perform post-processing on scan results before reporting them to the user.  Returns a list of algorithms that should not be recommended and a list of notes.'''
 
     def _add_terrapin_warning(db: Dict[str, Dict[str, List[List[Optional[str]]]]], category: str, algorithm_name: str) -> None:
         '''Adds a warning regarding the Terrapin vulnerability for the specified algorithm.'''
@@ -590,20 +609,24 @@ def post_process_findings(banner: Optional[Banner], algs: Algorithms, client_aud
                 _add_terrapin_warning(db, "mac", mac)
 
     # Return a note telling the user that, while this target is properly configured, if connected to a vulnerable peer, then a vulnerable connection is still possible.
-    notes = ""
+    additional_notes = []
     if len(algs_to_note) > 0:
-        notes = "Be aware that, while this target properly supports the strict key exchange method (via the kex-strict-?-v00@openssh.com marker) needed to protect against the Terrapin vulnerability (CVE-2023-48795), all peers must also support this feature as well, otherwise the vulnerability will still be present.  The following algorithms would allow an unpatched peer to create vulnerable SSH channels with this target: %s.  If any CBC ciphers are in this list, you may remove them while leaving the *-etm@openssh.com MACs in place; these MACs are fine while paired with non-CBC cipher types." % ", ".join(algs_to_note)
+        additional_notes.append("Be aware that, while this target properly supports the strict key exchange method (via the kex-strict-?-v00@openssh.com marker) needed to protect against the Terrapin vulnerability (CVE-2023-48795), all peers must also support this feature as well, otherwise the vulnerability will still be present.  The following algorithms would allow an unpatched peer to create vulnerable SSH channels with this target: %s.  If any CBC ciphers are in this list, you may remove them while leaving the *-etm@openssh.com MACs in place; these MACs are fine while paired with non-CBC cipher types." % ", ".join(algs_to_note))
 
     # Add the chacha ciphers, CBC ciphers, and ETM MACs to the recommendation suppression list if they are not enabled on the server.  That way they are not recommended to the user to enable if they were explicitly disabled to handle the Terrapin vulnerability.  However, they can still be recommended for disabling.
     algorithm_recommendation_suppress_list += _get_chacha_ciphers_not_enabled(db, algs)
     algorithm_recommendation_suppress_list += _get_cbc_ciphers_not_enabled(db, algs)
     algorithm_recommendation_suppress_list += _get_etm_macs_not_enabled(db, algs)
 
-    return algorithm_recommendation_suppress_list, notes
+    # Append any notes related to the DH rate test.
+    if len(dh_rate_test_notes) > 0:
+        additional_notes.append(dh_rate_test_notes)
+
+    return algorithm_recommendation_suppress_list, additional_notes
 
 
 # Returns a exitcodes.* flag to denote if any failures or warnings were encountered.
-def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header: List[str], client_host: Optional[str] = None, kex: Optional[SSH2_Kex] = None, pkm: Optional[SSH1_PublicKeyMessage] = None, print_target: bool = False) -> int:
+def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header: List[str], client_host: Optional[str] = None, kex: Optional[SSH2_Kex] = None, pkm: Optional[SSH1_PublicKeyMessage] = None, print_target: bool = False, dh_rate_test_notes: str = "") -> int:
 
     program_retval = exitcodes.GOOD
     client_audit = client_host is not None  # If set, this is a client audit.
@@ -611,7 +634,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
     algs = Algorithms(pkm, kex)
 
     # Perform post-processing on the findings to make final adjustments before outputting the results.
-    algorithm_recommendation_suppress_list, additional_notes = post_process_findings(banner, algs, client_audit)
+    algorithm_recommendation_suppress_list, additional_notes = post_process_findings(banner, algs, client_audit, dh_rate_test_notes)
 
     with out:
         if print_target:
@@ -868,7 +891,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
 
     try:
         sopts = 'h1246M:p:P:jbcnvl:t:T:Lmdg:'
-        lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=', 'threads=', 'manual', 'debug', 'gex-test=']
+        lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=', 'threads=', 'manual', 'debug', 'gex-test=', 'dheat=', 'skip-rate-test', 'conn-rate-test=']
         opts, args = getopt.gnu_getopt(args, sopts, lopts)
     except getopt.GetoptError as err:
         usage_cb(out, str(err))
@@ -956,6 +979,12 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
                     usage_cb(out, '{} {} {} is not valid'.format(o, bits_left_bound, bits_right_bound))
 
             aconf.gex_test = a
+        elif o == '--dheat':
+            aconf.dheat = a
+        elif o == '--skip-rate-test':
+            aconf.skip_rate_test = True
+        elif o == '--conn-rate-test':
+            aconf.conn_rate_test = a
 
 
     if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '' and aconf.manual is False:
@@ -1039,7 +1068,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     return aconf
 
 
-def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[str, Union[str, float]]], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None, software: Optional[Software] = None, algorithms: Optional[Algorithms] = None, algorithm_recommendation_suppress_list: Optional[List[str]] = None, additional_notes: str = "") -> Any:  # pylint: disable=too-many-arguments
+def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[str, Union[str, float]]], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None, software: Optional[Software] = None, algorithms: Optional[Algorithms] = None, algorithm_recommendation_suppress_list: Optional[List[str]] = None, additional_notes: List[str] = []) -> Any:  # pylint: disable=dangerous-default-value
 
     def fetch_notes(algorithm: str, alg_type: str) -> Dict[str, List[Optional[str]]]:
         '''Returns a dictionary containing the messages in the "fail", "warn", and "info" levels for this algorithm.'''
@@ -1207,8 +1236,8 @@ def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[s
     # Add in the recommendations.
     res['recommendations'] = get_algorithm_recommendations(algorithms, algorithm_recommendation_suppress_list, software, for_server=True)
 
-    # Add in the additional notes.  Currently just one string, but in the future this may grow to multiple strings.  Hence, an array is needed to prevent future schema breakage.
-    res['additional_notes'] = [additional_notes]
+    # Add in the additional notes.
+    res['additional_notes'] = additional_notes
 
     return res
 
@@ -1290,6 +1319,14 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
             out.fail("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()))
             return exitcodes.CONNECTION_ERROR
 
+        if aconf.dheat is not None:
+            DHEat(out, aconf, banner, kex).run()
+            return exitcodes.GOOD
+        elif aconf.conn_rate_test_enabled:
+            DHEat.dh_rate_test(out, aconf, kex, 0, 0, 0)
+            return exitcodes.GOOD
+
+        dh_rate_test_notes = ""
         if aconf.client_audit is False:
             HostKeyTest.run(out, s, kex)
             if aconf.gex_test != '':
@@ -1297,9 +1334,16 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
             else:
                 GEXTest.run(out, s, banner, kex)
 
+                # Skip the rate test if the user specified "--skip-rate-test".
+                if aconf.skip_rate_test:
+                    out.d("Skipping rate test due to --skip-rate-test option.")
+                else:
+                    # Try to open many TCP connections against the server if any Diffie-Hellman key exchanges are present; this tests potential vulnerability to the DHEat DOS attack.  Use 3 concurrent sockets over at most 1.5 seconds to open at most 38 connections (stops if 1.5 seconds elapse, or 38 connections are opened--whichever comes first).  If more than 25 connections per second were observed, flag the DH algorithms with a warning about the DHEat DOS vuln.
+                    dh_rate_test_notes = DHEat.dh_rate_test(out, aconf, kex, 1.5, 38, 3)
+
         # This is a standard audit scan.
         if (aconf.policy is None) and (aconf.make_policy is False):
-            program_retval = output(out, aconf, banner, header, client_host=s.client_host, kex=kex, print_target=print_target)
+            program_retval = output(out, aconf, banner, header, client_host=s.client_host, kex=kex, print_target=print_target, dh_rate_test_notes=dh_rate_test_notes)
 
         # This is a policy test.
         elif (aconf.policy is not None) and (aconf.make_policy is False):
@@ -1588,8 +1632,9 @@ def main() -> int:
 
 
 if __name__ == '__main__':  # pragma: nocover
-    exit_code = exitcodes.GOOD
+    multiprocessing.freeze_support()  # Needed for PyInstaller (Windows) builds.
 
+    exit_code = exitcodes.GOOD
     try:
         exit_code = main()
     except Exception:

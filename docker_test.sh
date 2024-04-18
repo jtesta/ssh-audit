@@ -464,7 +464,7 @@ run_test() {
         exit 1
     fi
 
-    ./ssh-audit.py localhost:2222 > "$test_result_stdout"
+    ./ssh-audit.py --skip-rate-test localhost:2222 > "$test_result_stdout"
     actual_retval=$?
     if [[ $actual_retval != "$expected_retval" ]]; then
         echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"
@@ -478,7 +478,7 @@ run_test() {
         exit 1
     fi
 
-    ./ssh-audit.py -jj localhost:2222 > "$test_result_json"
+    ./ssh-audit.py --skip-rate-test -jj localhost:2222 > "$test_result_json"
     actual_retval=$?
     if [[ $actual_retval != "$expected_retval" ]]; then
         echo -e "${REDB}Unexpected return value.  Expected: ${expected_retval}; Actual: ${actual_retval}${CLR}"

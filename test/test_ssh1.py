@@ -33,6 +33,7 @@ class TestSSH1:
         conf.verbose = True
         conf.ssh1 = True
         conf.ssh2 = False
+        conf.skip_rate_test = True
         return conf
 
     def _create_ssh1_packet(self, payload, valid_crc=True):

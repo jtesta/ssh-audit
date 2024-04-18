@@ -48,7 +48,22 @@ usage: ssh-audit.py [options] <host>
    -c,  --client-audit     starts a server on port 2222 to audit client
                                software config (use -p to change port;
                                use -t to change timeout)
+        --conn-rate-test=N[:max_rate]  perform a connection rate test (useful
+                                       for collecting metrics related to
+                                       susceptibility of the DHEat vuln).
+                                       Testing is conducted with N concurrent
+                                       sockets with an optional maximum rate
+                                       of connections per second.
    -d,  --debug            Enable debug output.
+        --dheat=N[:kex[:e_len]]    continuously perform the DHEat DoS attack
+                                   (CVE-2002-20001) against the target using N
+                                   concurrent sockets.  Optionally, a specific
+                                   key exchange algorithm can be specified
+                                   instead of allowing it to be automatically
+                                   chosen.  Additionally, a small length of
+                                   the fake e value sent to the server can
+                                   be chosen for a more efficient attack (such
+                                   as 4).
    -g,  --gex-test=<x[,y,...]>  dh gex modulus size test
                    <min1:pref1:max1[,min2:pref2:max2,...]>
                    <x-y[:step]>
@@ -68,6 +83,9 @@ usage: ssh-audit.py [options] <host>
    -p,  --port=<port>      port to connect
    -P,  --policy=<"policy name" | policy.txt>  run a policy test using the
                                                    specified policy
+        --skip-rate-test   skip the connection rate test during standard audits
+                               (used to safely infer whether the DHEat attack
+                               is viable)
    -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
                                (default: 5)
    -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one
@@ -132,6 +150,21 @@ To create a policy based on a target server (which can be manually edited):
 ssh-audit -M new_policy.txt targetserver
 ```
 
+To run the DHEat CPU exhaustion DoS attack ([CVE-2002-20001](https://nvd.nist.gov/vuln/detail/CVE-2002-20001)) against a target using 10 concurrent sockets:
+```
+ssh-audit --dheat=10 targetserver
+```
+
+To run the DHEat attack using the `diffie-hellman-group-exchange-sha256` key exchange algorithm:
+```
+ssh-audit --dheat=10:diffie-hellman-group-exchange-sha256 targetserver
+```
+
+To run the DHEat attack using the `diffie-hellman-group-exchange-sha256` key exchange algorithm along with very small but non-standard packet lengths (this may result in the same CPU exhaustion, but with many less bytes per second being sent):
+```
+ssh-audit --dheat=10:diffie-hellman-group-exchange-sha256:4 targetserver
+```
+
 ## Screenshots
 
 ### Server Standard Audit Example
@@ -181,6 +214,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v3.2.0-dev (???)
+ - Added implementation of the DHEat denial-of-service attack (see `--dheat` option; [CVE-2002-20001](https://nvd.nist.gov/vuln/detail/CVE-2002-20001)).
  - Expanded filter of CBC ciphers to flag for the Terrapin vulnerability.  It now includes more rarely found ciphers.
  - Color output is disabled if the `NO_COLOR` environment variable is set (see https://no-color.org/).
  - Fixed parsing of `ecdsa-sha2-nistp*` CA signatures on host keys.  Additionally, they are now flagged as potentially back-doored, just as standard host keys are.

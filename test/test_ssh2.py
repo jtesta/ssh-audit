@@ -32,6 +32,7 @@ class TestSSH2:
         conf.verbose = True
         conf.ssh1 = False
         conf.ssh2 = True
+        conf.skip_rate_test = True
         return conf
 
     @classmethod
