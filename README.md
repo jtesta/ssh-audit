@@ -227,6 +227,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Custom policies now support the `allow_algorithm_subset_and_reordering` directive to allow targets to pass with a subset and/or re-ordered list of host keys, kex, ciphers, and MACs.  This allows for the creation of a baseline policy where targets can optionally implement stricter controls; partial credit [yannik1015](https://github.com/yannik1015).
  - Custom policies now support the `allow_larger_keys` directive to allow targets to pass with larger host keys, CA keys, and Diffie-Hellman keys.  This allows for the creation of a baseline policy where targets can optionally implement stricter controls; partial credit [Damian Szuberski](https://github.com/szubersk).
  - Added 1 new key exchange algorithm: `gss-nistp384-sha384-*`.
+ - Added 1 new cipher: `aes128-ocb@libassh.org`.
 
 ### v3.1.0 (2023-12-20)
  - Added test for the Terrapin message prefix truncation vulnerability ([CVE-2023-48795](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-48795)).

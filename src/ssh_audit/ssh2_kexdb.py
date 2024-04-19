@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2024 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -297,6 +297,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'aes128-ctr': [['3.7,d0.52,l10.4.1']],
             'aes128-gcm': [[]],
             'aes128-gcm@openssh.com': [['6.2']],
+            'aes128-ocb@libassh.org': [[], [], [WARN_CIPHER_MODE]],
             'aes192-cbc': [['2.3.0,l10.2', '6.6', None], [], [WARN_CIPHER_MODE]],
             'aes192-ctr': [['3.7,l10.4.1']],
             'aes192-gcm@openssh.com': [[], [], [], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],
