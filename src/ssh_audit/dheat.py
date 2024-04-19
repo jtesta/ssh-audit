@@ -28,6 +28,7 @@ import random
 import select
 import socket
 import struct
+import sys
 import time
 import traceback
 
@@ -317,6 +318,11 @@ class DHEat:
 
             socket_list.remove(s)
 
+        if sys.platform == "win32":
+            DHEat.YELLOWB = "\033[1;93m"
+            DHEat.CLEAR = "\033[0m"
+            print("\n%sUnfortunately, this feature is not currently functional under Windows.%s  This should get fixed in a future release.  See: <https://github.com/jtesta/ssh-audit/issues/261>" % (DHEat.YELLOWB, DHEat.CLEAR))
+            return ""
 
         spinner = ["-", "\\", "|", "/"]
         spinner_index = 0
@@ -691,6 +697,9 @@ class DHEat:
 
 
         self.output()
+        if sys.platform == "win32":
+            self.output("%sWARNING:%s this feature has not been thoroughly tested on Windows.  It may perform worse than on UNIX OSes." % (self.YELLOWB, self.CLEAR))
+
         self.output("Running DHEat test against %s[%s]:%u%s with %s%u%s concurrent sockets..." % (self.WHITEB, self.target, self.port, self.CLEAR, self.WHITEB, self.concurrent_connections, self.CLEAR))
 
         # If the user didn't specify an exact kex algorithm to test, check our prioritized list against what the server supports.  Larger p-values (such as group18: 8192-bits) cause the most strain on the server.
