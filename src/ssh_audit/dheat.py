@@ -654,33 +654,35 @@ class DHEat:
         # Print extensive statistics on what just happened.
         seconds_running = time.time() - self.start_timer
         print("\n\n")
-        print("                      %s %sSTATISTICS%s %s" % (self.BAR_CHART, self.WHITEB, self.CLEAR, self.CHART_UPWARDS))
-        print("                         %s----------%s" % (self.WHITEB, self.CLEAR))
+        print("                        %s %sSTATISTICS%s %s" % (self.BAR_CHART, self.WHITEB, self.CLEAR, self.CHART_UPWARDS))
+        print("                           %s----------%s" % (self.WHITEB, self.CLEAR))
         print()
-        print("                     Run time: %s%.1f seconds%s" % (self.WHITEB, seconds_running, self.CLEAR))
+        print("                       Run time: %s%.1f seconds%s" % (self.WHITEB, seconds_running, self.CLEAR))
         print()
-        print("    Attempted TCP connections: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_attempted_tcp_connections / seconds_running, self.num_attempted_tcp_connections, self.CLEAR))
-        print("   Successful TCP connections: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_successful_tcp_connections / seconds_running, self.num_successful_tcp_connections, self.CLEAR))
+        print("      Attempted TCP connections: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_attempted_tcp_connections / seconds_running, self.num_attempted_tcp_connections, self.CLEAR))
+        print("     Successful TCP connections: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_successful_tcp_connections / seconds_running, self.num_successful_tcp_connections, self.CLEAR))
         print()
-        print("                Bytes written: %s%s/sec, %s total%s" % (self.WHITEB, DHEat.add_byte_units(self.num_bytes_written / seconds_running), DHEat.add_byte_units(self.num_bytes_written), self.CLEAR))
+        print("                  Bytes written: %s%s/sec, %s total%s" % (self.WHITEB, DHEat.add_byte_units(self.num_bytes_written / seconds_running), DHEat.add_byte_units(self.num_bytes_written), self.CLEAR))
         print()
-        print("    Successful DH KEX replies: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_successful_dh_kex / seconds_running, self.num_successful_dh_kex, self.CLEAR))
-        print("    Unexpected DH KEX replies: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_failed_dh_kex / seconds_running, self.num_failed_dh_kex, self.CLEAR))
+        print("      Successful DH KEX replies: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_successful_dh_kex / seconds_running, self.num_successful_dh_kex, self.CLEAR))
+        print("      Unexpected DH KEX replies: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_failed_dh_kex / seconds_running, self.num_failed_dh_kex, self.CLEAR))
+        print("\"Exceeded MaxStartups\" replies*: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_openssh_throttled_connections / seconds_running, self.num_openssh_throttled_connections, self.CLEAR))
         print()
-        print("OpenSSH-throttled connections: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_openssh_throttled_connections / seconds_running, self.num_openssh_throttled_connections, self.CLEAR))
-        print("          Connection timeouts: %s%.1f/sec, %u total%s (timeout setting: %.1f sec)" % (self.WHITEB, self.num_connect_timeouts / seconds_running, self.num_connect_timeouts, self.CLEAR, self.connect_timeout))
-        print("                Read timeouts: %s%.1f/sec, %u total%s (timeout setting: %.1f sec)" % (self.WHITEB, self.num_read_timeouts / seconds_running, self.num_read_timeouts, self.CLEAR, self.read_timeout))
-        print("            Socket exceptions: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_socket_exceptions / seconds_running, self.num_socket_exceptions, self.CLEAR))
-        print()
+        print("            Connection timeouts: %s%.1f/sec, %u total%s (timeout setting: %.1f sec)" % (self.WHITEB, self.num_connect_timeouts / seconds_running, self.num_connect_timeouts, self.CLEAR, self.connect_timeout))
+        print("                  Read timeouts: %s%.1f/sec, %u total%s (timeout setting: %.1f sec)" % (self.WHITEB, self.num_read_timeouts / seconds_running, self.num_read_timeouts, self.CLEAR, self.read_timeout))
+        print("              Socket exceptions: %s%.1f/sec, %u total%s" % (self.WHITEB, self.num_socket_exceptions / seconds_running, self.num_socket_exceptions, self.CLEAR))
         print()
 
-        if seconds_running < 3.0:
-            print("Total run time was under 3 seconds; try running it for longer to get more accurate analysis.")
+        if seconds_running < 5.0:
+            print("%sTotal run time was under 5 seconds; try running it for longer to get more accurate analysis.%s" % (DHEat.YELLOWB, DHEat.CLEAR))
         elif self.num_successful_tcp_connections / seconds_running < DHEat.MAX_SAFE_RATE:
-            print("Because the number of successful TCP connections per second (%.1f) is less than %.1f, it appears that the target is using rate limiting to prevent CPU exaustion." % (self.num_successful_tcp_connections / seconds_running, DHEat.MAX_SAFE_RATE))
+            print("Because the number of successful TCP connections per second (%.1f) is less than %.1f, it appears that the target %sis using rate limiting%s to prevent CPU exaustion." % (self.num_successful_tcp_connections / seconds_running, DHEat.MAX_SAFE_RATE, DHEat.GREENB, DHEat.CLEAR))
         else:
-            print("Because the number of successful TCP connections per second (%.1f) is greater than %.1f, it appears that the target is %sNOT%s using rate limiting to prevent CPU exaustion." % (self.num_successful_tcp_connections / seconds_running, DHEat.MAX_SAFE_RATE, DHEat.REDB, DHEat.CLEAR))
+            print("Because the number of successful TCP connections per second (%.1f) is greater than %.1f, it appears that the target %sis NOT using rate limiting%s to prevent CPU exaustion." % (self.num_successful_tcp_connections / seconds_running, DHEat.MAX_SAFE_RATE, DHEat.REDB, DHEat.CLEAR))
 
+        print()
+        print()
+        print(" * OpenSSH has a throttling mechanism (controlled by the MaxStartups directive) to prevent too many pre-authentication connections from overwhelming the server.  When triggered, the server will probabilistically return \"Exceeded MaxStartups\" instead of the usual SSH banner, then terminate the connection.  In order to maximize the DoS effectiveness, this metric should be greater than zero, though the ideal rate of rejections depends on the target server's CPU resources.")
         print()
 
 
