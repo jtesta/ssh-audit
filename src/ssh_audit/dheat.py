@@ -51,7 +51,7 @@ class DHEat:
     MAX_SAFE_RATE = 20.0
 
     # The warning added to DH algorithms in the UI when dh_rate_test determines that no throttling is being done.
-    DHEAT_WARNING = "Potentially insufficient connection throttling detected, resulting in possible vulnerability to the DHEat DoS attack (CVE-2002-20001).  Either connection throttling or removal of Diffie-Hellman key exchanges is necessary to remediate this issue.  Suppress this test/message with --skip-rate-test.  Additional info: {connections:d} connections were created in {time_elapsed:.3f} seconds, or {rate:.1f} conns/sec; server must respond with a rate less than {max_safe_rate:.1f} conns/sec to be considered safe."
+    DHEAT_WARNING = "Potentially insufficient connection throttling detected, resulting in possible vulnerability to the DHEat DoS attack (CVE-2002-20001).  Suppress this test and message with the --skip-rate-test option.  Additional info: {connections:d} connections were created in {time_elapsed:.3f} seconds, or {rate:.1f} conns/sec; server must respond with a rate less than {max_safe_rate:.1f} conns/sec to be considered safe."
 
     # List of the Diffie-Hellman group exchange algorithms this test supports.
     gex_algs = [
@@ -357,7 +357,7 @@ class DHEat:
                 out.d("Skipping DHEat.dh_rate_test() since server does not support any DH algorithms: [%s]" % ", ".join(kex.kex_algorithms))
                 return ""
             else:
-                out.d("DHEat.dh_rate_test(): starting test; parameters: %f seconds, %u max connections, %u concurrent sockets." % (max_time, max_connections, concurrent_sockets))
+                out.d("DHEat.dh_rate_test(): starting test; parameters: %f seconds, %u max connections, %u concurrent sockets." % (max_time, max_connections, concurrent_sockets), write_now=True)
 
         num_attempted_connections = 0
         num_opened_connections = 0
@@ -367,8 +367,10 @@ class DHEat:
         while True:
 
             # During non-interactive tests, limit based on time and number of connections.  Otherwise, we loop indefinitely until the user presses CTRL-C.
-            if (interactive is False) and ((time.time() - start_timer) >= max_time) and (num_opened_connections >= max_connections):
+            if (interactive is False) and ((time.time() - start_timer) >= max_time) or (num_opened_connections >= max_connections):
                 break
+
+            # out.d("interactive: %r; time.time() - start_timer: %f; max_time: %f; num_opened_connections: %u; max_connections: %u" % (interactive, time.time() - start_timer, max_time, num_opened_connections, max_connections), write_now=True)
 
             # Give the user some interactive feedback.
             if interactive:
@@ -392,20 +394,24 @@ class DHEat:
                 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 s.setblocking(False)
 
-                out.d("Creating socket (%u of %u already exist)..." % (len(socket_list), concurrent_sockets))
+                # out.d("Creating socket (%u of %u already exist)..." % (len(socket_list), concurrent_sockets), write_now=True)
                 ret = s.connect_ex((aconf.host, aconf.port))
                 num_attempted_connections += 1
                 if ret in [0, 115]:  # Check if connection is successful or EINPROGRESS.
                     socket_list.append(s)
 
+            # out.d("Calling select() on %u sockets..." % len(socket_list), write_now=True)
             rlist, _, elist = select.select(socket_list, [], socket_list, 0.1)
 
             # For each socket that has something for us to read...
             for s in rlist:
+                # out.d("Socket in read list.", write_now=True)
                 buf = b''
                 try:
                     buf = s.recv(8)
+                    # out.d("Banner: %r" % buf, write_now=True)
                 except (ConnectionResetError, BrokenPipeError):
+                    out.d("Socket error.", write_now=True)
                     _close_socket(socket_list, s)
                     continue
 
@@ -422,6 +428,7 @@ class DHEat:
 
             # Close all sockets that are in the exception state.
             for s in elist:
+                # out.d("Socket in exception list.", write_now=True)
                 _close_socket(socket_list, s)
 
         # Close any remaining sockets.
@@ -429,13 +436,13 @@ class DHEat:
             _close_socket(socket_list, socket_list[0])
 
         time_elapsed = time.time() - start_timer
-        out.d("DHEat.dh_rate_test() results: time elapsed: %f; connections created: %u" % (time_elapsed, num_opened_connections))
+        out.d("DHEat.dh_rate_test() results: time elapsed: %f; connections created: %u" % (time_elapsed, num_opened_connections), write_now=True)
 
         note = ""
         rate = 0.0
         if time_elapsed > 0.0 and num_opened_connections > 0:
             rate = num_opened_connections / time_elapsed
-            out.d("DHEat.dh_rate_test() results: %.1f connections opened per second." % rate)
+            out.d("DHEat.dh_rate_test() results: %.1f connections opened per second." % rate, write_now=True)
 
             # If we were able to open connections at a rate greater than 25 per second, then we need to warn the user.
             if rate > DHEat.MAX_SAFE_RATE:
