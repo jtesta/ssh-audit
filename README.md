@@ -213,19 +213,19 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ## ChangeLog
 
-### v3.2.0-dev (???)
+### v3.2.0 (2024-04-22)
  - Added implementation of the DHEat denial-of-service attack (see `--dheat` option; [CVE-2002-20001](https://nvd.nist.gov/vuln/detail/CVE-2002-20001)).
  - Expanded filter of CBC ciphers to flag for the Terrapin vulnerability.  It now includes more rarely found ciphers.
- - Color output is disabled if the `NO_COLOR` environment variable is set (see https://no-color.org/).
  - Fixed parsing of `ecdsa-sha2-nistp*` CA signatures on host keys.  Additionally, they are now flagged as potentially back-doored, just as standard host keys are.
  - Gracefully handle rare exceptions (i.e.: crashes) while performing GEX tests.
- - Built-in policies now include a change log (use `-L -v` to view them).
- - Added built-in policies for Amazon Linux 2023, Debian 12, OpenSSH 9.7, and Rocky Linux 9.
  - The built-in man page (`-m`, `--manual`) is now available on Docker, PyPI, and Snap builds, in addition to the Windows build.
  - Snap builds are now architecture-independent.
  - Changed Docker base image from `python:3-slim` to `python:3-alpine`, resulting in a 59% reduction in image size; credit [Daniel Thamdrup](https://github.com/dallemon).
+ - Added built-in policies for Amazon Linux 2023, Debian 12, OpenSSH 9.7, and Rocky Linux 9.
+ - Built-in policies now include a change log (use `-L -v` to view them).
  - Custom policies now support the `allow_algorithm_subset_and_reordering` directive to allow targets to pass with a subset and/or re-ordered list of host keys, kex, ciphers, and MACs.  This allows for the creation of a baseline policy where targets can optionally implement stricter controls; partial credit [yannik1015](https://github.com/yannik1015).
  - Custom policies now support the `allow_larger_keys` directive to allow targets to pass with larger host keys, CA keys, and Diffie-Hellman keys.  This allows for the creation of a baseline policy where targets can optionally implement stricter controls; partial credit [Damian Szuberski](https://github.com/szubersk).
+ - Color output is disabled if the `NO_COLOR` environment variable is set (see https://no-color.org/).
  - Added 1 new key exchange algorithm: `gss-nistp384-sha384-*`.
  - Added 1 new cipher: `aes128-ocb@libassh.org`.
 
