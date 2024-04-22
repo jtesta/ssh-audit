@@ -202,7 +202,7 @@ To install from Dockerhub:
 ```
 $ docker pull positronsecurity/ssh-audit
 ```
-(Then run with: `docker run -it -p 2222:2222 positronsecurity/ssh-audit 10.1.1.1`)
+(Then run with: `docker run -it --rm -p 2222:2222 positronsecurity/ssh-audit 10.1.1.1`)
 
 The status of various other platform packages can be found below (via Repology):
 
