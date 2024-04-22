@@ -51,7 +51,7 @@ class DHEat:
     MAX_SAFE_RATE = 20.0
 
     # The warning added to DH algorithms in the UI when dh_rate_test determines that no throttling is being done.
-    DHEAT_WARNING = "Potentially insufficient connection throttling detected, resulting in possible vulnerability to the DHEat DoS attack (CVE-2002-20001).  {connections:d} connections were created in {time_elapsed:.3f} seconds, or {rate:.1f} conns/sec; server must respond with a rate less than {max_safe_rate:.1f} conns/sec per IPv4/IPv6 source address to be considered safe.  For rate-throttling options, please see <https://www.ssh-audit.com/hardening_guides.html>.  Suppress this test and message with the --skip-rate-test option."
+    DHEAT_WARNING = "Potentially insufficient connection throttling detected, resulting in possible vulnerability to the DHEat DoS attack (CVE-2002-20001).  {connections:d} connections were created in {time_elapsed:.3f} seconds, or {rate:.1f} conns/sec; server must respond with a rate less than {max_safe_rate:.1f} conns/sec per IPv4/IPv6 source address to be considered safe.  For rate-throttling options, please see <https://www.ssh-audit.com/hardening_guides.html>.  Be aware that using 'PerSourceMaxStartups 1' properly protects the server from this attack, but will cause this test to yield a false positive.  Suppress this test and message with the --skip-rate-test option."
 
     # List of the Diffie-Hellman group exchange algorithms this test supports.
     gex_algs = [
