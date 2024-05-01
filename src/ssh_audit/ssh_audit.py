@@ -88,7 +88,7 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     p = os.path.basename(sys.argv[0])
     uout.head('# {} {}, https://github.com/jtesta/ssh-audit\n'.format(p, VERSION))
     if err is not None and len(err) > 0:
-        uout.fail(err + '\n')
+        uout.error(err + '\n')
         retval = exitcodes.UNKNOWN_ERROR
     uout.info('usage: {0} [options] <host>\n'.format(p))
     uout.info('   -h,  --help             print this help')
@@ -833,7 +833,7 @@ def list_policies(out: OutputBuffer, verbose: bool) -> None:
 
     out.sep()
     if len(server_policy_names) == 0 and len(client_policy_names) == 0:
-        out.fail("Error: no built-in policies found!")
+        out.error("Error: no built-in policies found!")
     else:
         out.info("\nHint: Use -P and provide the full name of a policy to run a policy scan with.\n")
         out.info("Hint: Use -L -v to also see the change log for each policy.\n")
@@ -1049,19 +1049,19 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             try:
                 aconf.policy = Policy(policy_file=aconf.policy_file, json_output=aconf.json)
             except Exception as e:
-                out.fail("Error while loading policy file: %s: %s" % (str(e), traceback.format_exc()))
+                out.error("Error while loading policy file: %s: %s" % (str(e), traceback.format_exc()))
                 out.write()
                 sys.exit(exitcodes.UNKNOWN_ERROR)
 
         # If the user wants to do a client audit, but provided a server policy, terminate.
         if aconf.client_audit and aconf.policy.is_server_policy():
-            out.fail("Error: client audit selected, but server policy provided.")
+            out.error("Error: client audit selected, but server policy provided.")
             out.write()
             sys.exit(exitcodes.UNKNOWN_ERROR)
 
         # If the user wants to do a server audit, but provided a client policy, terminate.
         if aconf.client_audit is False and aconf.policy.is_server_policy() is False:
-            out.fail("Error: server audit selected, but client policy provided.")
+            out.error("Error: server audit selected, but client policy provided.")
             out.write()
             sys.exit(exitcodes.UNKNOWN_ERROR)
 
@@ -1260,7 +1260,7 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
         err = s.connect()
 
         if err is not None:
-            out.fail(err)
+            out.error(err)
 
             # If we're running against multiple targets, return a connection error to the calling worker thread.  Otherwise, write the error message to the console and exit.
             if len(aconf.target_list) > 0:
@@ -1308,7 +1308,7 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
                 err = fmt.format(err_pair[0], err_pair[1], packet_type)
     if err is not None:
         output(out, aconf, banner, header)
-        out.fail(err)
+        out.error(err)
         return exitcodes.CONNECTION_ERROR
     if sshv == 1:
         program_retval = output(out, aconf, banner, header, pkm=SSH1_PublicKeyMessage.parse(payload))
@@ -1316,7 +1316,7 @@ def audit(out: OutputBuffer, aconf: AuditConf, sshv: Optional[int] = None, print
         try:
             kex = SSH2_Kex.parse(out, payload)
         except Exception:
-            out.fail("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()))
+            out.error("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()))
             return exitcodes.CONNECTION_ERROR
 
         if aconf.dheat is not None:
