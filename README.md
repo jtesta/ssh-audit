@@ -32,7 +32,7 @@
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - policy scans to ensure adherence to a hardened/standard configuration;
 - runs on Linux and Windows;
-- supports Python 3.7 - 3.11;
+- supports Python 3.8 - 3.12;
 - no dependencies
 
 ## Usage
@@ -48,16 +48,33 @@ usage: ssh-audit.py [options] <host>
    -c,  --client-audit     starts a server on port 2222 to audit client
                                software config (use -p to change port;
                                use -t to change timeout)
+        --conn-rate-test=N[:max_rate]  perform a connection rate test (useful
+                                       for collecting metrics related to
+                                       susceptibility of the DHEat vuln).
+                                       Testing is conducted with N concurrent
+                                       sockets with an optional maximum rate
+                                       of connections per second.
    -d,  --debug            Enable debug output.
+        --dheat=N[:kex[:e_len]]    continuously perform the DHEat DoS attack
+                                   (CVE-2002-20001) against the target using N
+                                   concurrent sockets.  Optionally, a specific
+                                   key exchange algorithm can be specified
+                                   instead of allowing it to be automatically
+                                   chosen.  Additionally, a small length of
+                                   the fake e value sent to the server can
+                                   be chosen for a more efficient attack (such
+                                   as 4).
    -g,  --gex-test=<x[,y,...]>  dh gex modulus size test
                    <min1:pref1:max1[,min2:pref2:max2,...]>
                    <x-y[:step]>
    -j,  --json             JSON output (use -jj to enable indents)
    -l,  --level=<level>    minimum output level (info|warn|fail)
-   -L,  --list-policies    list all the official, built-in policies
+   -L,  --list-policies    list all the official, built-in policies. Use with -v
+                               to view policy change logs.
         --lookup=<alg1,alg2,...>    looks up an algorithm(s) without
                                     connecting to a server
-   -m,  --manual           print the man page (Windows only)
+   -m,  --manual           print the man page (Docker, PyPI, Snap, and Windows
+                                    builds only)
    -M,  --make-policy=<policy.txt>  creates a policy based on the target server
                                     (i.e.: the target server has the ideal
                                     configuration that other servers should
@@ -66,6 +83,9 @@ usage: ssh-audit.py [options] <host>
    -p,  --port=<port>      port to connect
    -P,  --policy=<"policy name" | policy.txt>  run a policy test using the
                                                    specified policy
+        --skip-rate-test   skip the connection rate test during standard audits
+                               (used to safely infer whether the DHEat attack
+                               is viable)
    -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
                                (default: 5)
    -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one
@@ -130,6 +150,21 @@ To create a policy based on a target server (which can be manually edited):
 ssh-audit -M new_policy.txt targetserver
 ```
 
+To run the DHEat CPU exhaustion DoS attack ([CVE-2002-20001](https://nvd.nist.gov/vuln/detail/CVE-2002-20001)) against a target using 10 concurrent sockets:
+```
+ssh-audit --dheat=10 targetserver
+```
+
+To run the DHEat attack using the `diffie-hellman-group-exchange-sha256` key exchange algorithm:
+```
+ssh-audit --dheat=10:diffie-hellman-group-exchange-sha256 targetserver
+```
+
+To run the DHEat attack using the `diffie-hellman-group-exchange-sha256` key exchange algorithm along with very small but non-standard packet lengths (this may result in the same CPU exhaustion, but with many less bytes per second being sent):
+```
+ssh-audit --dheat=10:diffie-hellman-group-exchange-sha256:4 targetserver
+```
+
 ## Screenshots
 
 ### Server Standard Audit Example
@@ -151,7 +186,7 @@ Below is a screen shot of the client-auditing output when an unhardened OpenSSH 
 Guides to harden server & client configuration can be found here: [https://www.ssh-audit.com/hardening_guides.html](https://www.ssh-audit.com/hardening_guides.html)
 
 ## Pre-Built Packages
-Pre-built packages are available for Windows (see the releases page), PyPI, Snap, and Docker:
+Pre-built packages are available for Windows (see the [Releases](https://github.com/jtesta/ssh-audit/releases) page), PyPI, Snap, and Docker:
 
 To install from PyPI:
 ```
@@ -167,7 +202,7 @@ To install from Dockerhub:
 ```
 $ docker pull positronsecurity/ssh-audit
 ```
-(Then run with: `docker run -it -p 2222:2222 positronsecurity/ssh-audit 10.1.1.1`)
+(Then run with: `docker run -it --rm -p 2222:2222 positronsecurity/ssh-audit 10.1.1.1`)
 
 The status of various other platform packages can be found below (via Repology):
 
@@ -177,6 +212,36 @@ The status of various other platform packages can be found below (via Repology):
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
+
+### v3.3.0-dev (???)
+ - Added built-in policies for Ubuntu 24.04 LTS server and client.
+
+### v3.2.0 (2024-04-22)
+ - Added implementation of the DHEat denial-of-service attack (see `--dheat` option; [CVE-2002-20001](https://nvd.nist.gov/vuln/detail/CVE-2002-20001)).
+ - Expanded filter of CBC ciphers to flag for the Terrapin vulnerability.  It now includes more rarely found ciphers.
+ - Fixed parsing of `ecdsa-sha2-nistp*` CA signatures on host keys.  Additionally, they are now flagged as potentially back-doored, just as standard host keys are.
+ - Gracefully handle rare exceptions (i.e.: crashes) while performing GEX tests.
+ - The built-in man page (`-m`, `--manual`) is now available on Docker, PyPI, and Snap builds, in addition to the Windows build.
+ - Snap builds are now architecture-independent.
+ - Changed Docker base image from `python:3-slim` to `python:3-alpine`, resulting in a 59% reduction in image size; credit [Daniel Thamdrup](https://github.com/dallemon).
+ - Added built-in policies for Amazon Linux 2023, Debian 12, OpenSSH 9.7, and Rocky Linux 9.
+ - Built-in policies now include a change log (use `-L -v` to view them).
+ - Custom policies now support the `allow_algorithm_subset_and_reordering` directive to allow targets to pass with a subset and/or re-ordered list of host keys, kex, ciphers, and MACs.  This allows for the creation of a baseline policy where targets can optionally implement stricter controls; partial credit [yannik1015](https://github.com/yannik1015).
+ - Custom policies now support the `allow_larger_keys` directive to allow targets to pass with larger host keys, CA keys, and Diffie-Hellman keys.  This allows for the creation of a baseline policy where targets can optionally implement stricter controls; partial credit [Damian Szuberski](https://github.com/szubersk).
+ - Color output is disabled if the `NO_COLOR` environment variable is set (see https://no-color.org/).
+ - Added 1 new key exchange algorithm: `gss-nistp384-sha384-*`.
+ - Added 1 new cipher: `aes128-ocb@libassh.org`.
+
+### v3.1.0 (2023-12-20)
+ - Added test for the Terrapin message prefix truncation vulnerability ([CVE-2023-48795](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2023-48795)).
+ - Dropped support for Python 3.7 (EOL was reached in June 2023).
+ - Added Python 3.12 support.
+ - In server policies, reduced expected DH modulus sizes from 4096 to 3072 to match the [online hardening guides](https://ssh-audit.com/hardening_guides.html) (note that 3072-bit moduli provide the equivalent of 128-bit symmetric security).
+ - In Ubuntu 22.04 client policy, moved host key types `sk-ssh-ed25519@openssh.com` and `ssh-ed25519` to the end of all certificate types.
+ - Updated Ubuntu Server & Client policies for 20.04 and 22.04 to account for key exchange list changes due to Terrapin vulnerability patches.
+ - Re-organized option host key types for OpenSSH 9.2 server policy to correspond with updated Debian 12 hardening guide.
+ - Added built-in policies for OpenSSH 9.5 and 9.6.
+ - Added an `additional_notes` field to the JSON output.
 
 ### v3.0.0 (2023-09-07)
  - Results from concurrent scans against multiple hosts are no longer improperly combined; bug discovered by [Adam Russell](https://github.com/thecliguy).

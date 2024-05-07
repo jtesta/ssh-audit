@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2024 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -62,7 +62,9 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     WARN_TAG_SIZE_96 = 'using small 96-bit tag size'
 
     INFO_DEFAULT_OPENSSH_CIPHER = 'default cipher since OpenSSH 6.9'
-    INFO_DEFAULT_OPENSSH_KEX = 'default key exchange since OpenSSH 6.4'
+    INFO_DEFAULT_OPENSSH_KEX_65_TO_73 = 'default key exchange from OpenSSH 6.5 to 7.3'
+    INFO_DEFAULT_OPENSSH_KEX_74_TO_89 = 'default key exchange from OpenSSH 7.4 to 8.9'
+    INFO_DEFAULT_OPENSSH_KEX_90 = 'default key exchange since OpenSSH 9.0'
     INFO_DEPRECATED_IN_OPENSSH88 = 'deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8'
     INFO_DISABLED_IN_DBEAR67 = 'disabled in Dropbear SSH 2015.67'
     INFO_DISABLED_IN_OPENSSH70 = 'disabled in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
@@ -71,6 +73,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     INFO_REMOVED_IN_OPENSSH69 = 'removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9'
     INFO_REMOVED_IN_OPENSSH70 = 'removed in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
     INFO_WITHDRAWN_PQ_ALG = 'the sntrup4591761 algorithm was withdrawn, as it may not provide strong post-quantum security'
+    INFO_EXTENSION_NEGOTIATION = 'pseudo-algorithm that denotes the peer supports RFC8308 extensions'
+    INFO_STRICT_KEX = 'pseudo-algorithm that denotes the peer supports a stricter key exchange method as a counter-measure to the Terrapin attack (CVE-2023-48795)'
 
     # Maintains a dictionary per calling thread that yields its own copy of MASTER_DB.  This prevents results from one thread polluting the results of another thread.
     DB_PER_THREAD: Dict[int, Dict[str, Dict[str, List[List[Optional[str]]]]]] = {}
@@ -79,8 +83,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
         # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...], [info1, info2, ...]]
         'kex': {
             'Curve25519SHA256': [[]],
-            'curve25519-sha256': [['7.4,d2018.76'], [], [], [INFO_DEFAULT_OPENSSH_KEX]],
-            'curve25519-sha256@libssh.org': [['6.4,d2013.62,l10.6.0'], [], [], [INFO_DEFAULT_OPENSSH_KEX]],
+            'curve25519-sha256': [['7.4,d2018.76'], [], [], [INFO_DEFAULT_OPENSSH_KEX_74_TO_89]],
+            'curve25519-sha256@libssh.org': [['6.4,d2013.62,l10.6.0'], [], [], [INFO_DEFAULT_OPENSSH_KEX_65_TO_73]],
             'curve448-sha512': [[]],
             'curve448-sha512@libssh.org': [[]],
             'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [FAIL_SHA1], [WARN_2048BIT_MODULUS]],
@@ -154,8 +158,10 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ecdh-sha2-wiRIU8TKjMZ418sMqlqtvQ==': [[], [FAIL_UNPROVEN]],  # sect283k1
             'ecdh-sha2-zD/b3hu/71952ArpUG4OjQ==': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect233k1
             'ecmqv-sha2': [[], [FAIL_UNPROVEN]],
-            'ext-info-c': [[]],  # Extension negotiation (RFC 8308)
-            'ext-info-s': [[]],  # Extension negotiation (RFC 8308)
+            'ext-info-c': [[], [], [], [INFO_EXTENSION_NEGOTIATION]],  # Extension negotiation (RFC 8308)
+            'ext-info-s': [[], [], [], [INFO_EXTENSION_NEGOTIATION]],  # Extension negotiation (RFC 8308)
+            'kex-strict-c-v00@openssh.com': [[], [], [], [INFO_STRICT_KEX]],  # Strict KEX marker (countermeasure for CVE-2023-48795).
+            'kex-strict-s-v00@openssh.com': [[], [], [], [INFO_STRICT_KEX]],  # Strict KEX marker (countermeasure for CVE-2023-48795).
 
             # The GSS kex algorithms get special wildcard handling, since they include variable base64 data after their standard prefixes.
             'gss-13.3.132.0.10-sha256-*': [[], [FAIL_UNKNOWN]],
@@ -172,6 +178,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'gss-group1-sha1-*': [[], [FAIL_1024BIT_MODULUS, FAIL_LOGJAM_ATTACK, FAIL_SHA1]],
             'gss-nistp256-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'gss-nistp384-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
+            'gss-nistp384-sha384-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'gss-nistp521-sha512-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'kexAlgoCurve25519SHA256': [[]],
             'kexAlgoDH14SHA1': [[], [FAIL_SHA1], [WARN_2048BIT_MODULUS]],
@@ -186,7 +193,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'rsa2048-sha256': [[], [], [WARN_2048BIT_MODULUS]],
             'sm2kep-sha2-nistp256': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_UNTRUSTED]],
             'sntrup4591761x25519-sha512@tinyssh.org': [['8.0', '8.4'], [], [WARN_EXPERIMENTAL], [INFO_WITHDRAWN_PQ_ALG]],
-            'sntrup761x25519-sha512@openssh.com': [['8.5'], [], []],
+            'sntrup761x25519-sha512@openssh.com': [['8.5'], [], [], [INFO_DEFAULT_OPENSSH_KEX_90]],
             'x25519-kyber-512r3-sha256-d00@amazon.com': [[]],
             'x25519-kyber512-sha512@aws.amazon.com': [[]],
         },
@@ -217,7 +224,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'null': [[], [FAIL_PLAINTEXT]],
             'pgp-sign-dss': [[], [FAIL_1024BIT_MODULUS]],
             'pgp-sign-rsa': [[], [FAIL_1024BIT_MODULUS]],
-            'rsa-sha2-256': [['7.2']],
+            'rsa-sha2-256': [['7.2,d2020.79']],
             'rsa-sha2-256-cert-v01@openssh.com': [['7.8']],
             'rsa-sha2-512': [['7.2']],
             'rsa-sha2-512-cert-v01@openssh.com': [['7.8']],
@@ -236,7 +243,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ssh-dss-sha256@ssh.com': [[], [FAIL_1024BIT_MODULUS]],
             'ssh-dss-sha384@ssh.com': [[], [FAIL_1024BIT_MODULUS]],
             'ssh-dss-sha512@ssh.com': [[], [FAIL_1024BIT_MODULUS]],
-            'ssh-ed25519': [['6.5,l10.7.0']],
+            'ssh-ed25519': [['6.5,d2020.79,l10.7.0']],
             'ssh-ed25519-cert-v01@openssh.com': [['6.5']],
             'ssh-ed448': [[]],
             'ssh-ed448-cert-v01@openssh.com': [[], [], [], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],
@@ -290,6 +297,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'aes128-ctr': [['3.7,d0.52,l10.4.1']],
             'aes128-gcm': [[]],
             'aes128-gcm@openssh.com': [['6.2']],
+            'aes128-ocb@libassh.org': [[], [], [WARN_CIPHER_MODE]],
             'aes192-cbc': [['2.3.0,l10.2', '6.6', None], [], [WARN_CIPHER_MODE]],
             'aes192-ctr': [['3.7,l10.4.1']],
             'aes192-gcm@openssh.com': [[], [], [], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],
@@ -329,7 +337,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'cast128-ecb': [[], [FAIL_CAST], [WARN_CIPHER_MODE]],
             'cast128-ofb': [[], [FAIL_CAST], [WARN_CIPHER_MODE]],
             'chacha20-poly1305': [[], [], [], [INFO_DEFAULT_OPENSSH_CIPHER]],
-            'chacha20-poly1305@openssh.com': [['6.5'], [], [], [INFO_DEFAULT_OPENSSH_CIPHER]],
+            'chacha20-poly1305@openssh.com': [['6.5,d2020.79'], [], [], [INFO_DEFAULT_OPENSSH_CIPHER]],
             'crypticore128@ssh.com': [[], [FAIL_UNPROVEN]],
             'des-cbc': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
             'des-cfb': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],

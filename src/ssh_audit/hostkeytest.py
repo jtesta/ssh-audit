@@ -180,7 +180,7 @@ class HostKeyTest:
                         hostkey_min_good = 256
                         hostkey_min_warn = 224
                         hostkey_warn_str = HostKeyTest.SMALL_ECC_MODULUS_WARNING
-                    if ca_key_type.startswith('ssh-ed25519') or host_key_type.startswith('ecdsa-sha2-nistp'):
+                    if ca_key_type.startswith('ssh-ed25519') or ca_key_type.startswith('ecdsa-sha2-nistp'):
                         cakey_min_good = 256
                         cakey_min_warn = 224
                         cakey_warn_str = HostKeyTest.SMALL_ECC_MODULUS_WARNING
@@ -208,6 +208,10 @@ class HostKeyTest:
                         # Otherwise, this is just a warning.
                         elif (0 < ca_modulus_size < cakey_min_good) and (cakey_warn_str not in key_warn_comments):
                             key_warn_comments.append(cakey_warn_str)
+
+                    # If the CA key type uses ECDSA with a NIST P-curve, fail it for possibly being back-doored.
+                    if ca_key_type.startswith('ecdsa-sha2-nistp'):
+                        key_fail_comments.append('CA key uses elliptic curves that are suspected as being backdoored by the U.S. National Security Agency')
 
                 # If this host key type is in the RSA family, then mark them all as parsed (since results in one are valid for them all).
                 if host_key_type in HostKeyTest.RSA_FAMILY:

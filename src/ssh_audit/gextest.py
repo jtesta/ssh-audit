@@ -21,6 +21,7 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
+import struct
 import traceback
 
 # pylint: disable=unused-import
@@ -65,7 +66,7 @@ class GEXTest:
             # Parse the server's KEX.
             _, payload = s.read_packet(2)
             SSH2_Kex.parse(out, payload)
-        except KexDHException:
+        except (KexDHException, struct.error):
             out.v("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()), write_now=True)
             return False
 

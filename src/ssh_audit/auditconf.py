@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2024 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -60,10 +60,20 @@ class AuditConf:
         self.manual = False
         self.debug = False
         self.gex_test = ''
+        self.dheat: Optional[str] = None
+        self.dheat_concurrent_connections: int = 0
+        self.dheat_e_length: int = 0
+        self.dheat_target_alg: str = ""
+        self.skip_rate_test = False
+        self.conn_rate_test: str = "1:1"
+        self.conn_rate_test_enabled = False
+        self.conn_rate_test_threads = 0
+        self.conn_rate_test_target_rate = 0
+
 
     def __setattr__(self, name: str, value: Union[str, int, float, bool, Sequence[int]]) -> None:
         valid = False
-        if name in ['batch', 'client_audit', 'colors', 'json', 'json_print_indent', 'list_policies', 'manual', 'make_policy', 'ssh1', 'ssh2', 'timeout_set', 'verbose', 'debug']:
+        if name in ['batch', 'client_audit', 'colors', 'json', 'json_print_indent', 'list_policies', 'manual', 'make_policy', 'ssh1', 'ssh2', 'timeout_set', 'verbose', 'debug', 'skip_rate_test']:
             valid, value = True, bool(value)
         elif name in ['ipv4', 'ipv6']:
             valid, value = True, bool(value)
@@ -94,6 +104,89 @@ class AuditConf:
             if num_threads < 1:
                 raise ValueError('invalid number of threads: {}'.format(value))
             value = num_threads
+        elif name == "dheat":
+            # Valid values:
+            #   * None
+            #   * "10" (concurrent-connections)
+            #   * "10:diffie-hellman-group18-sha512" (concurrent-connections:target-alg)
+            #   * "10:diffie-hellman-group18-sha512:100" (concurrent-connections:target-alg:e-length)
+            valid = True
+            if value is not None:
+
+                def _parse_concurrent_connections(s: str) -> int:
+                    if Utils.parse_int(s) < 1:
+                        raise ValueError("number of concurrent connections must be 1 or greater: {}".format(s))
+                    return int(s)
+
+                def _parse_e_length(s: str) -> int:
+                    s_int = Utils.parse_int(s)
+                    if s_int < 2:
+                        raise ValueError("length of e must not be less than 2: {}".format(s))
+                    return s_int
+
+                def _parse_target_alg(s: str) -> str:
+                    if len(s) == 0:
+                        raise ValueError("target algorithm must not be the empty string.")
+                    return s
+
+                value = str(value)
+                fields = value.split(':')
+
+                self.dheat_concurrent_connections = _parse_concurrent_connections(fields[0])
+
+                # Parse the target algorithm if present.
+                if len(fields) >= 2:
+                    self.dheat_target_alg = _parse_target_alg(fields[1])
+
+                # Parse the length of e, if present.
+                if len(fields) == 3:
+                    self.dheat_e_length = _parse_e_length(fields[2])
+
+                if len(fields) > 3:
+                    raise ValueError("only three fields are expected instead of {}: {}".format(len(fields), value))
+
+        elif name in ["dheat_concurrent_connections", "dheat_e_length"]:
+            valid = True
+            if not isinstance(value, int):
+                valid = False
+
+        elif name == "dheat_target_alg":
+            valid = True
+            if not isinstance(value, str):
+                valid = False
+
+        elif name == "conn_rate_test":
+            # Valid values:
+            #   * "4" (run rate test with 4 threads)
+            #   * "4:100" (run rate test with 4 threads, targeting 100 connections/second)
+
+            error_msg = "valid format for {:s} is \"N\" or \"N:N\", where N is an integer.".format(name)
+            self.conn_rate_test_enabled = True
+            fields = str(value).split(":")
+
+            if len(fields) > 2 or len(fields) == 0:
+                raise ValueError(error_msg)
+            else:
+                self.conn_rate_test_threads = int(fields[0])
+                if self.conn_rate_test_threads < 1:
+                    raise ValueError("number of threads must be 1 or greater.")
+
+                self.conn_rate_test_target_rate = 0
+                if len(fields) == 2:
+                    self.conn_rate_test_target_rate = int(fields[1])
+                    if self.conn_rate_test_target_rate < 1:
+                        raise ValueError("rate target must be 1 or greater.")
+
+        elif name == "conn_rate_test_enabled":
+            valid = True
+            if not isinstance(value, bool):
+                valid = False
+
+        elif name in ["conn_rate_test_threads", "conn_rate_test_target_rate"]:
+            valid = True
+            if not isinstance(value, int):
+                valid = False
+
 
         if valid:
             object.__setattr__(self, name, value)

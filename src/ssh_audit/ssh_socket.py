@@ -246,8 +246,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
     def send_banner(self, banner: str) -> None:
         self.send(banner.encode() + b'\r\n')
-        if self.__state < self.SM_BANNER_SENT:
-            self.__state = self.SM_BANNER_SENT
+        self.__state = max(self.__state, self.SM_BANNER_SENT)
 
     def ensure_read(self, size: int) -> None:
         while self.unread_len < size:

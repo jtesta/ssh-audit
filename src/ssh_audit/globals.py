@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2024 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
    THE SOFTWARE.
 """
 # The version to display.
-VERSION = 'v3.1.0-dev'
+VERSION = 'v3.3.0-dev'
 
 # SSH software to impersonate
 SSH_HEADER = 'SSH-{0}-OpenSSH_8.2'
@@ -30,8 +30,8 @@ SSH_HEADER = 'SSH-{0}-OpenSSH_8.2'
 # The URL to the Github issues tracker.
 GITHUB_ISSUES_URL = 'https://github.com/jtesta/ssh-audit/issues'
 
-# The man page.  Only filled in on Windows systems.
-WINDOWS_MAN_PAGE = ''
+# The man page.  Only filled in on Docker, PyPI, Snap, and Windows builds.
+BUILTIN_MAN_PAGE = ''
 
 # True when installed from a Snap package, otherwise False.
 SNAP_PACKAGE = False

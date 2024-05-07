@@ -3,7 +3,7 @@
 #
 #   The MIT License (MIT)
 #
-#   Copyright (C) 2021 Joe Testa (jtesta@positronsecurity.com)
+#   Copyright (C) 2021-2024 Joe Testa (jtesta@positronsecurity.com)
 #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy
 #   of this software and associated documentation files (the "Software"), to deal
@@ -77,7 +77,7 @@ fi
 git checkout src/ssh_audit/globals.py 2> /dev/null
 
 # Update the man page.
-./update_windows_man_page.sh
+./add_builtin_man_page.sh
 retval=$?
 if [[ ${retval} != 0 ]]; then
     echo "Failed to run ./update_windows_man_page.sh"

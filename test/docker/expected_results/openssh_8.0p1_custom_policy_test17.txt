@@ -1,0 +1,3 @@
+Host:   localhost:2222
+Policy: Docker policy: test17 (version 1)
+Result: [0;32m✔ Passed[0m
