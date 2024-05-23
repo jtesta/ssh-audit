@@ -456,7 +456,7 @@ def output_info(out: OutputBuffer, software: Optional['Software'], client_audit:
 
         # If any warnings or failures were given, print a link to the hardening guides.
         if any_problems:
-            out.warn('(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>')
+            out.warn('(nfo) For hardening guides on common OSes, please see: < https://www.ssh-audit.com/hardening_guides.html >')
 
         # Add any additional notes.
         for additional_note in additional_notes:
@@ -721,7 +721,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
         # Build & write the JSON struct.
         out.info(json.dumps(build_struct(aconf.host + ":" + str(aconf.port), banner, cves, kex=kex, client_host=client_host, software=software, algorithms=algs, algorithm_recommendation_suppress_list=algorithm_recommendation_suppress_list, additional_notes=additional_notes), indent=4 if aconf.json_print_indent else None, sort_keys=True))
     elif len(unknown_algorithms) > 0:  # If we encountered any unknown algorithms, ask the user to report them.
-        out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at <https://github.com/jtesta/ssh-audit/issues>.\n" % ','.join(unknown_algorithms))
+        out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  Please email the full output above to the maintainer (jtesta@positronsecurity.com), or create a Github issue at < https://github.com/jtesta/ssh-audit/issues >.\n" % ','.join(unknown_algorithms))
 
     return program_retval
 
