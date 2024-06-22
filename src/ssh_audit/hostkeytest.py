@@ -50,9 +50,19 @@ class HostKeyTest:
         'rsa-sha2-256-cert-v01@openssh.com': {'cert': True, 'variable_key_len': True},
         'rsa-sha2-512-cert-v01@openssh.com': {'cert': True, 'variable_key_len': True},
 
-        'ssh-ed25519':                      {'cert': False, 'variable_key_len': False},
-        'ssh-ed25519-cert-v01@openssh.com': {'cert': True, 'variable_key_len': False},
-    }
+        'ssh-ed25519':                      {'cert': False, 'variable_key_len': True},
+        'ssh-ed25519-cert-v01@openssh.com': {'cert': True, 'variable_key_len': True},
+
+        'ecdsa-sha2-nistp256':              {'cert': False, 'variable_key_len': True},
+        'ecdsa-sha2-nistp256-cert-v01@openssh.com': {'cert': True, 'variable_key_len': True},
+
+        'ecdsa-sha2-nistp384':              {'cert': False, 'variable_key_len': True},
+        'ecdsa-sha2-nistp384-cert-v01@openssh.com': {'cert': True, 'variable_key_len': True},
+
+        'ecdsa-sha2-nistp521':              {'cert': False, 'variable_key_len': True},
+        'ecdsa-sha2-nistp521-cert-v01@openssh.com': {'cert': True, 'variable_key_len': True}
+}
+
 
     TWO2K_MODULUS_WARNING = '2048-bit modulus only provides 112-bits of symmetric strength'
     SMALL_ECC_MODULUS_WARNING = '224-bit ECC modulus only provides 112-bits of symmetric strength'

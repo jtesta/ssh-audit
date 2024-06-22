@@ -1148,17 +1148,13 @@ def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[s
             }
             if algorithm in host_keys:
                 hostkey_info = host_keys[algorithm]
-                hostkey_size = cast(int, hostkey_info['hostkey_size'])
-
+                entry['keysize'] = cast(int, hostkey_info['hostkey_size'])
                 ca_type = ''
                 ca_size = 0
                 if 'ca_key_type' in hostkey_info:
                     ca_type = cast(str, hostkey_info['ca_key_type'])
                 if 'ca_key_size' in hostkey_info:
                     ca_size = cast(int, hostkey_info['ca_key_size'])
-
-                if algorithm in HostKeyTest.RSA_FAMILY or algorithm.startswith('ssh-rsa-cert-v0'):
-                    entry['keysize'] = hostkey_size
                 if ca_size > 0:
                     entry['ca_algorithm'] = ca_type
                     entry['casize'] = ca_size
