@@ -52,6 +52,9 @@ class HostKeyTest:
 
         'ssh-ed25519':                      {'cert': False, 'variable_key_len': False},
         'ssh-ed25519-cert-v01@openssh.com': {'cert': True, 'variable_key_len': False},
+
+        'ssh-ed448':                      {'cert': False, 'variable_key_len': False},
+        # 'ssh-ed448-cert-v01@openssh.com': {'cert': True,  'variable_key_len': False},
     }
 
     TWO2K_MODULUS_WARNING = '2048-bit modulus only provides 112-bits of symmetric strength'
