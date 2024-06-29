@@ -215,6 +215,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ### v3.3.0-dev (???)
  - Added built-in policies for Ubuntu 24.04 LTS server and client.
+ - Added IPv6 support for DHEat and connection rate tests.
 
 ### v3.2.0 (2024-04-22)
  - Added implementation of the DHEat denial-of-service attack (see `--dheat` option; [CVE-2002-20001](https://nvd.nist.gov/vuln/detail/CVE-2002-20001)).
