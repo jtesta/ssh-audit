@@ -157,6 +157,7 @@ class HostKeyTest:
                 ca_key_type = kex_group.get_ca_type()
                 ca_modulus_size = kex_group.get_ca_size()
                 out.d("Hostkey type: [%s]; hostkey size: %u; CA type: [%s]; CA modulus size: %u" % (host_key_type, hostkey_modulus_size, ca_key_type, ca_modulus_size), write_now=True)
+                out.d("Raw hostkey bytes (%d): [%s]" % (len(raw_hostkey_bytes), raw_hostkey_bytes.hex()), write_now=True)
 
                 # Record all the host key info.
                 server_kex.set_host_key(host_key_type, raw_hostkey_bytes, hostkey_modulus_size, ca_key_type, ca_modulus_size)
