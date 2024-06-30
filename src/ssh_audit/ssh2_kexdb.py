@@ -68,6 +68,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     INFO_DEPRECATED_IN_OPENSSH88 = 'deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8'
     INFO_DISABLED_IN_DBEAR67 = 'disabled in Dropbear SSH 2015.67'
     INFO_DISABLED_IN_OPENSSH70 = 'disabled in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
+    INFO_RFC8709_NOT_OPENSSH = 'described in RFC8709 but never implemented in OpenSSH'
     INFO_NEVER_IMPLEMENTED_IN_OPENSSH = 'despite the @openssh.com tag, this was never implemented in OpenSSH'
     INFO_REMOVED_IN_OPENSSH61 = 'removed since OpenSSH 6.1, removed from specification'
     INFO_REMOVED_IN_OPENSSH69 = 'removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9'
@@ -245,7 +246,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ssh-dss-sha512@ssh.com': [[], [FAIL_1024BIT_MODULUS]],
             'ssh-ed25519': [['6.5,d2020.79,l10.7.0']],
             'ssh-ed25519-cert-v01@openssh.com': [['6.5']],
-            'ssh-ed448': [[]],
+            'ssh-ed448': [[], [], [], [INFO_RFC8709_NOT_OPENSSH]],
             'ssh-ed448-cert-v01@openssh.com': [[], [], [], [INFO_NEVER_IMPLEMENTED_IN_OPENSSH]],
             'ssh-gost2001': [[], [FAIL_UNTRUSTED]],
             'ssh-gost2012-256': [[], [FAIL_UNTRUSTED]],
