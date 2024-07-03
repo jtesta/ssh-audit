@@ -214,7 +214,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v3.3.0-dev (???)
- - Added built-in policies for Ubuntu 24.04 LTS server and client.
+ - Added built-in policies for Ubuntu 24.04 LTS server and client, and OpenSSH 9.8.
  - Added IPv6 support for DHEat and connection rate tests.
  - Fixed crash when running with `-P` and `-T` options simultaneously.
 
