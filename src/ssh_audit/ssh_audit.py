@@ -421,6 +421,8 @@ def output_recommendations(out: OutputBuffer, algs: Algorithms, algorithm_recomm
 
                         fn = level_to_output[level]
 
+                        an = '?'
+                        sg = '?'
                         if action == 'del':
                             an, sg = 'remove', '-'
                             ret = False

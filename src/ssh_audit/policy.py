@@ -605,3 +605,29 @@ macs = %s
             dh_modulus_sizes_str = str(self._dh_modulus_sizes)
 
         return "Name: %s\nVersion: %s\nAllow Algorithm Subset and/or Reordering: %r\nBanner: %s\nCompressions: %s\nHost Keys: %s\nOptional Host Keys: %s\nKey Exchanges: %s\nCiphers: %s\nMACs: %s\nHost Key Sizes: %s\nDH Modulus Sizes: %s\nServer Policy: %r" % (name, version, self._allow_algorithm_subset_and_reordering, banner, compressions_str, host_keys_str, optional_host_keys_str, kex_str, ciphers_str, macs_str, hostkey_sizes_str, dh_modulus_sizes_str, self._server_policy)
+
+
+    def __getstate__(self) -> Dict[str, Any]:
+        '''Called when pickling this object.  The file descriptor isn't serializable, so we'll remove it from the state and include a string representation.'''
+
+        state = self.__dict__.copy()
+
+        if state['_warning_target'] == sys.stdout:
+            state['_warning_target_type'] = 'stdout'
+        else:
+            state['_warning_target_type'] = 'stderr'
+
+        del state['_warning_target']
+        return state
+
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        '''Called when unpickling this object.  Based on the string representation of the file descriptor, we'll restore the right handle.'''
+
+        if state['_warning_target_type'] == 'stdout':
+            state['_warning_target'] = sys.stdout
+        else:
+            state['_warning_target'] = sys.stderr
+
+        del state['_warning_target_type']
+        self.__dict__.update(state)
