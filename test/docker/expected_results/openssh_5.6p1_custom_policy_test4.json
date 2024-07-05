@@ -28,5 +28,6 @@
     ],
     "host": "localhost",
     "passed": false,
-    "policy": "Docker policy: test4 (version 1)"
+    "policy": "Docker policy: test4 (version 1)",
+    "port": 2222
 }

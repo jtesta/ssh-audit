@@ -2,5 +2,6 @@
     "errors": [],
     "host": "localhost",
     "passed": true,
-    "policy": "Docker poliicy: test7 (version 1)"
+    "policy": "Docker poliicy: test7 (version 1)",
+    "port": 2222
 }

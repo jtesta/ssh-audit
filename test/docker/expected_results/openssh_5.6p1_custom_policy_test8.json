@@ -15,5 +15,6 @@
     ],
     "host": "localhost",
     "passed": false,
-    "policy": "Docker poliicy: test8 (version 1)"
+    "policy": "Docker poliicy: test8 (version 1)",
+    "port": 2222
 }
