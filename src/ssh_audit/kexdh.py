@@ -134,6 +134,9 @@ class KexDH:  # pragma: nocover
         if self.__hostkey_type == 'ssh-ed25519':
             self.out.d("%s has a fixed host key modulus of 32." % self.__hostkey_type)
             self.__hostkey_n_len = 32
+        elif self.__hostkey_type == 'ssh-ed448':
+            self.out.d("%s has a fixed host key modulus of 57." % self.__hostkey_type)
+            self.__hostkey_n_len = 57
         else:
             # Here is the modulus size & actual modulus of the host key public key.
             hostkey_n, self.__hostkey_n_len, ptr = KexDH.__get_bytes(hostkey, ptr)

@@ -224,4 +224,8 @@ class Software:
         mx = re.match(r'^PuTTY_Release_(.*)', software)
         if mx:
             return cls(None, Product.PuTTY, mx.group(1), None, None)
+        mx = re.match(r'^lancom(.*)', software)
+        if mx:
+            v, p = 'LANcom', 'LCOS sshd'
+            return cls(v, p, mx.group(1), None, None)
         return None
