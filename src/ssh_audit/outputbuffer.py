@@ -54,6 +54,14 @@ class OutputBuffer:
         self.__is_color_supported = ('colorama' in sys.modules) or (os.name == 'posix')
         self.line_ended = True
 
+    def error(self, msg, line_ended=True):
+        """
+        Writes an error message to stderr.
+        """
+        end = '' if line_ended else '\n'
+        sys.stderr.write(f'{msg}{end}')
+        sys.stderr.flush()
+        
     def _print(self, level: str, s: str = '', line_ended: bool = True) -> None:
         '''Saves output to buffer (if in buffered mode), or immediately prints to stdout otherwise.'''
 
