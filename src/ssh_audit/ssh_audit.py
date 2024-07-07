@@ -1441,7 +1441,7 @@ def target_worker_thread(host: str, port: int, shared_aconf: AuditConf) -> Tuple
 
     out = OutputBuffer()
     out.verbose = shared_aconf.verbose
-    my_aconf = copy.deepcopy(shared_aconf)
+    my_aconf = copy.copy(shared_aconf)
     my_aconf.host = host
     my_aconf.port = port
 
