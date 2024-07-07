@@ -217,6 +217,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added built-in policies for Ubuntu 24.04 LTS server and client, and OpenSSH 9.8.
  - Added IPv6 support for DHEat and connection rate tests.
  - Added TCP port information to JSON policy scan results; credit [Fabian Malte Kopp](https://github.com/dreizehnutters).
+ - Added LANcom LCOS server recognition and Ed448 key extraction; credit [Daniel Lenski](https://github.com/dlenskiSB).
  - Fixed crash when running with `-P` and `-T` options simultaneously.
  - Fixed host key tests from only reporting a key type at most once despite multiple hosts supporting it; credit [Daniel Lenski](https://github.com/dlenskiSB).
 
