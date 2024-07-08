@@ -55,6 +55,17 @@ class HostKeyTest:
 
         'ssh-ed448':                      {'cert': False, 'variable_key_len': False},
         # 'ssh-ed448-cert-v01@openssh.com': {'cert': True,  'variable_key_len': False},
+
+        'ecdsa-sha2-nistp256': {'cert': False, 'variable_key_len': False},
+        'ecdsa-sha2-nistp384': {'cert': False, 'variable_key_len': False},
+        'ecdsa-sha2-nistp521': {'cert': False, 'variable_key_len': False},
+
+        'ecdsa-sha2-nistp256-cert-v01@openssh.com': {'cert': True, 'variable_key_len': False},
+        'ecdsa-sha2-nistp384-cert-v01@openssh.com': {'cert': True, 'variable_key_len': False},
+        'ecdsa-sha2-nistp521-cert-v01@openssh.com': {'cert': True, 'variable_key_len': False},
+
+        'ssh-dss':                      {'cert': False, 'variable_key_len': True},
+        'ssh-dss-cert-v01@openssh.com': {'cert': True,  'variable_key_len': True},
     }
 
     TWO2K_MODULUS_WARNING = '2048-bit modulus only provides 112-bits of symmetric strength'
