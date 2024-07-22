@@ -21,6 +21,7 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
 """
+import errno
 import multiprocessing
 import os
 import queue
@@ -442,7 +443,7 @@ class DHEat:
                 # out.d("Creating socket (%u of %u already exist)..." % (len(socket_dict), concurrent_sockets), write_now=True)
                 ret = s.connect_ex((target_ip_address, aconf.port))
                 num_attempted_connections += 1
-                if ret in [0, 115]:  # Check if connection is successful or EINPROGRESS.
+                if ret in [0, errno.EINPROGRESS]:  # Check if connection is successful or EINPROGRESS.
                     socket_dict[s] = now
                 else:
                     out.d("connect_ex() returned: %d" % ret, write_now=True)
