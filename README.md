@@ -220,6 +220,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added LANcom LCOS server recognition and Ed448 key extraction; credit [Daniel Lenski](https://github.com/dlenskiSB).
  - Fixed crash when running with `-P` and `-T` options simultaneously.
  - Fixed host key tests from only reporting a key type at most once despite multiple hosts supporting it; credit [Daniel Lenski](https://github.com/dlenskiSB).
+ - Fixed DHEat connection rate testing on MacOS X and BSD platforms; credit [Drew Noel](https://github.com/drewmnoel) and [Michael Osipov](https://github.com/michael-o).
 
 ### v3.2.0 (2024-04-22)
  - Added implementation of the DHEat denial-of-service attack (see `--dheat` option; [CVE-2002-20001](https://nvd.nist.gov/vuln/detail/CVE-2002-20001)).
