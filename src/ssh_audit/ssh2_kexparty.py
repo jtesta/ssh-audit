@@ -1,6 +1,7 @@
 """
    The MIT License (MIT)
 
+   Copyright (C) 2024 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -48,3 +49,10 @@ class SSH2_KexParty:
     @property
     def languages(self) -> List[str]:
         return self.__languages
+
+    def __str__(self) -> str:
+        ret = "Ciphers: " + ", ".join(self.__enc)
+        ret += "\nMACs: " + ", ".join(self.__mac)
+        ret += "\nCompressions: " + ", ".join(self.__compression)
+        ret += "\nLanguages: " + ", ".join(self.__languages)
+        return ret

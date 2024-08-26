@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2024 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -132,3 +132,16 @@ class SSH2_Kex:
         srv = SSH2_KexParty(srv_enc, srv_mac, srv_compression, srv_languages)
         kex = cls(outputbuffer, cookie, kex_algs, key_algs, cli, srv, follows, unused)
         return kex
+
+    def __str__(self) -> str:
+        ret = "----\nSSH2_Kex object:"
+        ret += "\nHost keys: "
+        ret += ", ".join(self.__key_algs)
+        ret += "\nKey exchanges: "
+        ret += ", ".join(self.__kex_algs)
+        ret += "\nClient SSH2_KexParty:"
+        ret += "\n" + str(self.__client)
+        ret += "\nServer SSH2_KexParty:"
+        ret += "\n" + str(self.__server)
+        ret += "\n----"
+        return ret
