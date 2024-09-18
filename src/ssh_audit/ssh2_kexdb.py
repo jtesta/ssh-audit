@@ -346,6 +346,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'des-cbc-ssh1': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
             'des-cbc@ssh.com': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
             'des': [[], [FAIL_DES], [WARN_CIPHER_MODE, WARN_BLOCK_SIZE]],
+            'grasshopper-ctr128': [[], [FAIL_UNTRUSTED]],
             'idea-cbc': [[], [FAIL_IDEA], [WARN_CIPHER_MODE]],
             'idea-cfb': [[], [FAIL_IDEA], [WARN_CIPHER_MODE]],
             'idea-ctr': [[], [FAIL_IDEA]],
