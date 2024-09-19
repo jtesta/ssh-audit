@@ -64,11 +64,13 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     INFO_DEFAULT_OPENSSH_CIPHER = 'default cipher since OpenSSH 6.9'
     INFO_DEFAULT_OPENSSH_KEX_65_TO_73 = 'default key exchange from OpenSSH 6.5 to 7.3'
     INFO_DEFAULT_OPENSSH_KEX_74_TO_89 = 'default key exchange from OpenSSH 7.4 to 8.9'
-    INFO_DEFAULT_OPENSSH_KEX_90 = 'default key exchange since OpenSSH 9.0'
+    INFO_DEFAULT_OPENSSH_KEX_90_TO_98 = 'default key exchange from OpenSSH 9.0 to 9.8'
+    INFO_DEFAULT_OPENSSH_KEX_99 = 'default key exchange since OpenSSH 9.9'
     INFO_DEPRECATED_IN_OPENSSH88 = 'deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8'
     INFO_DISABLED_IN_DBEAR67 = 'disabled in Dropbear SSH 2015.67'
     INFO_DISABLED_IN_OPENSSH70 = 'disabled in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
     INFO_NEVER_IMPLEMENTED_IN_OPENSSH = 'despite the @openssh.com tag, this was never implemented in OpenSSH'
+    INFO_HYBRID_PQ_X25519_KEX = 'hybrid key exchange based on post-quantum resistant algorithm and proven conventional X25519 algorithm'
     INFO_REMOVED_IN_OPENSSH61 = 'removed since OpenSSH 6.1, removed from specification'
     INFO_REMOVED_IN_OPENSSH69 = 'removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9'
     INFO_REMOVED_IN_OPENSSH70 = 'removed in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
@@ -189,11 +191,13 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'kexguess2@matt.ucc.asn.au': [['d2013.57']],
             'm383-sha384@libassh.org': [[], [FAIL_UNPROVEN]],
             'm511-sha512@libassh.org': [[], [FAIL_UNPROVEN]],
+            'mlkem768x25519-sha256': [['9.9'], [], [], [INFO_HYBRID_PQ_X25519_KEX]],
             'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS, FAIL_SHA1]],
             'rsa2048-sha256': [[], [], [WARN_2048BIT_MODULUS]],
             'sm2kep-sha2-nistp256': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_UNTRUSTED]],
             'sntrup4591761x25519-sha512@tinyssh.org': [['8.0', '8.4'], [], [WARN_EXPERIMENTAL], [INFO_WITHDRAWN_PQ_ALG]],
-            'sntrup761x25519-sha512@openssh.com': [['8.5'], [], [], [INFO_DEFAULT_OPENSSH_KEX_90]],
+            'sntrup761x25519-sha512': [['9.9'], [], [], [INFO_DEFAULT_OPENSSH_KEX_99, INFO_HYBRID_PQ_X25519_KEX]],
+            'sntrup761x25519-sha512@openssh.com': [['8.5'], [], [], [INFO_DEFAULT_OPENSSH_KEX_90_TO_98, INFO_HYBRID_PQ_X25519_KEX]],
             'x25519-kyber-512r3-sha256-d00@amazon.com': [[]],
             'x25519-kyber512-sha512@aws.amazon.com': [[]],
         },

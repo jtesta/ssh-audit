@@ -222,6 +222,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Fixed host key tests from only reporting a key type at most once despite multiple hosts supporting it; credit [Daniel Lenski](https://github.com/dlenskiSB).
  - Fixed DHEat connection rate testing on MacOS X and BSD platforms; credit [Drew Noel](https://github.com/drewmnoel) and [Michael Osipov](https://github.com/michael-o).
  - Added 1 new cipher: `grasshopper-ctr128`.
+ - Added 2 new key exchanges: `mlkem768x25519-sha256`, `sntrup761x25519-sha512`.
 
 ### v3.2.0 (2024-04-22)
  - Added implementation of the DHEat denial-of-service attack (see `--dheat` option; [CVE-2002-20001](https://nvd.nist.gov/vuln/detail/CVE-2002-20001)).
