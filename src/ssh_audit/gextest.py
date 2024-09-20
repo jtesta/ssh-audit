@@ -110,7 +110,7 @@ class GEXTest:
                 # before continuing to issue reconnects.
                 modulus_size_returned, reconnect_failed = GEXTest._send_init(out, s, kex_group, kex, gex_alg, bits_min, bits_pref, bits_max)
                 if reconnect_failed:
-                    out.fail('Reconnect failed.')
+                    out.error('Reconnect failed.')
                     return exitcodes.FAILURE
 
                 if modulus_size_returned > 0:

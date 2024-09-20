@@ -108,7 +108,8 @@ class SSH_Socket(ReadBuf, WriteBuf):
             s.listen()
             self.__sock_map[s.fileno()] = s
         except Exception as e:
-            print("Warning: failed to listen on any IPv4 interfaces: %s" % str(e))
+            self.__outputbuffer.error("Warning: failed to listen on any IPv4 interfaces: %s" % str(e))
+            sys.exit(exitcodes.CONNECTION_ERROR)
 
         try:
             # Socket to listen on all IPv6 addresses.
@@ -119,11 +120,12 @@ class SSH_Socket(ReadBuf, WriteBuf):
             s.listen()
             self.__sock_map[s.fileno()] = s
         except Exception as e:
-            print("Warning: failed to listen on any IPv6 interfaces: %s" % str(e))
+            self.__outputbuffer.error("Warning: failed to listen on any IPv6 interfaces: %s" % str(e))
+            sys.exit(exitcodes.CONNECTION_ERROR)
 
         # If we failed to listen on any interfaces, terminate.
         if len(self.__sock_map.keys()) == 0:
-            print("Error: failed to listen on any IPv4 and IPv6 interfaces!")
+            self.__outputbuffer.error("Error: failed to listen on any IPv4 and IPv6 interfaces!")
             sys.exit(exitcodes.CONNECTION_ERROR)
 
         # Wait for an incoming connection.  If a timeout was explicitly
@@ -141,7 +143,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
                 break
 
             if self.__timeout_set and time_elapsed >= self.__timeout:
-                print("Timeout elapsed.  Terminating...")
+                self.__outputbuffer.error("Timeout elapsed.  Terminating...")
                 sys.exit(exitcodes.CONNECTION_ERROR)
 
         # Accept the connection.
@@ -275,7 +277,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
                 payload_length = packet_length - padding_length - 1
                 check_size = 4 + 1 + payload_length + padding_length
             if check_size % self.__block_size != 0:
-                self.__outputbuffer.fail('[exception] invalid ssh packet (block size)').write()
+                self.__outputbuffer.error('[exception] invalid ssh packet (block size)').write()
                 sys.exit(exitcodes.CONNECTION_ERROR)
             self.ensure_read(payload_length)
             if sshv == 1:
@@ -290,7 +292,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
             if sshv == 1:
                 rcrc = SSH1.crc32(padding + payload)
                 if crc != rcrc:
-                    self.__outputbuffer.fail('[exception] packet checksum CRC32 mismatch.').write()
+                    self.__outputbuffer.error('[exception] packet checksum CRC32 mismatch.').write()
                     sys.exit(exitcodes.CONNECTION_ERROR)
             else:
                 self.ensure_read(padding_length)
