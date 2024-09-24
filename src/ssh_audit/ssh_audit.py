@@ -130,7 +130,7 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     uout.info('   -P,  --policy=<policy.txt>  run a policy test using the specified policy')
     uout.info('        --skip-rate-test   skip the connection rate test during standard audits\n                               (used to safely infer whether the DHEat attack\n                               is viable)')
     uout.info('   -t,  --timeout=<secs>   timeout (in seconds) for connection and reading\n                               (default: 5)')
-    uout.info('   -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one\n                                   per line, format HOST[:PORT]).  Use --threads\n                                   to control concurrent scans.')
+    uout.info('   -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one\n                                   per line, format HOST[:PORT]).  Use -p/--port\n                                   to set the default port for all hosts.  Use\n                                   --threads to control concurrent scans.')
     uout.info('        --threads=<threads>    number of threads to use when scanning multiple\n                                   targets (-T/--targets) (default: 32)')
     uout.info('   -v,  --verbose          verbose output')
     uout.sep()
@@ -1587,10 +1587,10 @@ def main() -> int:
         if aconf.json:
             print('[', end='')
 
-        # Loop through each target in the list.
+        # Loop through each target in the list.  Entries can specify a port number to use, otherwise the value provided on the command line (--port=N) will be used by default (set to 22 if --port is not used).
         target_servers = []
         for _, target in enumerate(aconf.target_list):
-            host, port = Utils.parse_host_and_port(target, default_port=22)
+            host, port = Utils.parse_host_and_port(target, default_port=aconf.port)
             target_servers.append((host, port))
 
         # A ranked list of return codes.  Those with higher indices will take precedence over lower ones.  For example, if three servers are scanned, yielding WARNING, GOOD, and UNKNOWN_ERROR, the overall result will be UNKNOWN_ERROR, since its index is the highest.  Errors have highest priority, followed by failures, then warnings.

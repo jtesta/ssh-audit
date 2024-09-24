@@ -1,4 +1,4 @@
-.TH SSH-AUDIT 1 "April 18, 2024"
+.TH SSH-AUDIT 1 "September 24, 2024"
 .SH NAME
 \fBssh-audit\fP \- SSH server & client configuration auditor
 .SH SYNOPSIS
@@ -149,7 +149,7 @@ The timeout, in seconds, for creating connections and reading data from the sock
 .TP
 .B -T, \-\-targets=<hosts.txt>
 .br
-A file containing a list of target hosts.  Each line must have one host, in the format of HOST[:PORT].  Use --threads to control concurrent scans.
+A file containing a list of target hosts.  Each line must have one host, in the format of HOST[:PORT].  Use -p/--port to set the default port for all hosts.  Use --threads to control concurrent scans.
 
 .TP
 .B     \-\-threads=<threads>
