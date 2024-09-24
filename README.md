@@ -221,6 +221,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Fixed crash when running with `-P` and `-T` options simultaneously.
  - Fixed host key tests from only reporting a key type at most once despite multiple hosts supporting it; credit [Daniel Lenski](https://github.com/dlenskiSB).
  - Fixed DHEat connection rate testing on MacOS X and BSD platforms; credit [Drew Noel](https://github.com/drewmnoel) and [Michael Osipov](https://github.com/michael-o).
+ - Fixed invalid JSON output when a socket error occurs while performing a client audit.
  - Added 1 new cipher: `grasshopper-ctr128`.
  - Added 2 new key exchanges: `mlkem768x25519-sha256`, `sntrup761x25519-sha512`.
 

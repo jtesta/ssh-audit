@@ -108,7 +108,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
             s.listen()
             self.__sock_map[s.fileno()] = s
         except Exception as e:
-            print("Warning: failed to listen on any IPv4 interfaces: %s" % str(e))
+            print("Warning: failed to listen on any IPv4 interfaces: %s" % str(e), file=sys.stderr)
 
         try:
             # Socket to listen on all IPv6 addresses.
@@ -119,11 +119,11 @@ class SSH_Socket(ReadBuf, WriteBuf):
             s.listen()
             self.__sock_map[s.fileno()] = s
         except Exception as e:
-            print("Warning: failed to listen on any IPv6 interfaces: %s" % str(e))
+            print("Warning: failed to listen on any IPv6 interfaces: %s" % str(e), file=sys.stderr)
 
         # If we failed to listen on any interfaces, terminate.
         if len(self.__sock_map.keys()) == 0:
-            print("Error: failed to listen on any IPv4 and IPv6 interfaces!")
+            print("Error: failed to listen on any IPv4 and IPv6 interfaces!", file=sys.stderr)
             sys.exit(exitcodes.CONNECTION_ERROR)
 
         # Wait for an incoming connection.  If a timeout was explicitly
