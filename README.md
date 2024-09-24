@@ -214,6 +214,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v3.3.0-dev (???)
+ - Added Python 3.13 support.
  - Added built-in policies for Ubuntu 24.04 LTS server & client, OpenSSH 9.8, and OpenSSH 9.9.
  - Added IPv6 support for DHEat and connection rate tests.
  - Added TCP port information to JSON policy scan results; credit [Fabian Malte Kopp](https://github.com/dreizehnutters).

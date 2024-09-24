@@ -25,7 +25,7 @@
 """
 import concurrent.futures
 import copy
-import getopt
+import getopt  # pylint: disable=deprecated-module
 import json
 import multiprocessing
 import os
