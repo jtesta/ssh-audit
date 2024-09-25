@@ -360,11 +360,19 @@ def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: boo
         fp_types = sorted(fps.keys())
         for fp_type in fp_types:
             fp = fps[fp_type]
-            out.good('(fin) {}: {}'.format(fp_type, fp.sha256))
+
+            # Don't output any ECDSA or DSS fingerprints unless verbose mode is enabled.
+            if fp_type.startswith("ecdsa-") or (fp_type == "ssh-dss"):
+                if out.verbose:
+                    out.warn('(fin) {}: {} -- [info] this fingerprint type is insecure and should not be relied upon'.format(fp_type, fp.sha256))
+                else:
+                    continue  # If verbose mode is not enabled, skip this type entirely.
+            else:
+                out.good('(fin) {}: {}'.format(fp_type, fp.sha256))
 
             # Output the MD5 hash too if verbose mode is enabled.
             if out.verbose:
-                out.info('(fin) {}: {} -- [info] do not rely on MD5 fingerprints for server identification; it is insecure for this use case'.format(fp_type, fp.md5))
+                out.warn('(fin) {}: {} -- [info] do not rely on MD5 fingerprints for server identification; it is insecure for this use case'.format(fp_type, fp.md5))
 
     if not out.is_section_empty() and not is_json_output:
         out.head('# fingerprints')

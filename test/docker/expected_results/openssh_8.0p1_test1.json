@@ -88,6 +88,16 @@
     ],
     "fingerprints": [
         {
+            "hash": "Q6Llm0o4TrcUen4tnT2h4BDf2f+ina6dIJmVH8c40bg",
+            "hash_alg": "SHA256",
+            "hostkey": "ecdsa-sha2-nistp256"
+        },
+        {
+            "hash": "cc:e0:80:84:5b:05:98:64:24:43:52:3b:17:c8:94:89",
+            "hash_alg": "MD5",
+            "hostkey": "ecdsa-sha2-nistp256"
+        },
+        {
             "hash": "UrnXIVH+7dlw8UqYocl48yUEcKrthGDQG2CPCgp7MxU",
             "hash_alg": "SHA256",
             "hostkey": "ssh-ed25519"

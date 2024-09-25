@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2024 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -202,7 +202,7 @@ class HostKeyTest:
                         cakey_warn_str = HostKeyTest.SMALL_ECC_MODULUS_WARNING
 
                     # Keys smaller than 2048 result in a failure.  Keys smaller 3072 result in a warning.  Update the database accordingly.
-                    if (cert is False) and (hostkey_modulus_size < hostkey_min_good):
+                    if (cert is False) and (hostkey_modulus_size < hostkey_min_good) and (host_key_type != 'ssh-dss'):  # Skip ssh-dss, otherwise we get duplicate failure messages (SSH2_KexDB will always flag it).
 
                         # If the key is under 2048, add to the failure list.
                         if hostkey_modulus_size < hostkey_min_warn:

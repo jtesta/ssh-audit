@@ -79,6 +79,26 @@
     ],
     "fingerprints": [
         {
+            "hash": "jdUfqoGCDOY1drQcoqIJm/pEix2r09hqwOs9E9GimZQ",
+            "hash_alg": "SHA256",
+            "hostkey": "ecdsa-sha2-nistp256"
+        },
+        {
+            "hash": "98:27:f3:12:20:f6:23:6d:1a:00:2a:6c:71:7c:1e:6b",
+            "hash_alg": "MD5",
+            "hostkey": "ecdsa-sha2-nistp256"
+        },
+        {
+            "hash": "NBzry0uMAX8BRsn4mv9CHpeivMOdwzGFEKrf6Hg7tIQ",
+            "hash_alg": "SHA256",
+            "hostkey": "ssh-dss"
+        },
+        {
+            "hash": "16:60:9e:54:d7:1e:b3:0d:97:60:12:ad:fe:83:a2:40",
+            "hash_alg": "MD5",
+            "hostkey": "ssh-dss"
+        },
+        {
             "hash": "CDfAU12pjQS7/91kg7gYacza0U/6PDbE04Ic3IpYxkM",
             "hash_alg": "SHA256",
             "hostkey": "ssh-rsa"
