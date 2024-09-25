@@ -94,7 +94,9 @@ usage: ssh-audit.py [options] <host>
    -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
                                (default: 5)
    -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one
-                                   per line, format HOST[:PORT])
+                                   per line, format HOST[:PORT]).  Use -p/--port
+                                   to set the default port for all hosts.  Use
+                                   --threads to control concurrent scans.
         --threads=<threads>    number of threads to use when scanning multiple
                                    targets (-T/--targets) (default: 32)
    -v,  --verbose          verbose output
