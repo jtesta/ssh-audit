@@ -1,9 +1,14 @@
 # ssh-audit
 [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/jtesta/ssh-audit/blob/master/LICENSE)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/ssh-audit?label=pypi%20downloads&color=purple)](https://pypi.org/project/ssh-audit/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/positronsecurity/ssh-audit)](https://hub.docker.com/r/positronsecurity/ssh-audit)
 [![Build Status](https://github.com/jtesta/ssh-audit/actions/workflows/tox.yaml/badge.svg)](https://github.com/jtesta/ssh-audit/actions)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/jtesta/ssh-audit/blob/master/CONTRIBUTING.md)
+
+[![PyPI Downloads](https://img.shields.io/pypi/dm/ssh-audit?label=pypi%20downloads&color=purple)](https://pypi.org/project/ssh-audit/)
+[![Homebrew Downloads](https://img.shields.io/homebrew/installs/dy/ssh-audit?label=homebrew%20downloads&color=teal)](https://formulae.brew.sh/formula/ssh-audit)
+[![Docker Pulls](https://img.shields.io/docker/pulls/positronsecurity/ssh-audit)](https://hub.docker.com/r/positronsecurity/ssh-audit)
+[![Snap Downloads](https://img.shields.io/badge/snap%20downloads-no%20idea-yellow.svg)](https://snapcraft.io/ssh-audit)
+
+[![Github Sponsors](https://img.shields.io/github/sponsors/jtesta?color=red)](https://github.com/sponsors/jtesta)
 
 **ssh-audit** is a tool for ssh server & client configuration auditing.
 
