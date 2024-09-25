@@ -151,7 +151,12 @@ class HostKeyTest:
                         _, payload = s.read_packet()
                         SSH2_Kex.parse(out, payload)
                     except Exception:
-                        out.v("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()), write_now=True)
+                        msg = "Failed to parse server's kex."
+                        if not out.debug:
+                            msg += "  Re-run in debug mode to see stack trace."
+
+                        out.v(msg, write_now=True)
+                        out.d("Stack trace:\n%s" % str(traceback.format_exc()), write_now=True)
                         return
 
                 # Do the initial DH exchange.  The server responds back
@@ -162,7 +167,12 @@ class HostKeyTest:
                     kex_reply = kex_group.recv_reply(s)
                     raw_hostkey_bytes = kex_reply if kex_reply is not None else b''
                 except KexDHException:
-                    out.v("Failed to parse server's host key.  Stack trace:\n%s" % str(traceback.format_exc()), write_now=True)
+                    msg = "Failed to parse server's host key."
+                    if not out.debug:
+                        msg += "  Re-run in debug mode to see stack trace."
+
+                    out.v(msg, write_now=True)
+                    out.d("Stack trace:\n%s" % str(traceback.format_exc()), write_now=True)
 
                     # Since parsing this host key failed, there's nothing more to do but close the socket and move on to the next host key type.
                     s.close()
