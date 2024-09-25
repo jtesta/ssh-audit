@@ -1,6 +1,6 @@
 # ssh-audit
 [![License](https://img.shields.io/badge/license-MIT-brightgreen.svg)](https://github.com/jtesta/ssh-audit/blob/master/LICENSE)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/ssh-audit)](https://pypi.org/project/ssh-audit/)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/ssh-audit?label=pypi%20downloads&color=purple)](https://pypi.org/project/ssh-audit/)
 [![Docker Pulls](https://img.shields.io/docker/pulls/positronsecurity/ssh-audit)](https://hub.docker.com/r/positronsecurity/ssh-audit)
 [![Build Status](https://github.com/jtesta/ssh-audit/actions/workflows/tox.yaml/badge.svg)](https://github.com/jtesta/ssh-audit/actions)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/jtesta/ssh-audit/blob/master/CONTRIBUTING.md)
