@@ -32,7 +32,7 @@
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - policy scans to ensure adherence to a hardened/standard configuration;
 - runs on Linux and Windows;
-- supports Python 3.8 - 3.12;
+- supports Python 3.8 - 3.13;
 - no dependencies
 
 ## Usage
