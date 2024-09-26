@@ -11,7 +11,7 @@ However, if you can submit patches that pass all of our automated tests, then yo
 
 [Tox](https://tox.wiki/) is used to automate testing.  Linting is done with [pylint](http://pylint.pycqa.org/en/latest/) & [flake8](https://flake8.pycqa.org/en/latest/), and static type-checking is done with [mypy](https://mypy.readthedocs.io/en/stable/).
 
-For Ubuntu systems, install tox with `apt install tox`, then simply run `tox` in the top-level directory.  Look for any error messages in the (verbose) output.
+Install the required packages with `python3 -m pip install -U codecov coveralls flake8 mypy pylint pytest tox`, then run the tests with `python3 -m tox`.  Look for any error messages in the (verbose) output.
 
 
 ## Docker Tests
