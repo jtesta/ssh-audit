@@ -61,7 +61,6 @@ from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh_socket import SSH_Socket
 from ssh_audit.utils import Utils
-from ssh_audit.versionvulnerabilitydb import VersionVulnerabilityDB
 
 
 # no_idna_workaround = False
@@ -273,64 +272,17 @@ def output_compatibility(out: OutputBuffer, algs: Algorithms, client_audit: bool
         out.good('(gen) compatibility: ' + ', '.join(comp_text))
 
 
-def output_security_sub(out: OutputBuffer, sub: str, software: Optional[Software], client_audit: bool, padlen: int) -> List[Dict[str, Union[str, float]]]:
-    ret: List[Dict[str, Union[str, float]]] = []
-
-    secdb = VersionVulnerabilityDB.CVE if sub == 'cve' else VersionVulnerabilityDB.TXT
-    if software is None or software.product not in secdb:
-        return ret
-    for line in secdb[software.product]:
-        vfrom: str = ''
-        vtill: str = ''
-        vfrom, vtill = line[0:2]
-        if not software.between_versions(vfrom, vtill):
-            continue
-        target: int = 0
-        name: str = ''
-        target, name = line[2:4]
-        is_server = target & 1 == 1
-        is_client = target & 2 == 2
-        # is_local = target & 4 == 4
-
-        # If this security entry applies only to servers, but we're testing a client, then skip it.  Similarly, skip entries that apply only to clients, but we're testing a server.
-        if (is_server and not is_client and client_audit) or (is_client and not is_server and not client_audit):
-            continue
-        p = '' if out.batch else ' ' * (padlen - len(name))
-        if sub == 'cve':
-            cvss: float = 0.0
-            descr: str = ''
-            cvss, descr = line[4:6]
-
-            # Critical CVSS scores (>= 8.0) are printed as a fail, otherwise they are printed as a warning.
-            out_func = out.warn
-            if cvss >= 8.0:
-                out_func = out.fail
-            out_func('(cve) {}{} -- (CVSSv2: {}) {}'.format(name, p, cvss, descr))
-            ret.append({'name': name, 'cvssv2': cvss, 'description': descr})
-        else:
-            descr = line[4]
-            out.fail('(sec) {}{} -- {}'.format(name, p, descr))
-
-    return ret
-
-
-def output_security(out: OutputBuffer, banner: Optional[Banner], client_audit: bool, padlen: int, is_json_output: bool) -> List[Dict[str, Union[str, float]]]:
-    cves = []
+def output_security(out: OutputBuffer, banner: Optional[Banner], padlen: int, is_json_output: bool) -> None:
 
     with out:
-        if banner is not None:
-            software = Software.parse(banner)
-            cves = output_security_sub(out, 'cve', software, client_audit, padlen)
-            _ = output_security_sub(out, 'txt', software, client_audit, padlen)
-            if banner.protocol[0] == 1:
-                p = '' if out.batch else ' ' * (padlen - 14)
-                out.fail('(sec) SSH v1 enabled{} -- SSH v1 can be exploited to recover plaintext passwords'.format(p))
+        if (banner is not None) and (banner.protocol[0] == 1):
+            p = '' if out.batch else ' ' * (padlen - 14)
+            out.fail('(sec) SSH v1 enabled{} -- SSH v1 can be exploited to recover plaintext passwords'.format(p))
+
     if not out.is_section_empty() and not is_json_output:
         out.head('# security')
         out.flush_section()
         out.sep()
-
-    return cves
 
 
 def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: bool) -> None:
@@ -384,31 +336,6 @@ def output_fingerprints(out: OutputBuffer, algs: Algorithms, is_json_output: boo
 def output_recommendations(out: OutputBuffer, algs: Algorithms, algorithm_recommendation_suppress_list: List[str], software: Optional[Software], is_json_output: bool, padlen: int = 0) -> bool:
 
     ret = True
-    # PuTTY's algorithms cannot be modified, so there's no point in issuing recommendations.
-    if (software is not None) and (software.product == Product.PuTTY):
-        max_vuln_version = 0.0
-        max_cvssv2_severity = 0.0
-        # Search the CVE database for the most recent vulnerable version and the max CVSSv2 score.
-        for cve_list in VersionVulnerabilityDB.CVE['PuTTY']:
-            vuln_version = float(cve_list[1])
-            cvssv2_severity = cve_list[4]
-            max_vuln_version = max(vuln_version, max_vuln_version)
-            max_cvssv2_severity = max(cvssv2_severity, max_cvssv2_severity)
-
-        fn = out.warn
-        if max_cvssv2_severity > 8.0:
-            fn = out.fail
-
-        # Assuming that PuTTY versions will always increment by 0.01, we can calculate the first safe version by adding 0.01 to the latest vulnerable version.
-        current_version = float(software.version)
-        upgrade_to_version = max_vuln_version + 0.01
-        if current_version < upgrade_to_version:
-            out.head('# recommendations')
-            fn('(rec) Upgrade to PuTTY v%.2f' % upgrade_to_version)
-            out.sep()
-            ret = False
-        return ret
-
     level_to_output = {
         "informational": out.good,
         "warning": out.warn,
@@ -694,7 +621,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
         out.flush_section()
         out.sep()
     maxlen = algs.maxlen + 1
-    cves = output_security(out, banner, client_audit, maxlen, aconf.json)
+    output_security(out, banner, maxlen, aconf.json)
     # Filled in by output_algorithms() with unidentified algs.
     unknown_algorithms: List[str] = []
 
@@ -729,7 +656,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
     if aconf.json:
         out.reset()
         # Build & write the JSON struct.
-        out.info(json.dumps(build_struct(aconf.host + ":" + str(aconf.port), banner, cves, kex=kex, client_host=client_host, software=software, algorithms=algs, algorithm_recommendation_suppress_list=algorithm_recommendation_suppress_list, additional_notes=additional_notes), indent=4 if aconf.json_print_indent else None, sort_keys=True))
+        out.info(json.dumps(build_struct(aconf.host + ":" + str(aconf.port), banner, kex=kex, client_host=client_host, software=software, algorithms=algs, algorithm_recommendation_suppress_list=algorithm_recommendation_suppress_list, additional_notes=additional_notes), indent=4 if aconf.json_print_indent else None, sort_keys=True))
     elif len(unknown_algorithms) > 0:  # If we encountered any unknown algorithms, ask the user to report them.
         out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  If this is the latest version of ssh-audit (see <https://github.com/jtesta/ssh-audit/releases>), please create a new Github issue at <https://github.com/jtesta/ssh-audit/issues> with the full output above.\n" % ','.join(unknown_algorithms))
 
@@ -1078,7 +1005,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     return aconf
 
 
-def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[str, Union[str, float]]], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None, software: Optional[Software] = None, algorithms: Optional[Algorithms] = None, algorithm_recommendation_suppress_list: Optional[List[str]] = None, additional_notes: List[str] = []) -> Any:  # pylint: disable=dangerous-default-value
+def build_struct(target_host: str, banner: Optional['Banner'], kex: Optional['SSH2_Kex'] = None, pkm: Optional['SSH1_PublicKeyMessage'] = None, client_host: Optional[str] = None, software: Optional[Software] = None, algorithms: Optional[Algorithms] = None, algorithm_recommendation_suppress_list: Optional[List[str]] = None, additional_notes: List[str] = []) -> Any:  # pylint: disable=dangerous-default-value
 
     def fetch_notes(algorithm: str, alg_type: str) -> Dict[str, List[Optional[str]]]:
         '''Returns a dictionary containing the messages in the "fail", "warn", and "info" levels for this algorithm.'''
@@ -1240,8 +1167,8 @@ def build_struct(target_host: str, banner: Optional['Banner'], cves: List[Dict[s
             'fp': pkm_fp,
         }]
 
-    # Add in the CVE information.
-    res['cves'] = cves
+    # Historically, CVE information was returned.  Now we'll just return an empty dictionary so as to not break any legacy clients.
+    res['cves'] = []
 
     # Add in the recommendations.
     res['recommendations'] = get_algorithm_recommendations(algorithms, algorithm_recommendation_suppress_list, software, for_server=True)

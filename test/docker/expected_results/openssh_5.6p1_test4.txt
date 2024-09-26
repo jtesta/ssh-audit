@@ -4,23 +4,6 @@
 [0;32m(gen) compatibility: OpenSSH 5.6-6.6, Dropbear SSH 0.53+ (some functionality from 0.52)[0m
 [0;32m(gen) compression: enabled (zlib@openssh.com)[0m
 
-[0;36m# security[0m
-[0;33m(cve) CVE-2020-15778                        -- (CVSSv2: 7.8) command injection via anomalous argument transfers[0m
-[0;33m(cve) CVE-2018-15473                        -- (CVSSv2: 5.3) enumerate usernames due to timing discrepancies[0m
-[0;33m(cve) CVE-2017-15906                        -- (CVSSv2: 5.3) readonly bypass via sftp[0m
-[0;33m(cve) CVE-2016-20012                        -- (CVSSv2: 5.3) enumerate usernames via challenge response[0m
-[0;33m(cve) CVE-2016-3115                         -- (CVSSv2: 5.5) bypass command restrictions via crafted X11 forwarding data[0m
-[0;33m(cve) CVE-2016-1907                         -- (CVSSv2: 5.0) cause DoS via crafted network traffic (out of bounds read)[0m
-[0;33m(cve) CVE-2015-6564                         -- (CVSSv2: 6.9) privilege escalation via leveraging sshd uid[0m
-[0;33m(cve) CVE-2015-6563                         -- (CVSSv2: 1.9) conduct impersonation attack[0m
-[0;33m(cve) CVE-2014-2532                         -- (CVSSv2: 5.8) bypass environment restrictions via specific string before wildcard[0m
-[0;33m(cve) CVE-2014-1692                         -- (CVSSv2: 7.5) cause DoS via triggering error condition (memory corruption)[0m
-[0;33m(cve) CVE-2012-0814                         -- (CVSSv2: 3.5) leak data via debug messages[0m
-[0;33m(cve) CVE-2011-5000                         -- (CVSSv2: 3.5) cause DoS via large value in certain length field (memory consumption)[0m
-[0;33m(cve) CVE-2010-5107                         -- (CVSSv2: 5.0) cause DoS via large number of connections (slot exhaustion)[0m
-[0;33m(cve) CVE-2010-4755                         -- (CVSSv2: 4.0) cause DoS via crafted glob expression (CPU and memory consumption)[0m
-[0;33m(cve) CVE-2010-4478                         -- (CVSSv2: 7.5) bypass authentication check via crafted values[0m
-
 [0;36m# key exchange algorithms[0m
 [0;31m(kex) diffie-hellman-group-exchange-sha256 (1024-bit) -- [fail] using small 1024-bit modulus[0m
                                                       `- [info] available since OpenSSH 4.4

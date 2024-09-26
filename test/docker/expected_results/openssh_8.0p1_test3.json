@@ -10,28 +10,7 @@
         "none",
         "zlib@openssh.com"
     ],
-    "cves": [
-        {
-            "cvssv2": 7.0,
-            "description": "privilege escalation via supplemental groups",
-            "name": "CVE-2021-41617"
-        },
-        {
-            "cvssv2": 7.8,
-            "description": "command injection via anomalous argument transfers",
-            "name": "CVE-2020-15778"
-        },
-        {
-            "cvssv2": 7.8,
-            "description": "memory corruption and local code execution via pre-authentication integer overflow",
-            "name": "CVE-2019-16905"
-        },
-        {
-            "cvssv2": 5.3,
-            "description": "enumerate usernames via challenge response",
-            "name": "CVE-2016-20012"
-        }
-    ],
+    "cves": [],
     "enc": [
         {
             "algorithm": "chacha20-poly1305@openssh.com",

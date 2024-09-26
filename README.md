@@ -30,9 +30,8 @@
 - analyze SSH client configuration;
 - grab banner, recognize device or software and operating system, detect compression;
 - gather key-exchange, host-key, encryption and message authentication code algorithms;
-- output algorithm information (available since, removed/disabled, unsafe/weak/legacy, etc);
+- output algorithm security information (available since, removed/disabled, unsafe/weak/legacy, etc);
 - output algorithm recommendations (append or remove based on recognized software version);
-- output security information (related issues, assigned CVE list, etc);
 - analyze SSH version compatibility based on algorithm information;
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - policy scans to ensure adherence to a hardened/standard configuration;
@@ -226,6 +225,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added IPv6 support for DHEat and connection rate tests.
  - Added TCP port information to JSON policy scan results; credit [Fabian Malte Kopp](https://github.com/dreizehnutters).
  - Added LANcom LCOS server recognition and Ed448 key extraction; credit [Daniel Lenski](https://github.com/dlenskiSB).
+ - Removed CVE information based on server/client version numbers, as this was wildly inaccurate (see [this thread](https://github.com/jtesta/ssh-audit/issues/240) for the full discussion, as well as the results of the community vote on this matter).
  - Fixed crash when running with `-P` and `-T` options simultaneously.
  - Fixed host key tests from only reporting a key type at most once despite multiple hosts supporting it; credit [Daniel Lenski](https://github.com/dlenskiSB).
  - Fixed DHEat connection rate testing on MacOS X and BSD platforms; credit [Drew Noel](https://github.com/drewmnoel) and [Michael Osipov](https://github.com/michael-o).

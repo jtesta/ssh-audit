@@ -165,7 +165,7 @@ class TestSSH2:
         self.audit(out, self._conf())
         out.write()
         lines = output_spy.flush()
-        assert len(lines) == 83
+        assert len(lines) == 78
 
     def test_ssh2_server_invalid_first_packet(self, output_spy, virtual_socket):
         vsocket = virtual_socket
@@ -179,7 +179,7 @@ class TestSSH2:
         out.write()
         assert ret != 0
         lines = output_spy.flush()
-        assert len(lines) == 9
+        assert len(lines) == 4
         assert 'unknown message' in lines[-1]
 
     def test_ssh2_gss_kex(self, output_spy, virtual_socket):

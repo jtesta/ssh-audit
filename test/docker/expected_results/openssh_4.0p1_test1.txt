@@ -6,28 +6,6 @@
 [0;32m(gen) compression: enabled (zlib)[0m
 
 [0;36m# security[0m
-[0;33m(cve) CVE-2020-15778                      -- (CVSSv2: 7.8) command injection via anomalous argument transfers[0m
-[0;33m(cve) CVE-2018-15473                      -- (CVSSv2: 5.3) enumerate usernames due to timing discrepancies[0m
-[0;33m(cve) CVE-2017-15906                      -- (CVSSv2: 5.3) readonly bypass via sftp[0m
-[0;33m(cve) CVE-2016-20012                      -- (CVSSv2: 5.3) enumerate usernames via challenge response[0m
-[0;33m(cve) CVE-2016-3115                       -- (CVSSv2: 5.5) bypass command restrictions via crafted X11 forwarding data[0m
-[0;33m(cve) CVE-2014-1692                       -- (CVSSv2: 7.5) cause DoS via triggering error condition (memory corruption)[0m
-[0;33m(cve) CVE-2012-0814                       -- (CVSSv2: 3.5) leak data via debug messages[0m
-[0;33m(cve) CVE-2011-5000                       -- (CVSSv2: 3.5) cause DoS via large value in certain length field (memory consumption)[0m
-[0;33m(cve) CVE-2010-5107                       -- (CVSSv2: 5.0) cause DoS via large number of connections (slot exhaustion)[0m
-[0;33m(cve) CVE-2010-4755                       -- (CVSSv2: 4.0) cause DoS via crafted glob expression (CPU and memory consumption)[0m
-[0;33m(cve) CVE-2010-4478                       -- (CVSSv2: 7.5) bypass authentication check via crafted values[0m
-[0;33m(cve) CVE-2008-5161                       -- (CVSSv2: 2.6) recover plaintext data from ciphertext[0m
-[0;33m(cve) CVE-2008-4109                       -- (CVSSv2: 5.0) cause DoS via multiple login attempts (slot exhaustion)[0m
-[0;33m(cve) CVE-2008-1657                       -- (CVSSv2: 6.5) bypass command restrictions via modifying session file[0m
-[0;33m(cve) CVE-2008-1483                       -- (CVSSv2: 6.9) hijack forwarded X11 connections[0m
-[0;33m(cve) CVE-2007-4752                       -- (CVSSv2: 7.5) privilege escalation via causing an X client to be trusted[0m
-[0;33m(cve) CVE-2007-2243                       -- (CVSSv2: 5.0) discover valid usernames through different responses[0m
-[0;33m(cve) CVE-2006-5052                       -- (CVSSv2: 5.0) discover valid usernames through different responses[0m
-[0;31m(cve) CVE-2006-5051                       -- (CVSSv2: 9.3) cause DoS or execute arbitrary code (double free)[0m
-[0;33m(cve) CVE-2006-4924                       -- (CVSSv2: 7.8) cause DoS via crafted packet (CPU consumption)[0m
-[0;33m(cve) CVE-2006-0225                       -- (CVSSv2: 4.6) execute arbitrary code[0m
-[0;33m(cve) CVE-2005-2798                       -- (CVSSv2: 5.0) leak data about authentication credentials[0m
 [0;31m(sec) SSH v1 enabled                      -- SSH v1 can be exploited to recover plaintext passwords[0m
 
 [0;36m# key exchange algorithms[0m
