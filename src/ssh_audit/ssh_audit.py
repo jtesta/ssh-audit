@@ -68,7 +68,7 @@ from ssh_audit.utils import Utils
 # Only import colorama under Windows.  Other OSes can natively handle terminal colors.
 if sys.platform == 'win32':
     try:
-        from colorama import just_fix_windows_console
+        from colorama import just_fix_windows_console  # type: ignore
         just_fix_windows_console()
     except ImportError:
         pass
