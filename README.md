@@ -230,6 +230,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Fixed host key tests from only reporting a key type at most once despite multiple hosts supporting it; credit [Daniel Lenski](https://github.com/dlenskiSB).
  - Fixed DHEat connection rate testing on MacOS X and BSD platforms; credit [Drew Noel](https://github.com/drewmnoel) and [Michael Osipov](https://github.com/michael-o).
  - Fixed invalid JSON output when a socket error occurs while performing a client audit.
+ - Fixed `--conn-rate-test` feature on Windows.
  - When scanning multiple targets (using `-T`/`--targets`), the `-p`/`--port` option will now be used as the default port (set to 22 if `-p`/`--port` is not given).  Hosts specified in the file can override this default with an explicit port number (i.e.: "host1:1234").  For example, when using `-T targets.txt -p 222`, all hosts in `targets.txt` that do not explicitly include a port number will default to 222; when using `-T targets.txt` (without `-p`), all hosts will use a default of 22.
  - Now reports ECDSA and DSS fingerprints when in verbose mode; partial credit [Daniel Lenski](https://github.com/dlenskiSB).
  - Added 1 new cipher: `grasshopper-ctr128`.

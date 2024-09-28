@@ -324,12 +324,6 @@ class DHEat:
 
             del socket_dict[s]
 
-        if sys.platform == "win32":
-            DHEat.YELLOWB = "\033[1;93m"
-            DHEat.CLEAR = "\033[0m"
-            print("\n%sUnfortunately, this feature is not currently functional under Windows.%s  This should get fixed in a future release.  See: <https://github.com/jtesta/ssh-audit/issues/261>" % (DHEat.YELLOWB, DHEat.CLEAR))
-            return ""
-
         # Resolve the target into an IP address
         out.d("Resolving target %s..." % aconf.host)
         target_address_family, target_ip_address = DHEat._resolve_hostname(aconf.host, aconf.ip_version_preference)
@@ -443,7 +437,7 @@ class DHEat:
                 # out.d("Creating socket (%u of %u already exist)..." % (len(socket_dict), concurrent_sockets), write_now=True)
                 ret = s.connect_ex((target_ip_address, aconf.port))
                 num_attempted_connections += 1
-                if ret in [0, errno.EINPROGRESS]:
+                if ret in [0, errno.EINPROGRESS, errno.EWOULDBLOCK]:
                     socket_dict[s] = now
                 else:
                     out.d("connect_ex() returned: %s (%d)" % (os.strerror(ret), ret), write_now=True)
