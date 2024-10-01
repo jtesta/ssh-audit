@@ -233,6 +233,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Fixed `--conn-rate-test` feature on Windows.
  - When scanning multiple targets (using `-T`/`--targets`), the `-p`/`--port` option will now be used as the default port (set to 22 if `-p`/`--port` is not given).  Hosts specified in the file can override this default with an explicit port number (i.e.: "host1:1234").  For example, when using `-T targets.txt -p 222`, all hosts in `targets.txt` that do not explicitly include a port number will default to 222; when using `-T targets.txt` (without `-p`), all hosts will use a default of 22.
  - Now reports ECDSA and DSS fingerprints when in verbose mode; partial credit [Daniel Lenski](https://github.com/dlenskiSB).
+ - Updated built-in policy for Debian 12 to improve host key efficiency and cipher resistance to quantum attacks.
  - Added 1 new cipher: `grasshopper-ctr128`.
  - Added 2 new key exchanges: `mlkem768x25519-sha256`, `sntrup761x25519-sha512`.
 
