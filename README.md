@@ -225,6 +225,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added IPv6 support for DHEat and connection rate tests.
  - Added TCP port information to JSON policy scan results; credit [Fabian Malte Kopp](https://github.com/dreizehnutters).
  - Added LANcom LCOS server recognition and Ed448 key extraction; credit [Daniel Lenski](https://github.com/dlenskiSB).
+  - Now reports ECDSA and DSS fingerprints when in verbose mode; partial credit [Daniel Lenski](https://github.com/dlenskiSB).
  - Removed CVE information based on server/client version numbers, as this was wildly inaccurate (see [this thread](https://github.com/jtesta/ssh-audit/issues/240) for the full discussion, as well as the results of the community vote on this matter).
  - Fixed crash when running with `-P` and `-T` options simultaneously.
  - Fixed host key tests from only reporting a key type at most once despite multiple hosts supporting it; credit [Daniel Lenski](https://github.com/dlenskiSB).
@@ -232,8 +233,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Fixed invalid JSON output when a socket error occurs while performing a client audit.
  - Fixed `--conn-rate-test` feature on Windows.
  - When scanning multiple targets (using `-T`/`--targets`), the `-p`/`--port` option will now be used as the default port (set to 22 if `-p`/`--port` is not given).  Hosts specified in the file can override this default with an explicit port number (i.e.: "host1:1234").  For example, when using `-T targets.txt -p 222`, all hosts in `targets.txt` that do not explicitly include a port number will default to 222; when using `-T targets.txt` (without `-p`), all hosts will use a default of 22.
- - Now reports ECDSA and DSS fingerprints when in verbose mode; partial credit [Daniel Lenski](https://github.com/dlenskiSB).
- - Updated built-in policies for Debian 12 and Rocky Linux 9 to improve host key efficiency and cipher resistance to quantum attacks.
+ - Updated built-in server policies for Debian 12, Rocky Linux 9, and Ubuntu 22.04 to improve host key efficiency and cipher resistance to quantum attacks.
  - Added 1 new cipher: `grasshopper-ctr128`.
  - Added 2 new key exchanges: `mlkem768x25519-sha256`, `sntrup761x25519-sha512`.
 
