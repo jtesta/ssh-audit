@@ -160,8 +160,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ecdh-sha2-wiRIU8TKjMZ418sMqlqtvQ==': [[], [FAIL_UNPROVEN]],  # sect283k1
             'ecdh-sha2-zD/b3hu/71952ArpUG4OjQ==': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect233k1
             'ecmqv-sha2': [[], [FAIL_UNPROVEN]],
-            'ext-info-c': [[], [], [], [INFO_EXTENSION_NEGOTIATION]],  # Extension negotiation (RFC 8308)
-            'ext-info-s': [[], [], [], [INFO_EXTENSION_NEGOTIATION]],  # Extension negotiation (RFC 8308)
+            'ext-info-c': [['7.2'], [], [], [INFO_EXTENSION_NEGOTIATION]],  # Extension negotiation (RFC 8308)
+            'ext-info-s': [['9.6'], [], [], [INFO_EXTENSION_NEGOTIATION]],  # Extension negotiation (RFC 8308)
             'kex-strict-c-v00@openssh.com': [[], [], [], [INFO_STRICT_KEX]],  # Strict KEX marker (countermeasure for CVE-2023-48795).
             'kex-strict-s-v00@openssh.com': [[], [], [], [INFO_STRICT_KEX]],  # Strict KEX marker (countermeasure for CVE-2023-48795).
 

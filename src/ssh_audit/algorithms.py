@@ -172,8 +172,11 @@ class Algorithms:
                         if fc > 0:
                             faults += pow(10, 2 - i) * fc
                     if n not in alg_list:
-                        # Don't recommend certificate or token types; these will only appear in the server's list if they are fully configured & functional on the server.
-                        if faults > 0 or (alg_type == 'key' and (('-cert-' in n) or (n.startswith('sk-')))) or empty_version:
+                        # Don't recommend certificate or token types; these will only appear in the server's list if they are fully configured & functional on the server.  Also don't recommend 'ext-info-[cs]' nor 'kex-strict-[cs]-v00@openssh.com' key exchanges.
+                        if faults > 0 or \
+                           (alg_type == 'key' and (('-cert-' in n) or (n.startswith('sk-')))) or \
+                           (alg_type == 'kex' and (n.startswith('ext-info-') or n.startswith('kex-strict-'))) or \
+                           empty_version:
                             continue
                         rec[sshv][alg_type]['add'][n] = 0
                     else:
