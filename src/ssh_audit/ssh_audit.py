@@ -784,6 +784,7 @@ def list_policies(out: OutputBuffer, verbose: bool) -> None:
         out.info("\nHint: Use -P and provide the full name of a policy to run a policy scan with.\n")
         out.info("Hint: Use -L -v to also see the change log for each policy.\n")
         out.info("Note: the general OpenSSH policies apply to the official releases only. OS distributions may back-port changes that cause failures (for example, Debian 11 back-ported the strict KEX mode into their package of OpenSSH v8.4, whereas it was only officially added to OpenSSH v9.6 and later).  In these cases, consider creating a custom policy (-M option).\n")
+        out.info("Note: instructions for hardening targets, which correspond to the above policies, can be found at: <https://ssh-audit.com/hardening_guides.html>\n")
     out.write()
 
 
