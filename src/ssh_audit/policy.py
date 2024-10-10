@@ -57,6 +57,7 @@ class Policy:
         self._allow_algorithm_subset_and_reordering = False
         self._allow_larger_keys = False
         self._errors: List[Any] = []
+        self._updated_builtin_policy_available = False  # If True, an outdated built-in policy was loaded.
 
         self._name_and_version: str = ''
 
@@ -496,6 +497,11 @@ macs = %s
         return self._name_and_version
 
 
+    def is_outdated_builtin_policy(self) -> bool:
+        '''Returns True if this is a built-in policy that has a more recent version available than currently selected.'''
+        return self._updated_builtin_policy_available
+
+
     def is_server_policy(self) -> bool:
         '''Returns True if this is a server policy, or False if this is a client policy.'''
         return self._server_policy
@@ -548,6 +554,14 @@ macs = %s
 
             # Ensure this struct has all the necessary fields.
             p._normalize_hostkey_sizes()  # pylint: disable=protected-access
+
+        # Now check if an updated version of the requested policy exists.  If so, set a warning for the user.
+        if p is not None and p._version is not None:  # pylint: disable=protected-access
+            next_version = str(int(p._version) + 1)  # pylint: disable=protected-access
+            name_version_pos = policy_name.find("(version ")
+            next_version_name = policy_name[0:name_version_pos] + "(version %s)" % next_version
+            if next_version_name in BUILTIN_POLICIES:
+                p._updated_builtin_policy_available = True  # pylint: disable=protected-access
 
         return p
 

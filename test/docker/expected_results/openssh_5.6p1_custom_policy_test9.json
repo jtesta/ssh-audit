@@ -16,5 +16,6 @@
     "host": "localhost",
     "passed": false,
     "policy": "Docker poliicy: test9 (version 1)",
-    "port": 2222
+    "port": 2222,
+    "warnings": []
 }

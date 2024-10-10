@@ -670,7 +670,12 @@ def evaluate_policy(out: OutputBuffer, aconf: AuditConf, banner: Optional['Banne
 
     passed, error_struct, error_str = aconf.policy.evaluate(banner, kex)
     if aconf.json:
-        json_struct = {'host': aconf.host, 'port': aconf.port, 'policy': aconf.policy.get_name_and_version(), 'passed': passed, 'errors': error_struct}
+        warnings: List[str] = []
+        if aconf.policy.is_outdated_builtin_policy():
+            warnings.append("A newer version of this built-in policy is available.")
+
+        json_struct = {'host': aconf.host, 'port': aconf.port, 'policy': aconf.policy.get_name_and_version(), 'passed': passed, 'errors': error_struct, 'warnings': warnings}
+
         out.info(json.dumps(json_struct, indent=4 if aconf.json_print_indent else None, sort_keys=True))
     else:
         spacing = ''
@@ -702,6 +707,10 @@ def evaluate_policy(out: OutputBuffer, aconf: AuditConf, banner: Optional['Banne
         else:
             out.fail("%sFailed!" % icon_fail)
             out.warn("\nErrors:\n%s" % error_str)
+
+        # If the user selected an out-dated built-in policy then issue a warning.
+        if aconf.policy.is_outdated_builtin_policy():
+            out.warn("Note: A newer version of this built-in policy is available.  Use the -L option to view all available versions.")
 
     return passed
 

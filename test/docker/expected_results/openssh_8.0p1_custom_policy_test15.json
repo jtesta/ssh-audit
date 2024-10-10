@@ -3,5 +3,6 @@
     "host": "localhost",
     "passed": true,
     "policy": "Docker policy: test15 (version 1)",
-    "port": 2222
+    "port": 2222,
+    "warnings": []
 }
