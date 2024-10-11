@@ -52,6 +52,14 @@ class TestPolicy:
             version_str = " (version %s)" % BUILTIN_POLICIES[policy_name]['version']
             assert policy_name.endswith(version_str)
 
+            # Ensure version field is a string, but can be parsed as an integer.
+            version_field = BUILTIN_POLICIES[policy_name]['version']
+            assert type(version_field) is str
+            try:
+                int(version_field)
+            except ValueError:
+                assert False, "version field of %s policy is not parseable as an integer." % policy_name
+
             # Ensure no extra fields are present.
             assert len(required_fields) == len(BUILTIN_POLICIES[policy_name])
 

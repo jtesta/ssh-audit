@@ -513,18 +513,46 @@ macs = %s
         server_policy_descriptions = []
         client_policy_descriptions = []
 
+        latest_server_policies: Dict[str, Dict[str, Union[int, str]]] = {}
+        latest_client_policies: Dict[str, Dict[str, Union[int, str]]] = {}
         for policy_name, policy in BUILTIN_POLICIES.items():
-            policy_description = ""
-            if verbose:
-                policy_description = "\"{:s}\": {:s}".format(policy_name, policy['changelog'])
-            else:
+
+            # If not in verbose mode, only store the latest version of each policy.
+            if not verbose:
                 policy_description = "\"{:s}\"".format(policy_name)
 
-            if policy['server_policy']:
-                server_policy_descriptions.append(policy_description)
-            else:
-                client_policy_descriptions.append(policy_description)
+                # Truncate the version off the policy name and obtain the version as an integer. (i.e.: "Platform X (version 3)" -> "Platform X", 3
+                policy_name_no_version = ""
+                version = 0
+                version_pos = policy_name.find(" (version ")
+                if version_pos != -1:
+                    policy_name_no_version = policy_name[0:version_pos]
+                    version = int(cast(str, policy['version']))  # Unit tests guarantee this to be parseable as an int.
 
+                d = latest_server_policies if policy['server_policy'] else latest_client_policies
+                if policy_name_no_version not in d:
+                    d[policy_name_no_version] = {}
+                    d[policy_name_no_version]['latest_version'] = version
+                    d[policy_name_no_version]['description'] = policy_description
+                elif version > cast(int, d[policy_name_no_version]['latest_version']):  # If an updated version of the policy was found, replace the old one.
+                    d[policy_name_no_version]['latest_version'] = version
+                    d[policy_name_no_version]['description'] = policy_description
+            else:  # In verbose mode, return all policy versions.
+                policy_description = "\"{:s}\": {:s}".format(policy_name, policy['changelog'])
+                if policy['server_policy']:
+                    server_policy_descriptions.append(policy_description)
+                else:
+                    client_policy_descriptions.append(policy_description)
+
+        # Now that we have references to the latest policies only, add their full descriptions to the lists for returning.
+        if not verbose:
+            for _, dd in latest_server_policies.items():
+                server_policy_descriptions.append(cast(str, dd['description']))
+
+            for _, dd in latest_client_policies.items():
+                client_policy_descriptions.append(cast(str, dd['description']))
+
+        # Sort the lists for better readability.
         server_policy_descriptions.sort()
         client_policy_descriptions.sort()
         return server_policy_descriptions, client_policy_descriptions
