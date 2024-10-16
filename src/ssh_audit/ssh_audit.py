@@ -122,7 +122,7 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     uout.info('                               to view policy change logs.')
     uout.info('        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without\n                                    connecting to a server')
     uout.info('   -M,  --make-policy=<policy.txt>  creates a policy based on the target server\n                                    (i.e.: the target server has the ideal\n                                    configuration that other servers should\n                                    adhere to)')
-    uout.info('   -m,  --manual           print the man page (Windows only)')
+    uout.info('   -m,  --manual           print the man page (Docker, PyPI, Snap, and Windows\n                                    builds only)')
     uout.info('   -n,  --no-colors        disable colors (automatic when the NO_COLOR')
     uout.info('                                  environment variable is set)')
     uout.info('   -p,  --port=<port>      port to connect')
