@@ -111,18 +111,9 @@ echo "Processing man page at ${MAN_PAGE} and placing output into ${GLOBALS_PY}..
 #   * 'MAN_KEEP_FORMATTING' preserves the backspace-overwrite sequence when
 #     redirected to a file or a pipe.
 #   * sed converts unicode hyphens into an ASCI equivalent.
-#   * The 'ul' command converts the backspace-overwrite sequence to an ANSI
-#     escape sequence. Not required under Cygwin because man outputs ANSI escape
-#     codes automatically.
 
 echo BUILTIN_MAN_PAGE = '"""' >> "${GLOBALS_PY}"
-
-if [[ "${PLATFORM}" == CYGWIN* ]]; then
-    MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "${MAN_PAGE}" | sed $'s/\u2010/-/g' >> "${GLOBALS_PY}"
-else
-    MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "${MAN_PAGE}" | ul | sed $'s/\u2010/-/g' >> "${GLOBALS_PY}"
-fi
-
+MANWIDTH=80 MAN_KEEP_FORMATTING=1 man "${MAN_PAGE}" | sed $'s/\u2010/-/g' >> "${GLOBALS_PY}"
 echo '"""' >> "${GLOBALS_PY}"
 
 echo "Done."
