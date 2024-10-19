@@ -26,17 +26,13 @@
 import argparse
 import concurrent.futures
 import copy
-import getopt  # pylint: disable=deprecated-module
 import json
 import multiprocessing
 import os
 import re
 import sys
 import traceback
-import time
 
-## OAM7575
-argparse_on = 'ON'
 
 # pylint: disable=unused-import
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
@@ -94,7 +90,7 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     if err is not None and len(err) > 0:
         uout.fail(err + '\n')
         retval = exitcodes.UNKNOWN_ERROR
-    uout.info('usage: {0} [options] <host>\n'.format(p))
+    uout.info('usage: {0} [options] -ip <host>\n'.format(p))
     uout.info('   -h,  --help             print this help')
     uout.info('   -1,  --ssh1             force ssh version 1 only')
     uout.info('   -2,  --ssh2             force ssh version 2 only')
@@ -121,6 +117,8 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     uout.info('   -g,  --gex-test=<x[,y,...]>  dh gex modulus size test')
     uout.info('                   <min1:pref1:max1[,min2:pref2:max2,...]>')
     uout.info('                   <x-y[:step]>')
+    uout.info('        --hostname         hostname of target to scan')
+    uout.info('   -ip, --ip-address       ip address of target to scan')
     uout.info('   -j,  --json             JSON output (use -jj to enable indents)')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies. Use with -v')
@@ -841,299 +839,157 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     aconf.colors = enable_colors
     out.use_colors = enable_colors
 
-    if argparse_on == 'ON':
+    aconf.ssh1, aconf.ssh2 = False, False
+    host: str = ''
+    oport: Optional[str] = None
 
-        aconf.ssh1, aconf.ssh2 = False, False
-        host: str = ''
-        oport: Optional[str] = None
+    parser = argparse.ArgumentParser(description='SSH Audit Tool', add_help=False)
+    
+    # Add short options to the parser
+    parser.add_argument('-1', '--ssh1', action="store_true", dest='ssh1', default=None)
+    parser.add_argument('-2', '--ssh2', action="store_true", dest='ssh2', default=None)
+    parser.add_argument('-4', '--ipv4', action="store_true", dest='ipv4', default=None)
+    parser.add_argument('-6', '--ipv6', action="store_true", dest='ipv6', default=None)
+    parser.add_argument('-b', '--batch', action="store_true", dest='batch', default=None)
+    parser.add_argument('-c', '--client-audit', action="store_true", dest='client_audit', default=None)
+    parser.add_argument('-d', '--debug', action="store_true", dest='debug', default=None)
+    parser.add_argument('-g', '--gex-test', action="store", dest='gex_test', default=None)
+    parser.add_argument('-h', '--help', action="store_true", dest='help', default=None)
+    parser.add_argument('-ip', '--ip-address', '--hostname', action="store", dest='host', type=str)
+    parser.add_argument('-j', '--json', action="store_true", dest='json', default=None)
+    parser.add_argument('-jj', '--json-indent', action="store_true", dest='json_indent', default=None)
+    parser.add_argument('-l', '--level', action="store", dest='level', type=str, default='info')
+    parser.add_argument('-L', '--list-policies', action="store_true", dest='list_policies', default=None)
+    parser.add_argument('-M', '--make-policy', action="store", dest='make_policy', default=None)
+    parser.add_argument('-m', '--manual', action="store_true", dest='manual', default=None)
+    parser.add_argument('-P', '--policy', action="store", dest='policy', default=None)
+    parser.add_argument('-p', '--port', action="store", dest='port', default='22', type=int)
+    parser.add_argument('-T', '--targets', action="store", dest='targets', default=None)
+    parser.add_argument('-t', '--timeout', action="store", dest='timeout', default='5', type=int)
+    parser.add_argument('-v', '--verbose', action="store_true", dest='verbose', default=None)
 
-        parser = argparse.ArgumentParser(description='SSH Audit Tool', add_help=False)
+
+    # Add long options to the parser
+    parser.add_argument('--conn-rate-test', action="store", dest='conn_rate_test', default='0', type=int)
+    parser.add_argument('--dheat', action="store", dest='dheat', default='0', type=int)
+    parser.add_argument('--lookup', action="store", dest='lookup', default=None)
+    parser.add_argument('--no-colors', action="store_true", dest='no_colors', default=None)
+    parser.add_argument('--skip-rate-test', action="store_true", dest='skip_rate_test', default=None)
+    parser.add_argument('--threads', action="store", dest='threads', default='1', type=int)
+
+    try:
+        namespace = parser.parse_args()
+
+        if namespace.help is True:
+            usage_cb(out)
+
+        aconf.host = namespace.host
+        host = namespace.host
+        port = namespace.port
+        aconf.ssh1 = namespace.ssh1
+        aconf.ssh2 = namespace.ssh2
+        aconf.ipv4 = namespace.ipv4
+        aconf.ipv6 = namespace.ipv6
+
+        aconf.json = namespace.json
+        if namespace.json_indent is True:
+            setattr(namespace, 'json', True)
+            aconf.json = namespace.json
+            aconf.json_print_indent = namespace.json_indent
+
+        if namespace.batch is True:
+            aconf.batch = True
+            aconf.verbose = True
+
+        aconf.client_audit = namespace.client_audit
+
+        ttime = namespace.timeout
+        if ttime != 5:
+            aconf.timeout = float(namespace.timeout)
+            aconf.timeout_set = True
+
+        if namespace.verbose is True:
+            aconf.verbose = True
+            out.verbose = True
+
+        # Get error level regex
+        err_level = (namespace.level)
+        pattern = re.compile(r'info|warn|fail')
+        if pattern.match(err_level):
+            aconf.level = str(namespace.level)
+        else:
+            usage_cb(out, 'Error level : {} is not valid'.format(err_level))
+
+        if getattr(namespace, 'make_policy') is True:   
+            aconf.make_policy = True
+            aconf.policy_file = namespace.make_policy
+
+        if getattr(namespace, 'policy') is True:
+            aconf.policy_file = namespace.policy
+
+        if getattr(namespace, 'targets') is True:
+            aconf.target_file = namespace.targets
+
+        if os.name == 'nt':
+            aconf.threads = '1'
         
-        # Define short options
-        short_options = [
-            "-h",
-            "-1",
-            "-2",
-            "-4",
-            "-6",
-            "-p",
-            "-b",
-            "-c",
-            "-j",
-            "-v",
-            "-l",
-            "-t",
-            "-M",
-            "-P",
-            "-T",
-            "-L",
-            "-m",
-            "-d",
-            "-g",
-            "-IP",
-        ]
-
-        long_options = [
-            "--help",
-            "--ssh1",
-            "--ssh2",
-            "--ipv4",
-            "--ipv6",
-            "--make-policy=",
-            "--port=",
-            "--policy=",
-            "--json",
-            "--batch",
-            "--client-audit",
-            "--no-colors",
-            "--verbose",
-            "--level=",
-            "--timeout=",
-            "--targets=",
-            "--list-policies",
-            "--lookup=",
-            "--threads",
-            "--manual",
-            "--debug",
-            "--gex-test=",
-            "--dheat=",
-            "--skip-rate-test",
-            "--conn-rate-test="
-        ]
-
-        # Add short options to the parser
-        parser.add_argument('-h', action="store_true", dest='help', default='False')
-        parser.add_argument('-1', action="store_true", dest='ssh1', default='False')
-        parser.add_argument('-2', action="store_true", dest='ssh2', default='False')
-        parser.add_argument('-4', action="store_true", dest='ipv4', default='False')
-        parser.add_argument('-6', action="store_true", dest='ipv6', default='False')
-        parser.add_argument('-p', action="store", dest='port', default='22', type=int)
-
-        # Add long options to the parser
-        parser.add_argument('--help', action="store_true", dest='help', default='False')
-        parser.add_argument('--ssh1', action="store_true", dest='ssh1', default='False')
-        parser.add_argument('--ssh2', action="store_true", dest='ssh2', default='False')
-        parser.add_argument('--ipv4', action="store_true", dest='ipv4', default='False')
-        parser.add_argument('--ipv6', action="store_true", dest='ipv6', default='False')
-        parser.add_argument('--port', action="store", dest='port', default='22', type=int)
-
-        # -ip and --ip-address are mutually exclusive and are grouped here.
-        group = parser.add_argument_group('IP Address', 'Host IP to Scan')
-        exclusive_group = group.add_mutually_exclusive_group(required=True)
-        exclusive_group.add_argument('-ip', action="store", dest='host', type=str, help="IPv4 or IPv6 address")
-        exclusive_group.add_argument('--ip-address', action="store", dest='host', type=str, help="IPv4 or IPv6 address")
-
-        try:
-            namespace = parser.parse_args()
-
-            if ( namespace.help or namespace.h ) == True:
-                usage_cb(out)
-            elif ( namespace.host or namespace.host ):
-                aconf.host = str(namespace.host)
-            elif ( namespace.ssh1 or getattr(namespace, '1') ) == True:
-                aconf.ssh1 = True
-            elif ( namespace.ssh2 or getattr(namespace, '2') ) == True:
-                aconf.ssh2 = True
-            elif ( namespace.ipv4 or getattr(namespace, '4') ) == True:
-                aconf.ipv4 = True
-            elif ( namespace.ipv6 or getattr(namespace, '6') ) == True:
-                aconf.ipv6 = True
-            elif ( getattr(namespace, 'port') or namespace.p) == True:
-                oport = str(namespace.port)
-            elif ( namespace.batch or namespace.b) == True:
-                aconf.batch = True
-                aconf.verbose = True
-            elif ( namespace.client_audit or namespace.c) == True:
-                aconf.client_audit = True
-            elif ( namespace.json or namespace.j) == True:
-                if aconf.json:  # If specified twice, enable indent printing.
-                    aconf.json_print_indent = True
-                else:
-                    aconf.json = True
-            elif ( namespace.verbose or namespace.v) == True:
-                aconf.verbose = True
-                out.verbose = True
-            elif ( getattr(namespace, 'level=' or namespace.l)) == "info":
-                if a not in ('info', 'warn', 'fail'):
-                    usage_cb(out, 'level {} is not valid'.format(a))
-                aconf.level = a
-            elif ( getattr(namespace, 'level=' or namespace.l)) == "warn":
-                if a not in ('info', 'warn', 'fail'):
-                    usage_cb(out, 'level {} is not valid'.format(a))
-                aconf.level = a
-            elif ( getattr(namespace, 'level=' or namespace.l)) == "fail":
-                if a not in ('info', 'warn', 'fail'):
-                    usage_cb(out, 'level {} is not valid'.format(a))
-                aconf.level = a
-            elif ( getattr(namespace, 'timeout=') or namespace.t) == True:            
-                aconf.timeout = float(a)
-                aconf.timeout_set = True
-            elif ( getattr(namespace, 'make_policy=') or namespace.M) == True:   
-                aconf.make_policy = True
-                aconf.policy_file = a
-            elif ( getattr(namespace, 'policy=') or namespace.P) == True:
-                aconf.policy_file = a
-            elif ( getattr(namespace, 'targets=') or namespace.T) == True:
-                aconf.target_file = a
-                # If we're on Windows, and we can't use the idna workaround, force only one thread to be used (otherwise a crash would occur).
-                # if no_idna_workaround:
-                #    print("\nWARNING: the idna module was not found on this system, thus only single-threaded scanning will be done (this is a workaround for this Windows-specific crash: https://github.com/python/cpython/issues/73474).  Multi-threaded scanning can be enabled by installing the idna module (pip install idna).\n")
-                #    aconf.threads = 1
-            #elif ( getattr(namespace, 'threads=')) != False:
-            elif ( getattr(namespace, 'threads')):
-                aconf.threads = int(getattr(namespace, 'threads'))
-                print(aconf.threads)
-                # if no_idna_workaround:
-                #    aconf.threads = 1
-            elif ( getattr(namespace, 'list-policies') or namespace.L) == True:
-                aconf.list_policies = True
-            elif ( namespace.lookup) == True:
-                aconf.lookup = a
-            elif ( namespace.manual or namespace.m ) == True:
-                aconf.manual = True
-            elif ( namespace.debug or namespace.d ) == True:
-                aconf.debug = True
-                out.debug = True
-            elif ( getattr(namespace, 'gex-test') or namespace.g ) == True:
-                permitted_syntax = get_permitted_syntax_for_gex_test()
-
-                if not any(re.search(regex_str, a) for regex_str in permitted_syntax.values()):
-                    usage_cb(out, '{} {} is not valid'.format(o, a))
-
-                if re.search(permitted_syntax['RANGE'], a):
-                    extracted_digits = re.findall(r'\d+', a)
-                    bits_left_bound = int(extracted_digits[0])
-                    bits_right_bound = int(extracted_digits[1])
-
-                    bits_step = 1
-                    if (len(extracted_digits)) == 3:
-                        bits_step = int(extracted_digits[2])
-
-                    if bits_step <= 0:
-                        usage_cb(out, '{} {} is not valid'.format(o, bits_step))
-
-                    if all(x < 0 for x in (bits_left_bound, bits_right_bound)):
-                        usage_cb(out, '{} {} {} is not valid'.format(o, bits_left_bound, bits_right_bound))
-
-                aconf.gex_test = a
-            elif ( namespace.dheat ) == True:
-                aconf.dheat = a
-            elif ( getattr(namespace, 'skip-rate-test') ) == True:
-                aconf.skip_rate_test = True
-            elif ( getattr(namespace, 'conn-rate-test') ) == True:
-                aconf.conn_rate_test = a
+        if os.name == 'posix':
+            aconf.threads = int(namespace.threads)
+        else:
+            aconf.threads = '1'
         
-        except argparse.ArgumentError as err:
-            usage_cb(out, str(err))
+        if getattr(namespace, 'list_policies') is True:
+            aconf.list_policies = True
+        
+        if getattr(namespace, 'lookup') is True:
+            aconf.lookup = namespace.lookup
 
-        # Usage function (simulated here)
-        def usage_cb(out, msg):
-            print(msg)
+        if getattr(namespace, 'manual') is True:
+            aconf.manual = True
+        else:
+            aconf.manual = False
+            
+        if namespace.debug == True:
+            aconf.debug = True
+            out.debug = True
 
-    else:
+        if getattr(namespace, 'gex_test') == True:
+            dh_gex = namespace.gex_test
+            permitted_syntax = get_permitted_syntax_for_gex_test()
 
-        try:
-            sopts = 'h1246M:p:P:jbcnvl:t:T:Lmdg:'
-            lopts = ['help', 'ssh1', 'ssh2', 'ipv4', 'ipv6', 'make-policy=', 'port=', 'policy=', 'json', 'batch', 'client-audit', 'no-colors', 'verbose', 'level=', 'timeout=', 'targets=', 'list-policies', 'lookup=', 'threads=', 'manual', 'debug', 'gex-test=', 'dheat=', 'skip-rate-test', 'conn-rate-test=']
-            opts, args = getopt.gnu_getopt(args, sopts, lopts)
-            print("print args and then ops on next line")
-            print(args)
-            print(opts)
-        except getopt.GetoptError as err:
-            usage_cb(out, str(err))
-        aconf.ssh1, aconf.ssh2 = False, False
-        host: str = ''
-        oport: Optional[str] = None
-        port: int = 0
-        for o, a in opts:
-            if o in ('-h', '--help'):
-                usage_cb(out)
-            elif o in ('-1', '--ssh1'):
-                aconf.ssh1 = True
-            elif o in ('-2', '--ssh2'):
-                aconf.ssh2 = True
-            elif o in ('-4', '--ipv4'):
-                aconf.ipv4 = True
-            elif o in ('-6', '--ipv6'):
-                aconf.ipv6 = True
-            elif o in ('-p', '--port'):
-                oport = a
-            elif o in ('-b', '--batch'):
-                aconf.batch = True
-                aconf.verbose = True
-            elif o in ('-c', '--client-audit'):
-                aconf.client_audit = True
-            elif o in ('-j', '--json'):
-                if aconf.json:  # If specified twice, enable indent printing.
-                    aconf.json_print_indent = True
-                else:
-                    aconf.json = True
-            elif o in ('-v', '--verbose'):
-                aconf.verbose = True
-                out.verbose = True
-            elif o in ('-l', '--level'):
-                if a not in ('info', 'warn', 'fail'):
-                    usage_cb(out, 'level {} is not valid'.format(a))
-                aconf.level = a
-            elif o in ('-t', '--timeout'):
-                aconf.timeout = float(a)
-                aconf.timeout_set = True
-            elif o in ('-M', '--make-policy'):
-                aconf.make_policy = True
-                aconf.policy_file = a
-            elif o in ('-P', '--policy'):
-                aconf.policy_file = a
-            elif o in ('-T', '--targets'):
-                aconf.target_file = a
+            if not any(re.search(regex_str, dh_gex) for regex_str in permitted_syntax.values()):
+                usage_cb(out, '{} is not valid'.format(dh_gex))
 
-                # If we're on Windows, and we can't use the idna workaround, force only one thread to be used (otherwise a crash would occur).
-                # if no_idna_workaround:
-                #    print("\nWARNING: the idna module was not found on this system, thus only single-threaded scanning will be done (this is a workaround for this Windows-specific crash: https://github.com/python/cpython/issues/73474).  Multi-threaded scanning can be enabled by installing the idna module (pip install idna).\n")
-                #    aconf.threads = 1
-            elif o == '--threads':
-                aconf.threads = int(a)
-                # if no_idna_workaround:
-                #    aconf.threads = 1
-            elif o in ('-L', '--list-policies'):
-                aconf.list_policies = True
-            elif o == '--lookup':
-                aconf.lookup = a
-            elif o in ('-m', '--manual'):
-                aconf.manual = True
-            elif o in ('-d', '--debug'):
-                aconf.debug = True
-                out.debug = True
-            elif o in ('-g', '--gex-test'):
-                permitted_syntax = get_permitted_syntax_for_gex_test()
+            if re.search(permitted_syntax['RANGE'], dh_gex):
+                extracted_digits = re.findall(r'\d+', dh_gex)
+                bits_left_bound = int(extracted_digits[0])
+                bits_right_bound = int(extracted_digits[1])
 
-                if not any(re.search(regex_str, a) for regex_str in permitted_syntax.values()):
-                    usage_cb(out, '{} {} is not valid'.format(o, a))
+                bits_step = 1
+                if (len(extracted_digits)) == 3:
+                    bits_step = int(extracted_digits[2])
 
-                if re.search(permitted_syntax['RANGE'], a):
-                    extracted_digits = re.findall(r'\d+', a)
-                    bits_left_bound = int(extracted_digits[0])
-                    bits_right_bound = int(extracted_digits[1])
+                if bits_step <= 0:
+                    usage_cb(out, '{} {} is not valid'.format(dh_gex, bits_step))
 
-                    bits_step = 1
-                    if (len(extracted_digits)) == 3:
-                        bits_step = int(extracted_digits[2])
+                if all(x < 0 for x in (bits_left_bound, bits_right_bound)):
+                    usage_cb(out, '{} {} {} is not valid'.format(dh_gex, bits_left_bound, bits_right_bound))
 
-                    if bits_step <= 0:
-                        usage_cb(out, '{} {} is not valid'.format(o, bits_step))
-
-                    if all(x < 0 for x in (bits_left_bound, bits_right_bound)):
-                        usage_cb(out, '{} {} {} is not valid'.format(o, bits_left_bound, bits_right_bound))
-
-                aconf.gex_test = a
-            elif o == '--dheat':
-                aconf.dheat = a
-            elif o == '--skip-rate-test':
-                aconf.skip_rate_test = True
-            elif o == '--conn-rate-test':
-                aconf.conn_rate_test = a
+            aconf.gex_test = namespace.gex_test
 
 
-    if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '' and aconf.manual is False:
+        if int(namespace.dheat) > 0:
+            aconf.dheat = int(namespace.dheat)
+
+        aconf.skip_rate_test = namespace.skip_rate_test
+
+        if int(namespace.conn_rate_test) > 0:
+            aconf.conn_rate_test = int(namespace.conn_rate_test)
+    
+    except argparse.ArgumentError as err:
+        usage_cb(out, str(err))
+
+    if namespace.host is None and namespace.client_audit is None and namespace.targets is None and namespace.list_policies is None and namespace.lookup is None and namespace.manual is None:
         usage_cb(out)
 
     if aconf.manual:
@@ -1146,21 +1002,21 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
         list_policies(out, aconf.verbose)
         sys.exit(exitcodes.GOOD)
 
-    if aconf.client_audit is False and aconf.target_file is None:
+    if aconf.client_audit is None and aconf.target_file is None:
         if oport is not None:
-            host = str(namespace.host)
+            host = host
         else:
-            host = str(namespace.host)
-            port = str(namespace.port)
+            host = host
+            port = port
         #if not host and aconf.target_file is None:
-        if host == '' and aconf.target_file is None:
+        if host is None and aconf.target_file is None:
             usage_cb(out, 'host is empty')
 
     if port == 0 and oport is None:
         if aconf.client_audit:  # The default port to listen on during a client audit is 2222.
             port = 2222
         else:
-            port = 22
+            port = port
 
     if oport is not None:
         port = Utils.parse_int(oport)
