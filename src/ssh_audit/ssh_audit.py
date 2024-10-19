@@ -857,7 +857,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     parser.add_argument('-h', action="store_true", dest='help', default=None)
     parser.add_argument('-ip', action="store", dest='host', type=str)
     parser.add_argument('-j', action="store_true", dest='json', default=None)
-    parser.add_argument('-ji', action="store_true", dest='json_indent', default=None)
+    parser.add_argument('-jj', action="store_true", dest='json_indent', default=None)
     parser.add_argument('-l', action="store", dest='level', type=str, default='info')
     parser.add_argument('-L', action="store_true", dest='list_policies', default=None)
     parser.add_argument('-M', action="store", dest='make_policy', default=None)
@@ -918,7 +918,10 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
         aconf.ipv6 = namespace.ipv6
 
         aconf.json = namespace.json
-        aconf.json_print_indent = namespace.json_indent
+        if namespace.json_indent is not None:
+            setattr(namespace, 'json', True)
+            aconf.json = namespace.json
+            aconf.json_print_indent = namespace.json_indent
 
         if namespace.batch == True:
             aconf.batch = True
