@@ -1028,7 +1028,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
         list_policies(out, aconf.verbose)
         sys.exit(exitcodes.GOOD)
 
-    if aconf.client_audit is False and aconf.target_file is None:
+    if aconf.client_audit is None and aconf.target_file is None:
         if oport is not None:
             host = host
         else:
