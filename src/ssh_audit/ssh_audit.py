@@ -119,6 +119,7 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     uout.info('        --hostname             hostname of target to scan')
     uout.info('   -ip, --ip-address           ip address of target to scan')
     uout.info('   -j,  --json             JSON output (use -jj to enable indents)')
+    uout.info('        --json-indent      to enable indents, must be used with -j or --json')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies. Use with -v')
     uout.info('                               to view policy change logs.')
