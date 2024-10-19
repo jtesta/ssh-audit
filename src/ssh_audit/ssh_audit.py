@@ -94,7 +94,7 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     if err is not None and len(err) > 0:
         uout.fail(err + '\n')
         retval = exitcodes.UNKNOWN_ERROR
-    uout.info('usage: {0} [options] <host>\n'.format(p))
+    uout.info('usage: {0} [options] -ip <host>\n'.format(p))
     uout.info('   -h,  --help             print this help')
     uout.info('   -1,  --ssh1             force ssh version 1 only')
     uout.info('   -2,  --ssh2             force ssh version 2 only')
@@ -121,6 +121,8 @@ def usage(uout: OutputBuffer, err: Optional[str] = None) -> None:
     uout.info('   -g,  --gex-test=<x[,y,...]>  dh gex modulus size test')
     uout.info('                   <min1:pref1:max1[,min2:pref2:max2,...]>')
     uout.info('                   <x-y[:step]>')
+    uout.info('        --hostname             hostname of target to scan')
+    uout.info('   -ip, --ip-address           ip address of target to scan')
     uout.info('   -j,  --json             JSON output (use -jj to enable indents)')
     uout.info('   -l,  --level=<level>    minimum output level (info|warn|fail)')
     uout.info('   -L,  --list-policies    list all the official, built-in policies. Use with -v')
@@ -880,6 +882,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     parser.add_argument('--dheat', action="store", dest='dheat', default='0', type=int)
     parser.add_argument('--gex-test', action="store", dest='gex_test', default=None)
     parser.add_argument('--help', action="store_true", dest='help', default=None)
+    parser.add_argument('--hostname', action="store", dest='host', default=None)
     parser.add_argument('--ip-address', action="store", dest='host', default=None)
     parser.add_argument('--ipv4', action="store_true", dest='ipv4', default=None)
     parser.add_argument('--ipv6', action="store_true", dest='ipv6', default=None)
@@ -1033,7 +1036,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             host = host
             port = port
         #if not host and aconf.target_file is None:
-        if host == '' and aconf.target_file is None:
+        if host is None and aconf.target_file is None:
             usage_cb(out, 'host is empty')
 
     if port == 0 and oport is None:
