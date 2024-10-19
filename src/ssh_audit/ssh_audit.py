@@ -26,17 +26,12 @@
 import argparse
 import concurrent.futures
 import copy
-import getopt  # pylint: disable=deprecated-module
 import json
 import multiprocessing
 import os
 import re
 import sys
 import traceback
-import time
-
-## OAM7575
-argparse_on = 'ON'
 
 # pylint: disable=unused-import
 from typing import Dict, List, Set, Sequence, Tuple, Iterable  # noqa: F401
