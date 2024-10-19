@@ -853,10 +853,11 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     parser.add_argument('-4', action="store_true", dest='ipv4', default=None)
     parser.add_argument('-6', action="store_true", dest='ipv6', default=None)
     parser.add_argument('-b', action="store_true", dest='batch', default=None)
-    parser.add_argument('-c', action="store_true", dest='client_audit', default='False')
+    parser.add_argument('-c', action="store_true", dest='client_audit', default=None)
     parser.add_argument('-d', action="store_true", dest='debug', default=None)
     parser.add_argument('-g', action="store", dest='gex_test', default=None)
     parser.add_argument('-h', action="store_true", dest='help', default=None)
+    parser.add_argument('-ip', action="store", dest='host', type=str)
     parser.add_argument('-j', action="store_true", dest='json', default=None)
     parser.add_argument('-ji', action="store_true", dest='json_indent', default=None)
     parser.add_argument('-l', action="store", dest='level', type=str, default='info')
@@ -868,17 +869,18 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     parser.add_argument('-T', action="store", dest='targets', default=None)
     parser.add_argument('-t', action="store", dest='timeout', default='5', type=int)
     parser.add_argument('-v', action="store_true", dest='verbose', default=None)
-    parser.add_argument('-ip', action="store", dest='host', type=str)
+
 
 
     # Add long options to the parser
     parser.add_argument('--batch', action="store_true", dest='batch', default=None)
-    parser.add_argument('--client-audit', action="store_true", dest='client_audit', default='False')
+    parser.add_argument('--client-audit', action="store_true", dest='client_audit', default=None)
     parser.add_argument('--conn-rate-test', action="store", dest='conn_rate_test', default='0', type=int)
     parser.add_argument('--debug', action="store_true", dest='debug', default=None)
     parser.add_argument('--dheat', action="store", dest='dheat', default='0', type=int)
     parser.add_argument('--gex-test', action="store", dest='gex_test', default=None)
     parser.add_argument('--help', action="store_true", dest='help', default=None)
+    parser.add_argument('--ip-address', action="store", dest='host', default=None)
     parser.add_argument('--ipv4', action="store_true", dest='ipv4', default=None)
     parser.add_argument('--ipv6', action="store_true", dest='ipv6', default=None)
     parser.add_argument('--json', action="store_true", dest='json', default=None)
@@ -1011,7 +1013,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     except argparse.ArgumentError as err:
         usage_cb(out, str(err))
 
-    if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '' and aconf.manual is False:
+    if aconf.client_audit is None and aconf.target_file is None and aconf.list_policies is False and aconf.lookup is None and aconf.manual is False:
         usage_cb(out)
 
     if aconf.manual:
