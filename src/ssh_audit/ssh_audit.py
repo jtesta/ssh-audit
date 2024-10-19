@@ -851,7 +851,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     parser.add_argument('-4', action="store_true", dest='ipv4', default=None)
     parser.add_argument('-6', action="store_true", dest='ipv6', default=None)
     parser.add_argument('-b', action="store_true", dest='batch', default=None)
-    parser.add_argument('-c', action="store_true", dest='client_audit', default='False')
+    parser.add_argument('-c', action="store_true", dest='client_audit', default=None)
     parser.add_argument('-d', action="store_true", dest='debug', default=None)
     parser.add_argument('-g', action="store", dest='gex_test', default=None)
     parser.add_argument('-h', action="store_true", dest='help', default=None)
@@ -872,7 +872,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
 
     # Add long options to the parser
     parser.add_argument('--batch', action="store_true", dest='batch', default=None)
-    parser.add_argument('--client-audit', action="store_true", dest='client_audit', default='False')
+    parser.add_argument('--client-audit', action="store_true", dest='client_audit', default=None)
     parser.add_argument('--conn-rate-test', action="store", dest='conn_rate_test', default='0', type=int)
     parser.add_argument('--debug', action="store_true", dest='debug', default=None)
     parser.add_argument('--dheat', action="store", dest='dheat', default='0', type=int)
@@ -903,10 +903,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     try:
         namespace = parser.parse_args()
 
-        if namespace.host is None and namespace.targets is None:
-            setattr(namespace, 'help', True)
-
-        if namespace.help == True:
+        if namespace.help is True:
             usage_cb(out)
 
         aconf.host = namespace.host
@@ -918,12 +915,12 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
         aconf.ipv6 = namespace.ipv6
 
         aconf.json = namespace.json
-        if namespace.json_indent is not None:
+        if namespace.json_indent is True:
             setattr(namespace, 'json', True)
             aconf.json = namespace.json
             aconf.json_print_indent = namespace.json_indent
 
-        if namespace.batch == True:
+        if namespace.batch is True:
             aconf.batch = True
             aconf.verbose = True
 
@@ -934,26 +931,26 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.timeout = float(namespace.timeout)
             aconf.timeout_set = True
 
-        if namespace.verbose == True:
+        if namespace.verbose is True:
             aconf.verbose = True
             out.verbose = True
 
         # Get error level regex
-        err_level = (namespace.level).strip()
+        err_level = (namespace.level)
         pattern = re.compile(r'info|warn|fail')
         if pattern.match(err_level):
             aconf.level = str(namespace.level)
         else:
             usage_cb(out, 'Error level : {} is not valid'.format(err_level))
 
-        if getattr(namespace, 'make_policy') != None:   
+        if getattr(namespace, 'make_policy') is True:   
             aconf.make_policy = True
             aconf.policy_file = namespace.make_policy
 
-        if getattr(namespace, 'policy') != None:
+        if getattr(namespace, 'policy') is True:
             aconf.policy_file = namespace.policy
 
-        if getattr(namespace, 'targets') != None:
+        if getattr(namespace, 'targets') is True:
             aconf.target_file = namespace.targets
 
         if os.name == 'nt':
@@ -964,13 +961,13 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
         else:
             aconf.threads = '1'
         
-        if getattr(namespace, 'list_policies') == True:
+        if getattr(namespace, 'list_policies') is True:
             aconf.list_policies = True
         
-        if getattr(namespace, 'lookup') != None:
+        if getattr(namespace, 'lookup') is True:
             aconf.lookup = namespace.lookup
 
-        if getattr(namespace, 'manual') != None:
+        if getattr(namespace, 'manual') is True:
             aconf.manual = True
         else:
             aconf.manual = False
@@ -979,7 +976,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
             aconf.debug = True
             out.debug = True
 
-        if getattr(namespace, 'gex_test') != None:
+        if getattr(namespace, 'gex_test') == True:
             dh_gex = namespace.gex_test
             permitted_syntax = get_permitted_syntax_for_gex_test()
 
@@ -1015,7 +1012,7 @@ def process_commandline(out: OutputBuffer, args: List[str], usage_cb: Callable[.
     except argparse.ArgumentError as err:
         usage_cb(out, str(err))
 
-    if len(args) == 0 and aconf.client_audit is False and aconf.target_file is None and aconf.list_policies is False and aconf.lookup == '' and aconf.manual is False:
+    if namespace.host is None and namespace.client_audit is None and namespace.targets is None and namespace.list_policies is None and namespace.lookup is None and namespace.manual is None:
         usage_cb(out)
 
     if aconf.manual:
