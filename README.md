@@ -41,64 +41,61 @@
 
 ## Usage
 ```
-usage: ssh-audit.py [options] <host>
+usage: ssh-audit.py [-h] [-1] [-2] [-4] [-6] [-b] [-c] [-d]
+                    [-g <min1:pref1:max1[,min2:pref2:max2,...]> / <x-y[:step]>] [-j] [-l {info,warn,fail}] [-L]
+                    [-M custom_policy.txt] [-m] [-n] [-P "Built-In Policy Name" / custom_policy.txt] [-p N]
+                    [-T targets.txt] [-t N] [-v] [--conn-rate-test N[:max_rate]] [--dheat N[:kex[:e_len]]]
+                    [--lookup alg1[,alg2,...]] [--skip-rate-test] [--threads N]
+                    [host]
 
-   -h,  --help             print this help
-   -1,  --ssh1             force ssh version 1 only
-   -2,  --ssh2             force ssh version 2 only
-   -4,  --ipv4             enable IPv4 (order of precedence)
-   -6,  --ipv6             enable IPv6 (order of precedence)
-   -b,  --batch            batch output
-   -c,  --client-audit     starts a server on port 2222 to audit client
-                               software config (use -p to change port;
-                               use -t to change timeout)
-        --conn-rate-test=N[:max_rate]  perform a connection rate test (useful
-                                       for collecting metrics related to
-                                       susceptibility of the DHEat vuln).
-                                       Testing is conducted with N concurrent
-                                       sockets with an optional maximum rate
-                                       of connections per second.
-   -d,  --debug            Enable debug output.
-        --dheat=N[:kex[:e_len]]    continuously perform the DHEat DoS attack
-                                   (CVE-2002-20001) against the target using N
-                                   concurrent sockets.  Optionally, a specific
-                                   key exchange algorithm can be specified
-                                   instead of allowing it to be automatically
-                                   chosen.  Additionally, a small length of
-                                   the fake e value sent to the server can
-                                   be chosen for a more efficient attack (such
-                                   as 4).
-   -g,  --gex-test=<x[,y,...]>  dh gex modulus size test
-                   <min1:pref1:max1[,min2:pref2:max2,...]>
-                   <x-y[:step]>
-   -j,  --json             JSON output (use -jj to enable indents)
-   -l,  --level=<level>    minimum output level (info|warn|fail)
-   -L,  --list-policies    list all the official, built-in policies. Use with -v
-                               to view policy change logs.
-        --lookup=<alg1,alg2,...>    looks up an algorithm(s) without
-                                    connecting to a server
-   -m,  --manual           print the man page (Docker, PyPI, Snap, and Windows
-                                    builds only)
-   -M,  --make-policy=<policy.txt>  creates a policy based on the target server
-                                    (i.e.: the target server has the ideal
-                                    configuration that other servers should
-                                    adhere to)
-   -n,  --no-colors        disable colors
-   -p,  --port=<port>      port to connect
-   -P,  --policy=<"policy name" | policy.txt>  run a policy test using the
-                                                   specified policy
-        --skip-rate-test   skip the connection rate test during standard audits
-                               (used to safely infer whether the DHEat attack
-                               is viable)
-   -t,  --timeout=<secs>   timeout (in seconds) for connection and reading
-                               (default: 5)
-   -T,  --targets=<hosts.txt>  a file containing a list of target hosts (one
-                                   per line, format HOST[:PORT]).  Use -p/--port
-                                   to set the default port for all hosts.  Use
-                                   --threads to control concurrent scans.
-        --threads=<threads>    number of threads to use when scanning multiple
-                                   targets (-T/--targets) (default: 32)
-   -v,  --verbose          verbose output
+positional arguments:
+  host                  target hostname or IPv4/IPv6 address
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -1, --ssh1            force ssh version 1 only
+  -2, --ssh2            force ssh version 2 only
+  -4, --ipv4            enable IPv4 (order of precedence)
+  -6, --ipv6            enable IPv6 (order of precedence)
+  -b, --batch           batch output
+  -c, --client-audit    starts a server on port 2222 to audit client software config (use -p to change port; use -t
+                        to change timeout)
+  -d, --debug           enable debugging output
+  -g <min1:pref1:max1[,min2:pref2:max2,...]> / <x-y[:step]>, --gex-test <min1:pref1:max1[,min2:pref2:max2,...]> / <x-y[:step]>
+                        conducts a very customized Diffie-Hellman GEX modulus size test. Tests an array of minimum,
+                        preferred, and maximum values, or a range of values with an optional incremental step amount
+  -j, --json            enable JSON output (use -jj to enable indentation for better readability)
+  -l {info,warn,fail}, --level {info,warn,fail}
+                        minimum output level (default: info)
+  -L, --list-policies   list all the official, built-in policies. Combine with -v to view policy change logs
+  -M custom_policy.txt, --make-policy custom_policy.txt
+                        creates a policy based on the target server (i.e.: the target server has the ideal
+                        configuration that other servers should adhere to), and stores it in the file path specified
+  -m, --manual          print the man page (Docker, PyPI, Snap, and Windows builds only)
+  -n, --no-colors       disable colors (automatic when the NO_COLOR environment variable is set)
+  -P "Built-In Policy Name" / custom_policy.txt, --policy "Built-In Policy Name" / custom_policy.txt
+                        run a policy test using the specified policy (use -L to see built-in policies, or specify
+                        filesystem path to custom policy created by -M)
+  -p N, --port N        the TCP port to connect to (or to listen on when -c is used)
+  -T targets.txt, --targets targets.txt
+                        a file containing a list of target hosts (one per line, format HOST[:PORT]). Use -p/--port
+                        to set the default port for all hosts. Use --threads to control concurrent scans
+  -t N, --timeout N     timeout (in seconds) for connection and reading (default: 5)
+  -v, --verbose         enable verbose output
+  --conn-rate-test N[:max_rate]
+                        perform a connection rate test (useful for collecting metrics related to susceptibility of
+                        the DHEat vuln). Testing is conducted with N concurrent sockets with an optional maximum
+                        rate of connections per second
+  --dheat N[:kex[:e_len]]
+                        continuously perform the DHEat DoS attack (CVE-2002-20001) against the target using N
+                        concurrent sockets. Optionally, a specific key exchange algorithm can be specified instead
+                        of allowing it to be automatically chosen. Additionally, a small length of the fake e value
+                        sent to the server can be chosen for a more efficient attack (such as 4).
+  --lookup alg1[,alg2,...]
+                        looks up an algorithm(s) without connecting to a server.
+  --skip-rate-test      skip the connection rate test during standard audits (used to safely infer whether the DHEat
+                        attack is viable)
+  --threads N           number of threads to use when scanning multiple targets (-T/--targets) (default: 32)
 ```
 * if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.
 * batch flag `-b` will output sections without header and without empty lines (implies verbose flag).
@@ -218,6 +215,9 @@ The status of various other platform packages can be found below (via Repology):
 For convenience, a web front-end on top of the command-line tool is available at [https://www.ssh-audit.com/](https://www.ssh-audit.com/).
 
 ## ChangeLog
+
+### v3.4.0-dev
+ - Migrated from deprecated `getopt` module to `argparse`; partial credit [oam7575](https://github.com/oam7575).
 
 ### v3.3.0 (2024-10-15)
  - Added Python 3.13 support.

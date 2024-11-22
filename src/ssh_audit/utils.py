@@ -129,7 +129,7 @@ class Utils:
             return -1.0
 
     @staticmethod
-    def parse_host_and_port(host_and_port: str, default_port: int = 0) -> Tuple[str, int]:
+    def parse_host_and_port(host_and_port: str, default_port: int = 22) -> Tuple[str, int]:
         '''Parses a string into a tuple of its host and port.  The port is 0 if not specified.'''
         host = host_and_port
         port = default_port

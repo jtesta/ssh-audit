@@ -145,8 +145,10 @@ class OutputBuffer:
             self._print('head', s, line_ended)
         return self
 
-    def fail(self, s: str, line_ended: bool = True) -> 'OutputBuffer':
+    def fail(self, s: str, line_ended: bool = True, write_now: bool = False) -> 'OutputBuffer':
         self._print('fail', s, line_ended)
+        if write_now:
+            self.write()
         return self
 
     def warn(self, s: str, line_ended: bool = True) -> 'OutputBuffer':
