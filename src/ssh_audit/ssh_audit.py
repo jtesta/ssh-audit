@@ -818,7 +818,7 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
     parser.add_argument("--threads", action="store", dest="threads", metavar="N", type=int, default=32, help="number of threads to use when scanning multiple targets (-T/--targets) (default: %(default)s)")
 
     # Print Suggested Configurations from : https://www.ssh-audit.com/hardening_guides.html
-    parser.add_argument("--print-config", action="append", metavar="OS Ver Client/Server", dest="print_configuration", type=str, default=None, help="print suggested server or client configurations. Configurations must be quote encapsulated. Usage Example : \"Ubuntu 2404 Server\"")
+    parser.add_argument("--print-config", nargs="?", action="append", metavar="OS Ver Client/Server", dest="print_configuration", type=str, default=None, help="print suggested server or client configurations. Configurations must be quote encapsulated. Usage Example : \"Ubuntu 2404 Server\"")
     
     # The mandatory target option.  Or rather, mandatory when -L, -T, --lookup or --print-config are not used.
     parser.add_argument("host", nargs="?", action="store", type=str, default="", help="target hostname or IPv4/IPv6 address")
@@ -833,7 +833,13 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
         argument = parser.parse_args(args=args)
 
         if argument.print_configuration is not None:
-            print_conf = (getattr(argument, 'print_configuration'))[0].split(" ")
+            print_conf = (getattr(argument, 'print_configuration'))[0]
+            if print_conf is None:
+                print_conf = "OS Version Server"
+                print_conf = print_conf.split(" ")
+            else:
+                print_conf = (getattr(argument, 'print_configuration'))[0].split(" ")
+            
             os_type = print_conf[0]
             os_ver = print_conf[1]
             clientserver = print_conf[2]
