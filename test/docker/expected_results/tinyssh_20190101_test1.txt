@@ -4,10 +4,12 @@
 [0;32m(gen) compression: disabled[0m
 
 [0;36m# key exchange algorithms[0m
-[0;32m(kex) curve25519-sha256                       -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
-[0;32m                                              `- [info] default key exchange from OpenSSH 7.4 to 8.9[0m
-[0;32m(kex) curve25519-sha256@libssh.org            -- [info] available since OpenSSH 6.4, Dropbear SSH 2013.62[0m
-[0;32m                                              `- [info] default key exchange from OpenSSH 6.5 to 7.3[0m
+[0;33m(kex) curve25519-sha256                       -- [warn] does not provide protection against post-quantum attacks[0m
+                                              `- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76
+                                              `- [info] default key exchange from OpenSSH 7.4 to 8.9
+[0;33m(kex) curve25519-sha256@libssh.org            -- [warn] does not provide protection against post-quantum attacks[0m
+                                              `- [info] available since OpenSSH 6.4, Dropbear SSH 2013.62
+                                              `- [info] default key exchange from OpenSSH 6.5 to 7.3
 [0;33m(kex) sntrup4591761x25519-sha512@tinyssh.org  -- [warn] using experimental algorithm[0m
                                               `- [info] available since OpenSSH 8.0
                                               `- [info] the sntrup4591761 algorithm was withdrawn, as it may not provide strong post-quantum security

@@ -217,6 +217,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v3.4.0-dev
+ - Added warning to all key exchanges that do not include protections against quantum attacks due to the Harvest Now, Decrypt Later strategy (see https://en.wikipedia.org/wiki/Harvest_now,_decrypt_later).
  - Migrated from deprecated `getopt` module to `argparse`; partial credit [oam7575](https://github.com/oam7575).
 
 ### v3.3.0 (2024-10-15)

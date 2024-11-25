@@ -43,6 +43,9 @@
                 "info": [
                     "default key exchange from OpenSSH 7.4 to 8.9",
                     "available since OpenSSH 7.4, Dropbear SSH 2018.76"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -52,6 +55,9 @@
                 "info": [
                     "default key exchange from OpenSSH 6.5 to 7.3",
                     "available since OpenSSH 6.4, Dropbear SSH 2013.62"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },

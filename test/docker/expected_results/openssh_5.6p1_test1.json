@@ -195,6 +195,9 @@
                 ],
                 "info": [
                     "available since OpenSSH 4.4"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -207,6 +210,9 @@
                 ],
                 "info": [
                     "available since OpenSSH 2.3.0"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -220,7 +226,8 @@
                     "available since OpenSSH 3.9, Dropbear SSH 0.53"
                 ],
                 "warn": [
-                    "2048-bit modulus only provides 112-bits of symmetric strength"
+                    "2048-bit modulus only provides 112-bits of symmetric strength",
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -235,6 +242,9 @@
                 "info": [
                     "removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9",
                     "available since OpenSSH 2.3.0, Dropbear SSH 0.28"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         }

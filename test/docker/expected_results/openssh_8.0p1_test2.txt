@@ -5,24 +5,34 @@
 [0;32m(gen) compression: enabled (zlib@openssh.com)[0m
 
 [0;36m# key exchange algorithms[0m
-[0;32m(kex) curve25519-sha256                     -- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76[0m
-[0;32m                                            `- [info] default key exchange from OpenSSH 7.4 to 8.9[0m
-[0;32m(kex) curve25519-sha256@libssh.org          -- [info] available since OpenSSH 6.4, Dropbear SSH 2013.62[0m
-[0;32m                                            `- [info] default key exchange from OpenSSH 6.5 to 7.3[0m
+[0;33m(kex) curve25519-sha256                     -- [warn] does not provide protection against post-quantum attacks[0m
+                                            `- [info] available since OpenSSH 7.4, Dropbear SSH 2018.76
+                                            `- [info] default key exchange from OpenSSH 7.4 to 8.9
+[0;33m(kex) curve25519-sha256@libssh.org          -- [warn] does not provide protection against post-quantum attacks[0m
+                                            `- [info] available since OpenSSH 6.4, Dropbear SSH 2013.62
+                                            `- [info] default key exchange from OpenSSH 6.5 to 7.3
 [0;31m(kex) ecdh-sha2-nistp256                    -- [fail] using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency[0m
+[0;33m                                            `- [warn] does not provide protection against post-quantum attacks[0m
                                             `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
 [0;31m(kex) ecdh-sha2-nistp384                    -- [fail] using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency[0m
+[0;33m                                            `- [warn] does not provide protection against post-quantum attacks[0m
                                             `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
 [0;31m(kex) ecdh-sha2-nistp521                    -- [fail] using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency[0m
+[0;33m                                            `- [warn] does not provide protection against post-quantum attacks[0m
                                             `- [info] available since OpenSSH 5.7, Dropbear SSH 2013.62
-[0;32m(kex) diffie-hellman-group-exchange-sha256 (4096-bit) -- [info] available since OpenSSH 4.4[0m
-[0;32m                                                      `- [info] OpenSSH's GEX fallback mechanism was triggered during testing. Very old SSH clients will still be able to create connections using a 2048-bit modulus, though modern clients will use 4096. This can only be disabled by recompiling the code (see https://github.com/openssh/openssh-portable/blob/V_9_4/dh.c#L477).[0m
-[0;32m(kex) diffie-hellman-group16-sha512         -- [info] available since OpenSSH 7.3, Dropbear SSH 2016.73[0m
-[0;32m(kex) diffie-hellman-group18-sha512         -- [info] available since OpenSSH 7.3[0m
+[0;33m(kex) diffie-hellman-group-exchange-sha256 (4096-bit) -- [warn] does not provide protection against post-quantum attacks[0m
+                                                      `- [info] available since OpenSSH 4.4
+                                                      `- [info] OpenSSH's GEX fallback mechanism was triggered during testing. Very old SSH clients will still be able to create connections using a 2048-bit modulus, though modern clients will use 4096. This can only be disabled by recompiling the code (see https://github.com/openssh/openssh-portable/blob/V_9_4/dh.c#L477).
+[0;33m(kex) diffie-hellman-group16-sha512         -- [warn] does not provide protection against post-quantum attacks[0m
+                                            `- [info] available since OpenSSH 7.3, Dropbear SSH 2016.73
+[0;33m(kex) diffie-hellman-group18-sha512         -- [warn] does not provide protection against post-quantum attacks[0m
+                                            `- [info] available since OpenSSH 7.3
 [0;33m(kex) diffie-hellman-group14-sha256         -- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
+[0;33m                                            `- [warn] does not provide protection against post-quantum attacks[0m
                                             `- [info] available since OpenSSH 7.3, Dropbear SSH 2016.73
 [0;31m(kex) diffie-hellman-group14-sha1           -- [fail] using broken SHA-1 hash algorithm[0m
 [0;33m                                            `- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
+[0;33m                                            `- [warn] does not provide protection against post-quantum attacks[0m
                                             `- [info] available since OpenSSH 3.9, Dropbear SSH 0.53
 
 [0;36m# host-key algorithms[0m
@@ -72,8 +82,13 @@
 [0;31m(rec) -hmac-sha1-etm@openssh.com            -- mac algorithm to remove [0m
 [0;32m(rec) +rsa-sha2-256                         -- key algorithm to append [0m
 [0;32m(rec) +rsa-sha2-512                         -- key algorithm to append [0m
+[0;33m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 3072 bits or larger) [0m
 [0;33m(rec) -chacha20-poly1305@openssh.com        -- enc algorithm to remove [0m
+[0;33m(rec) -curve25519-sha256                    -- kex algorithm to remove [0m
+[0;33m(rec) -curve25519-sha256@libssh.org         -- kex algorithm to remove [0m
 [0;33m(rec) -diffie-hellman-group14-sha256        -- kex algorithm to remove [0m
+[0;33m(rec) -diffie-hellman-group16-sha512        -- kex algorithm to remove [0m
+[0;33m(rec) -diffie-hellman-group18-sha512        -- kex algorithm to remove [0m
 [0;33m(rec) -hmac-sha2-256                        -- mac algorithm to remove [0m
 [0;33m(rec) -hmac-sha2-512                        -- mac algorithm to remove [0m
 [0;33m(rec) -umac-128@openssh.com                 -- mac algorithm to remove [0m

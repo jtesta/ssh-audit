@@ -6,15 +6,19 @@
 
 [0;36m# key exchange algorithms[0m
 [0;31m(kex) diffie-hellman-group-exchange-sha256 (1024-bit) -- [fail] using small 1024-bit modulus[0m
+[0;33m                                                      `- [warn] does not provide protection against post-quantum attacks[0m
                                                       `- [info] available since OpenSSH 4.4
 [0;31m(kex) diffie-hellman-group-exchange-sha1 (1024-bit) -- [fail] using small 1024-bit modulus[0m
+[0;33m                                                    `- [warn] does not provide protection against post-quantum attacks[0m
                                                     `- [info] available since OpenSSH 2.3.0
 [0;31m(kex) diffie-hellman-group14-sha1           -- [fail] using broken SHA-1 hash algorithm[0m
 [0;33m                                            `- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
+[0;33m                                            `- [warn] does not provide protection against post-quantum attacks[0m
                                             `- [info] available since OpenSSH 3.9, Dropbear SSH 0.53
 [0;31m(kex) diffie-hellman-group1-sha1            -- [fail] using small 1024-bit modulus[0m
 [0;31m                                            `- [fail] vulnerable to the Logjam attack: https://en.wikipedia.org/wiki/Logjam_(computer_security)[0m
 [0;31m                                            `- [fail] using broken SHA-1 hash algorithm[0m
+[0;33m                                            `- [warn] does not provide protection against post-quantum attacks[0m
                                             `- [info] available since OpenSSH 2.3.0, Dropbear SSH 0.28
                                             `- [info] removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9
 

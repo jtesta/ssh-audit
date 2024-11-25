@@ -57,6 +57,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     WARN_CIPHER_MODE = 'using weak cipher mode'
     WARN_ENCRYPT_AND_MAC = 'using encrypt-and-MAC mode'
     WARN_EXPERIMENTAL = 'using experimental algorithm'
+    WARN_NOT_PQ_SAFE = 'does not provide protection against post-quantum attacks'
     WARN_RNDSIG_KEY = 'using weak random number generator could reveal the key'
     WARN_TAG_SIZE = 'using small 64-bit tag size'
     WARN_TAG_SIZE_96 = 'using small 96-bit tag size'
@@ -84,117 +85,117 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     MASTER_DB: Dict[str, Dict[str, List[List[Optional[str]]]]] = {
         # Format: 'algorithm_name': [['version_first_appeared_in'], [reason_for_failure1, reason_for_failure2, ...], [warning1, warning2, ...], [info1, info2, ...]]
         'kex': {
-            'Curve25519SHA256': [[]],
-            'curve25519-sha256': [['7.4,d2018.76'], [], [], [INFO_DEFAULT_OPENSSH_KEX_74_TO_89]],
-            'curve25519-sha256@libssh.org': [['6.4,d2013.62,l10.6.0'], [], [], [INFO_DEFAULT_OPENSSH_KEX_65_TO_73]],
-            'curve448-sha512': [[]],
-            'curve448-sha512@libssh.org': [[]],
-            'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [FAIL_SHA1], [WARN_2048BIT_MODULUS]],
-            'diffie-hellman-group14-sha224@ssh.com': [[]],
-            'diffie-hellman-group14-sha256': [['7.3,d2016.73'], [], [WARN_2048BIT_MODULUS]],
-            'diffie-hellman-group14-sha256@ssh.com': [[], [], [WARN_2048BIT_MODULUS]],
-            'diffie-hellman-group15-sha256': [[]],
-            'diffie-hellman-group15-sha256@ssh.com': [[]],
-            'diffie-hellman-group15-sha384@ssh.com': [[]],
-            'diffie-hellman-group15-sha512': [[]],
-            'diffie-hellman-group16-sha256': [[]],
-            'diffie-hellman-group16-sha384@ssh.com': [[]],
-            'diffie-hellman-group16-sha512': [['7.3,d2016.73']],
-            'diffie-hellman-group16-sha512@ssh.com': [[]],
-            'diffie-hellman-group17-sha512': [[]],
-            'diffie-hellman_group17-sha512': [[]],
-            'diffie-hellman-group18-sha512': [['7.3']],
-            'diffie-hellman-group18-sha512@ssh.com': [[]],
-            'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_LOGJAM_ATTACK, FAIL_SHA1], [], [INFO_REMOVED_IN_OPENSSH69]],
-            'diffie-hellman-group1-sha256': [[], [FAIL_1024BIT_MODULUS]],
-            'diffie-hellman-group-exchange-sha1': [['2.3.0', '6.6', None], [FAIL_SHA1]],
-            'diffie-hellman-group-exchange-sha224@ssh.com': [[]],
-            'diffie-hellman-group-exchange-sha256': [['4.4']],
-            'diffie-hellman-group-exchange-sha256@ssh.com': [[]],
-            'diffie-hellman-group-exchange-sha384@ssh.com': [[]],
-            'diffie-hellman-group-exchange-sha512@ssh.com': [[]],
+            'Curve25519SHA256': [[], [], [WARN_NOT_PQ_SAFE]],
+            'curve25519-sha256': [['7.4,d2018.76'], [], [WARN_NOT_PQ_SAFE], [INFO_DEFAULT_OPENSSH_KEX_74_TO_89]],
+            'curve25519-sha256@libssh.org': [['6.4,d2013.62,l10.6.0'], [], [WARN_NOT_PQ_SAFE], [INFO_DEFAULT_OPENSSH_KEX_65_TO_73]],
+            'curve448-sha512': [[], [], [WARN_NOT_PQ_SAFE]],
+            'curve448-sha512@libssh.org': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group14-sha1': [['3.9,d0.53,l10.6.0'], [FAIL_SHA1], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group14-sha224@ssh.com': [[], [], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group14-sha256': [['7.3,d2016.73'], [], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group14-sha256@ssh.com': [[], [], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group15-sha256': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group15-sha256@ssh.com': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group15-sha384@ssh.com': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group15-sha512': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group16-sha256': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group16-sha384@ssh.com': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group16-sha512': [['7.3,d2016.73'], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group16-sha512@ssh.com': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group17-sha512': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman_group17-sha512': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group18-sha512': [['7.3'], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group18-sha512@ssh.com': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group1-sha1': [['2.3.0,d0.28,l10.2', '6.6', '6.9'], [FAIL_1024BIT_MODULUS, FAIL_LOGJAM_ATTACK, FAIL_SHA1], [WARN_NOT_PQ_SAFE], [INFO_REMOVED_IN_OPENSSH69]],
+            'diffie-hellman-group1-sha256': [[], [FAIL_1024BIT_MODULUS], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group-exchange-sha1': [['2.3.0', '6.6', None], [FAIL_SHA1], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group-exchange-sha224@ssh.com': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group-exchange-sha256': [['4.4'], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group-exchange-sha256@ssh.com': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group-exchange-sha384@ssh.com': [[], [], [WARN_NOT_PQ_SAFE]],
+            'diffie-hellman-group-exchange-sha512@ssh.com': [[], [], [WARN_NOT_PQ_SAFE]],
             'ecdh-nistp256-kyber-512r3-sha256-d00@openquantumsafe.org': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'ecdh-nistp384-kyber-768r3-sha384-d00@openquantumsafe.org': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'ecdh-sha2-1.2.840.10045.3.1.1': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-192 / secp192r1
-            'ecdh-sha2-1.2.840.10045.3.1.7': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-256 / secp256r1
-            'ecdh-sha2-1.3.132.0.10': [[]],  # ECDH over secp256k1 (i.e.: the Bitcoin curve)
-            'ecdh-sha2-1.3.132.0.16': [[], [FAIL_UNPROVEN]],  # sect283k1
-            'ecdh-sha2-1.3.132.0.1': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect163k1
-            'ecdh-sha2-1.3.132.0.26': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect233k1
-            'ecdh-sha2-1.3.132.0.27': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # sect233r1
-            'ecdh-sha2-1.3.132.0.33': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-224 / secp224r1
-            'ecdh-sha2-1.3.132.0.34': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-384 / secp384r1
-            'ecdh-sha2-1.3.132.0.35': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-521 / secp521r1
-            'ecdh-sha2-1.3.132.0.36': [[], [FAIL_UNPROVEN]],  # sect409k1
-            'ecdh-sha2-1.3.132.0.37': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # sect409r1
-            'ecdh-sha2-1.3.132.0.38': [[], [FAIL_UNPROVEN]],  # sect571k1
+            'ecdh-sha2-1.2.840.10045.3.1.1': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # NIST P-192 / secp192r1
+            'ecdh-sha2-1.2.840.10045.3.1.7': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # NIST P-256 / secp256r1
+            'ecdh-sha2-1.3.132.0.10': [[], [], [WARN_NOT_PQ_SAFE]],  # ECDH over secp256k1 (i.e.: the Bitcoin curve)
+            'ecdh-sha2-1.3.132.0.16': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],  # sect283k1
+            'ecdh-sha2-1.3.132.0.1': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_NOT_PQ_SAFE]],  # sect163k1
+            'ecdh-sha2-1.3.132.0.26': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_NOT_PQ_SAFE]],  # sect233k1
+            'ecdh-sha2-1.3.132.0.27': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # sect233r1
+            'ecdh-sha2-1.3.132.0.33': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # NIST P-224 / secp224r1
+            'ecdh-sha2-1.3.132.0.34': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # NIST P-384 / secp384r1
+            'ecdh-sha2-1.3.132.0.35': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # NIST P-521 / secp521r1
+            'ecdh-sha2-1.3.132.0.36': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],  # sect409k1
+            'ecdh-sha2-1.3.132.0.37': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # sect409r1
+            'ecdh-sha2-1.3.132.0.38': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],  # sect571k1
 
             # Note: the base64 strings, according to draft 6 of RFC5656, is Base64(MD5(DER(OID))).  The final RFC5656 dropped the base64 strings in favor of plain OID concatenation, but apparently some SSH servers implement them anyway.  See: https://datatracker.ietf.org/doc/html/draft-green-secsh-ecc-06#section-9.2
-            'ecdh-sha2-4MHB+NBt3AlaSRQ7MnB4cg==': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect163k1
-            'ecdh-sha2-5pPrSUQtIaTjUSt5VZNBjg==': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-192 / secp192r1
-            'ecdh-sha2-9UzNcgwTlEnSCECZa7V1mw==': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-256 / secp256r1
-            'ecdh-sha2-brainpoolp256r1@genua.de': [[], [FAIL_UNPROVEN]],
-            'ecdh-sha2-brainpoolp384r1@genua.de': [[], [FAIL_UNPROVEN]],
-            'ecdh-sha2-brainpoolp521r1@genua.de': [[], [FAIL_UNPROVEN]],
-            'ecdh-sha2-curve25519': [[], []],
-            'ecdh-sha2-D3FefCjYoJ/kfXgAyLddYA==': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # sect409r1
-            'ecdh-sha2-h/SsxnLCtRBh7I9ATyeB3A==': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-521 / secp521r1
-            'ecdh-sha2-m/FtSAmrV4j/Wy6RVUaK7A==': [[], [FAIL_UNPROVEN]],  # sect409k1
-            'ecdh-sha2-mNVwCXAoS1HGmHpLvBC94w==': [[], [FAIL_UNPROVEN]],  # sect571k1
-            'ecdh-sha2-nistb233': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],
-            'ecdh-sha2-nistb409': [[], [FAIL_UNPROVEN]],
-            'ecdh-sha2-nistk163': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],
-            'ecdh-sha2-nistk233': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],
-            'ecdh-sha2-nistk283': [[], [FAIL_UNPROVEN]],
-            'ecdh-sha2-nistk409': [[], [FAIL_UNPROVEN]],
-            'ecdh-sha2-nistp192': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'ecdh-sha2-nistp224': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'ecdh-sha2-nistp256': [['5.7,d2013.62,l10.6.0'], [FAIL_NSA_BACKDOORED_CURVE]],
-            'ecdh-sha2-nistp384': [['5.7,d2013.62'], [FAIL_NSA_BACKDOORED_CURVE]],
-            'ecdh-sha2-nistp521': [['5.7,d2013.62'], [FAIL_NSA_BACKDOORED_CURVE]],
-            'ecdh-sha2-nistt571': [[], [FAIL_UNPROVEN]],
-            'ecdh-sha2-qCbG5Cn/jjsZ7nBeR7EnOA==': [[FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE]],  # sect233r1
-            'ecdh-sha2-qcFQaMAMGhTziMT0z+Tuzw==': [[], [FAIL_NSA_BACKDOORED_CURVE]],  # NIST P-384 / secp384r1
-            'ecdh-sha2-VqBg4QRPjxx1EXZdV0GdWQ==': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_SMALL_ECC_MODULUS]],  # NIST P-224 / secp224r1
-            'ecdh-sha2-wiRIU8TKjMZ418sMqlqtvQ==': [[], [FAIL_UNPROVEN]],  # sect283k1
-            'ecdh-sha2-zD/b3hu/71952ArpUG4OjQ==': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS]],  # sect233k1
-            'ecmqv-sha2': [[], [FAIL_UNPROVEN]],
+            'ecdh-sha2-4MHB+NBt3AlaSRQ7MnB4cg==': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_NOT_PQ_SAFE]],  # sect163k1
+            'ecdh-sha2-5pPrSUQtIaTjUSt5VZNBjg==': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # NIST P-192 / secp192r1
+            'ecdh-sha2-9UzNcgwTlEnSCECZa7V1mw==': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # NIST P-256 / secp256r1
+            'ecdh-sha2-brainpoolp256r1@genua.de': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-brainpoolp384r1@genua.de': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-brainpoolp521r1@genua.de': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-curve25519': [[], [], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-D3FefCjYoJ/kfXgAyLddYA==': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # sect409r1
+            'ecdh-sha2-h/SsxnLCtRBh7I9ATyeB3A==': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # NIST P-521 / secp521r1
+            'ecdh-sha2-m/FtSAmrV4j/Wy6RVUaK7A==': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],  # sect409k1
+            'ecdh-sha2-mNVwCXAoS1HGmHpLvBC94w==': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],  # sect571k1
+            'ecdh-sha2-nistb233': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistb409': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistk163': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistk233': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistk283': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistk409': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistp192': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistp224': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistp256': [['5.7,d2013.62,l10.6.0'], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistp384': [['5.7,d2013.62'], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistp521': [['5.7,d2013.62'], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-nistt571': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
+            'ecdh-sha2-qCbG5Cn/jjsZ7nBeR7EnOA==': [[], [FAIL_SMALL_ECC_MODULUS, FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # sect233r1
+            'ecdh-sha2-qcFQaMAMGhTziMT0z+Tuzw==': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],  # NIST P-384 / secp384r1
+            'ecdh-sha2-VqBg4QRPjxx1EXZdV0GdWQ==': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_SMALL_ECC_MODULUS], [WARN_NOT_PQ_SAFE]],  # NIST P-224 / secp224r1
+            'ecdh-sha2-wiRIU8TKjMZ418sMqlqtvQ==': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],  # sect283k1
+            'ecdh-sha2-zD/b3hu/71952ArpUG4OjQ==': [[], [FAIL_UNPROVEN, FAIL_SMALL_ECC_MODULUS], [WARN_NOT_PQ_SAFE]],  # sect233k1
+            'ecmqv-sha2': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
             'ext-info-c': [['7.2'], [], [], [INFO_EXTENSION_NEGOTIATION]],  # Extension negotiation (RFC 8308)
             'ext-info-s': [['9.6'], [], [], [INFO_EXTENSION_NEGOTIATION]],  # Extension negotiation (RFC 8308)
             'kex-strict-c-v00@openssh.com': [[], [], [], [INFO_STRICT_KEX]],  # Strict KEX marker (countermeasure for CVE-2023-48795).
             'kex-strict-s-v00@openssh.com': [[], [], [], [INFO_STRICT_KEX]],  # Strict KEX marker (countermeasure for CVE-2023-48795).
 
             # The GSS kex algorithms get special wildcard handling, since they include variable base64 data after their standard prefixes.
-            'gss-13.3.132.0.10-sha256-*': [[], [FAIL_UNKNOWN]],
-            'gss-curve25519-sha256-*': [[]],
-            'gss-curve448-sha512-*': [[]],
-            'gss-gex-sha1-*': [[], [FAIL_SHA1]],
-            'gss-gex-sha256-*': [[]],
-            'gss-group14-sha1-*': [[], [FAIL_SHA1], [WARN_2048BIT_MODULUS]],
-            'gss-group14-sha256-*': [[], [], [WARN_2048BIT_MODULUS]],
-            'gss-group15-sha512-*': [[]],
-            'gss-group16-sha512-*': [[]],
-            'gss-group17-sha512-*': [[]],
-            'gss-group18-sha512-*': [[]],
-            'gss-group1-sha1-*': [[], [FAIL_1024BIT_MODULUS, FAIL_LOGJAM_ATTACK, FAIL_SHA1]],
-            'gss-nistp256-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'gss-nistp384-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'gss-nistp384-sha384-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'gss-nistp521-sha512-*': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'kexAlgoCurve25519SHA256': [[]],
-            'kexAlgoDH14SHA1': [[], [FAIL_SHA1], [WARN_2048BIT_MODULUS]],
-            'kexAlgoDH1SHA1': [[], [FAIL_1024BIT_MODULUS, FAIL_LOGJAM_ATTACK, FAIL_SHA1]],
-            'kexAlgoECDH256': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'kexAlgoECDH384': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'kexAlgoECDH521': [[], [FAIL_NSA_BACKDOORED_CURVE]],
-            'kexguess2@matt.ucc.asn.au': [['d2013.57']],
-            'm383-sha384@libassh.org': [[], [FAIL_UNPROVEN]],
-            'm511-sha512@libassh.org': [[], [FAIL_UNPROVEN]],
+            'gss-13.3.132.0.10-sha256-*': [[], [FAIL_UNKNOWN], [WARN_NOT_PQ_SAFE]],
+            'gss-curve25519-sha256-*': [[], [], [WARN_NOT_PQ_SAFE]],
+            'gss-curve448-sha512-*': [[], [], [WARN_NOT_PQ_SAFE]],
+            'gss-gex-sha1-*': [[], [FAIL_SHA1], [WARN_NOT_PQ_SAFE]],
+            'gss-gex-sha256-*': [[], [], [WARN_NOT_PQ_SAFE]],
+            'gss-group14-sha1-*': [[], [FAIL_SHA1], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
+            'gss-group14-sha256-*': [[], [], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
+            'gss-group15-sha512-*': [[], [], [WARN_NOT_PQ_SAFE]],
+            'gss-group16-sha512-*': [[], [], [WARN_NOT_PQ_SAFE]],
+            'gss-group17-sha512-*': [[], [], [WARN_NOT_PQ_SAFE]],
+            'gss-group18-sha512-*': [[], [], [WARN_NOT_PQ_SAFE]],
+            'gss-group1-sha1-*': [[], [FAIL_1024BIT_MODULUS, FAIL_LOGJAM_ATTACK, FAIL_SHA1], [WARN_NOT_PQ_SAFE]],
+            'gss-nistp256-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'gss-nistp384-sha256-*': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'gss-nistp384-sha384-*': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'gss-nistp521-sha512-*': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'kexAlgoCurve25519SHA256': [[], [], [WARN_NOT_PQ_SAFE]],
+            'kexAlgoDH14SHA1': [[], [FAIL_SHA1], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
+            'kexAlgoDH1SHA1': [[], [FAIL_1024BIT_MODULUS, FAIL_LOGJAM_ATTACK, FAIL_SHA1], [WARN_NOT_PQ_SAFE]],
+            'kexAlgoECDH256': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'kexAlgoECDH384': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'kexAlgoECDH521': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
+            'kexguess2@matt.ucc.asn.au': [['d2013.57'], [], [WARN_NOT_PQ_SAFE]],
+            'm383-sha384@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
+            'm511-sha512@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
             'mlkem768x25519-sha256': [['9.9'], [], [], [INFO_HYBRID_PQ_X25519_KEX]],
-            'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS, FAIL_SHA1]],
-            'rsa2048-sha256': [[], [], [WARN_2048BIT_MODULUS]],
-            'sm2kep-sha2-nistp256': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_UNTRUSTED]],
+            'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS, FAIL_SHA1], [WARN_NOT_PQ_SAFE]],
+            'rsa2048-sha256': [[], [], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
+            'sm2kep-sha2-nistp256': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_UNTRUSTED], [WARN_NOT_PQ_SAFE]],
             'sntrup4591761x25519-sha512@tinyssh.org': [['8.0', '8.4'], [], [WARN_EXPERIMENTAL], [INFO_WITHDRAWN_PQ_ALG]],
             'sntrup761x25519-sha512': [['9.9'], [], [], [INFO_DEFAULT_OPENSSH_KEX_99, INFO_HYBRID_PQ_X25519_KEX]],
             'sntrup761x25519-sha512@openssh.com': [['8.5'], [], [], [INFO_DEFAULT_OPENSSH_KEX_90_TO_98, INFO_HYBRID_PQ_X25519_KEX]],

@@ -84,6 +84,9 @@
                 "info": [
                     "default key exchange from OpenSSH 7.4 to 8.9",
                     "available since OpenSSH 7.4, Dropbear SSH 2018.76"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -93,6 +96,9 @@
                 "info": [
                     "default key exchange from OpenSSH 6.5 to 7.3",
                     "available since OpenSSH 6.4, Dropbear SSH 2013.62"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -104,6 +110,9 @@
                 ],
                 "info": [
                     "available since OpenSSH 5.7, Dropbear SSH 2013.62"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -115,6 +124,9 @@
                 ],
                 "info": [
                     "available since OpenSSH 5.7, Dropbear SSH 2013.62"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -126,6 +138,9 @@
                 ],
                 "info": [
                     "available since OpenSSH 5.7, Dropbear SSH 2013.62"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -136,6 +151,9 @@
                 "info": [
                     "OpenSSH's GEX fallback mechanism was triggered during testing. Very old SSH clients will still be able to create connections using a 2048-bit modulus, though modern clients will use 4096. This can only be disabled by recompiling the code (see https://github.com/openssh/openssh-portable/blob/V_9_4/dh.c#L477).",
                     "available since OpenSSH 4.4"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -144,6 +162,9 @@
             "notes": {
                 "info": [
                     "available since OpenSSH 7.3, Dropbear SSH 2016.73"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -152,6 +173,9 @@
             "notes": {
                 "info": [
                     "available since OpenSSH 7.3"
+                ],
+                "warn": [
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -162,7 +186,8 @@
                     "available since OpenSSH 7.3, Dropbear SSH 2016.73"
                 ],
                 "warn": [
-                    "2048-bit modulus only provides 112-bits of symmetric strength"
+                    "2048-bit modulus only provides 112-bits of symmetric strength",
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         },
@@ -176,7 +201,8 @@
                     "available since OpenSSH 3.9, Dropbear SSH 0.53"
                 ],
                 "warn": [
-                    "2048-bit modulus only provides 112-bits of symmetric strength"
+                    "2048-bit modulus only provides 112-bits of symmetric strength",
+                    "does not provide protection against post-quantum attacks"
                 ]
             }
         }
@@ -356,6 +382,14 @@
             }
         },
         "warning": {
+            "chg": {
+                "kex": [
+                    {
+                        "name": "diffie-hellman-group-exchange-sha256",
+                        "notes": "increase modulus size to 3072 bits or larger"
+                    }
+                ]
+            },
             "del": {
                 "enc": [
                     {
@@ -365,7 +399,23 @@
                 ],
                 "kex": [
                     {
+                        "name": "curve25519-sha256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "curve25519-sha256@libssh.org",
+                        "notes": ""
+                    },
+                    {
                         "name": "diffie-hellman-group14-sha256",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group16-sha512",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group18-sha512",
                         "notes": ""
                     }
                 ],
