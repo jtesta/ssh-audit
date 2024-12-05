@@ -54,11 +54,11 @@ class OutputBuffer:
         self.__is_color_supported = ('colorama' in sys.modules) or (os.name == 'posix')
         self.line_ended = True
 
-    def _print(self, level: str, s: str = '', line_ended: bool = True) -> None:
+    def _print(self, level: str, s: str = '', line_ended: bool = True, always_print: bool = False) -> None:
         '''Saves output to buffer (if in buffered mode), or immediately prints to stdout otherwise.'''
 
-        # If we're logging only 'warn' or above, and this is an 'info', ignore message.
-        if self.get_level(level) < self.__level:
+        # If we're logging only 'warn' or above, and this is an 'info', ignore message, unless always_print is True (useful for printing informational lines regardless of the level setting).
+        if (always_print is False) and (self.get_level(level) < self.__level):
             return
 
         if self.use_colors and self.colors_supported and len(s) > 0 and level != 'info':
@@ -145,22 +145,22 @@ class OutputBuffer:
             self._print('head', s, line_ended)
         return self
 
-    def fail(self, s: str, line_ended: bool = True, write_now: bool = False) -> 'OutputBuffer':
-        self._print('fail', s, line_ended)
+    def fail(self, s: str, line_ended: bool = True, write_now: bool = False, always_print: bool = False) -> 'OutputBuffer':
+        self._print('fail', s, line_ended, always_print=always_print)
         if write_now:
             self.write()
         return self
 
-    def warn(self, s: str, line_ended: bool = True) -> 'OutputBuffer':
-        self._print('warn', s, line_ended)
+    def warn(self, s: str, line_ended: bool = True, always_print: bool = False) -> 'OutputBuffer':
+        self._print('warn', s, line_ended, always_print=always_print)
         return self
 
-    def info(self, s: str, line_ended: bool = True) -> 'OutputBuffer':
-        self._print('info', s, line_ended)
+    def info(self, s: str, line_ended: bool = True, always_print: bool = False) -> 'OutputBuffer':
+        self._print('info', s, line_ended, always_print=always_print)
         return self
 
-    def good(self, s: str, line_ended: bool = True) -> 'OutputBuffer':
-        self._print('good', s, line_ended)
+    def good(self, s: str, line_ended: bool = True, always_print: bool = False) -> 'OutputBuffer':
+        self._print('good', s, line_ended, always_print=always_print)
         return self
 
     def sep(self) -> 'OutputBuffer':
