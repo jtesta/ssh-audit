@@ -162,7 +162,7 @@ class TestAuditConf:
         conf = c('-64 localhost')
         self._test_conf(conf, host='localhost', ipv4=True, ipv6=True, ipvo=(6, 4))
         conf = c('-b localhost')
-        self._test_conf(conf, host='localhost', batch=True, verbose=True)
+        self._test_conf(conf, host='localhost', batch=True)
         conf = c('-n localhost')
         self._test_conf(conf, host='localhost', colors=False)
         conf = c('-v localhost')

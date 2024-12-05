@@ -842,7 +842,6 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
 
         if argument.batch is True:
             aconf.batch = True
-            aconf.verbose = True
 
         # If one -j was given, turn on JSON output.  If -jj was given, enable indentation.
         aconf.json = argument.json > 0
