@@ -53,7 +53,7 @@ from ssh_audit.gextest import GEXTest
 from ssh_audit.hostkeytest import HostKeyTest
 from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.policy import Policy
-from ssh_audit.printconfig import PrintConfig
+from ssh_audit.hardeningguides import PrintHardeningGuides
 from ssh_audit.product import Product
 from ssh_audit.protocol import Protocol
 from ssh_audit.software import Software
@@ -818,7 +818,7 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
     parser.add_argument("--threads", action="store", dest="threads", metavar="N", type=int, default=32, help="number of threads to use when scanning multiple targets (-T/--targets) (default: %(default)s)")
 
     # Print Suggested Configurations from : https://www.ssh-audit.com/hardening_guides.html
-    parser.add_argument("--print-config", nargs="*", action="append", metavar="OS Ver Client/Server", dest="print_configuration", type=str, default=None, help="print suggested server or client configurations. Usage Example : Ubuntu 2404 Server")
+    parser.add_argument("--get-hardening-guides", nargs="*", action="append", metavar="OS Ver Client/Server", dest="get_hardening_guides", type=str, default=None, help="print suggested server or client configurations. Usage Example : Ubuntu 2404 Server")
 
     # The mandatory target option.  Or rather, mandatory when -L, -T, --lookup or --print-config are not used.
     parser.add_argument("host", nargs="?", action="store", type=str, default="", help="target hostname or IPv4/IPv6 address")
@@ -832,21 +832,21 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
     try:
         argument = parser.parse_args(args=args)
 
-        if argument.print_configuration is not None:
-            print_conf = (getattr(argument, 'print_configuration'))[0]
-            if len(print_conf) <= 2:
-                print_conf = "OS Version Edition"
-                print_conf = print_conf.split(" ")
-                os_type = print_conf[0]
-                os_ver = print_conf[1]
-                clientserver = print_conf[2]
+        if argument.get_hardening_guides is not None:
+            print_guides = (getattr(argument, 'get_hardening_guides'))[0]
+            if len(print_guides) <= 2:
+                print_guides = "OS Version Edition"
+                print_guides = print_guides.split(" ")
+                os_type = print_guides[0]
+                os_ver = print_guides[1]
+                clientserver = print_guides[2]
             else:
-                print_conf = (getattr(argument, 'print_configuration'))[0]
-                os_type = print_conf[0]
-                os_ver = print_conf[1]
-                clientserver = print_conf[2]
+                print_guides = (getattr(argument, 'get_hardening_guides'))[0]
+                os_type = print_guides[0]
+                os_ver = print_guides[1]
+                clientserver = print_guides[2]
 
-            PrintConfig(os_type, os_ver, clientserver)
+            PrintHardeningGuides(os_type, os_ver, clientserver)
 
 
         # Set simple flags.
@@ -936,7 +936,7 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
         parser.print_help()
         sys.exit(exitcodes.UNKNOWN_ERROR)
 
-    if argument.host == "" and argument.client_audit is False and argument.targets is None and argument.list_policies is False and argument.lookup is None and argument.manual is False and argument.print_configuration is None:
+    if argument.host == "" and argument.client_audit is False and argument.targets is None and argument.list_policies is False and argument.lookup is None and argument.manual is False and argument.get_hardening_guides is None:
         out.fail("target host must be specified, unless -c, -m, -L, -T, --lookup or --print-configuration are used", write_now=True)
         sys.exit(exitcodes.UNKNOWN_ERROR)
 
