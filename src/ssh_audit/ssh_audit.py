@@ -851,7 +851,7 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
                 os_ver = print_guides[1]
                 clientserver = print_guides[2]
 
-            PrintHardeningGuides(os_type, os_ver, clientserver)
+                PrintHardeningGuides(os_type, os_ver, clientserver)
 
 
         # Set simple flags.
