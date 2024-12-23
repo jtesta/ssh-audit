@@ -818,7 +818,8 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
     parser.add_argument("--threads", action="store", dest="threads", metavar="N", type=int, default=32, help="number of threads to use when scanning multiple targets (-T/--targets) (default: %(default)s)")
 
     # Print Suggested Configurations from : https://www.ssh-audit.com/hardening_guides.html
-    parser.add_argument("--get-hardening-guides", nargs="*", action="append", metavar="OS Ver Client/Server", dest="get_hardening_guides", type=str, default=None, help="print suggested server or client configurations. Usage Example : Ubuntu 2404 Server")
+    parser.add_argument("--get-hardening-guides", nargs="*", action="append", metavar="OS Ver Client/Server", dest="get_hardening_guides", type=str, default=None, help="Print suggested server or client configurations. Usage Example : Ubuntu 2404 Server")
+    parser.add_argument("--list-hardening-guides", action="store_true", dest="list_hardening_guides", default=False, help="List supported server and client configurations.")
 
     # The mandatory target option.  Or rather, mandatory when -L, -T, --lookup or --print-config are not used.
     parser.add_argument("host", nargs="?", action="store", type=str, default="", help="target hostname or IPv4/IPv6 address")
@@ -832,14 +833,18 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
     try:
         argument = parser.parse_args(args=args)
 
+        if argument.list_hardening_guides is True:
+            PrintHardeningGuides.supported_varient()
+
         if argument.get_hardening_guides is not None:
             print_guides = (getattr(argument, 'get_hardening_guides'))[0]
-            if len(print_guides) <= 2:
-                print_guides = "OS Version Edition"
-                print_guides = print_guides.split(" ")
-                os_type = print_guides[0]
-                os_ver = print_guides[1]
-                clientserver = print_guides[2]
+            arg_len = len(print_guides)
+            if arg_len <= 2:
+                user_arg = ""
+                for i in range(arg_len):
+                    user_arg = user_arg + " " + str(print_guides[i])
+                print(f"\033[1mUnsupported configuration : {user_arg}\033[0m")
+                PrintHardeningGuides.supported_varient()
             else:
                 print_guides = (getattr(argument, 'get_hardening_guides'))[0]
                 os_type = print_guides[0]
