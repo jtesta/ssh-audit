@@ -61,6 +61,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     WARN_RNDSIG_KEY = 'using weak random number generator could reveal the key'
     WARN_TAG_SIZE = 'using small 64-bit tag size'
     WARN_TAG_SIZE_96 = 'using small 96-bit tag size'
+    
+    WARN_DEPRICATED_MLKEM_768_NISTP = 'algorithm with limited support beyond 2030'
 
     INFO_DEFAULT_OPENSSH_CIPHER = 'default cipher since OpenSSH 6.9'
     INFO_DEFAULT_OPENSSH_KEX_65_TO_73 = 'default key exchange from OpenSSH 6.5 to 7.3'
@@ -72,6 +74,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     INFO_DISABLED_IN_OPENSSH70 = 'disabled in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
     INFO_NEVER_IMPLEMENTED_IN_OPENSSH = 'despite the @openssh.com tag, this was never implemented in OpenSSH'
     INFO_HYBRID_PQ_X25519_KEX = 'hybrid key exchange based on post-quantum resistant algorithm and proven conventional X25519 algorithm'
+    INFO_HYBRID_PQ_NISTP256_KEX = 'Hybrid key exchange based on post-quantum resistant algorithm using NISTP-256 Curve'
+    INFO_HYBRID_PQ_NISTP384_KEX = 'Hybrid key exchange based on post-quantum resistant algorithm using NISTP-384 Curve'
     INFO_REMOVED_IN_OPENSSH61 = 'removed since OpenSSH 6.1, removed from specification'
     INFO_REMOVED_IN_OPENSSH69 = 'removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9'
     INFO_REMOVED_IN_OPENSSH70 = 'removed in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
@@ -193,6 +197,9 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'm383-sha384@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
             'm511-sha512@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
             'mlkem768x25519-sha256': [['9.9'], [], [], [INFO_HYBRID_PQ_X25519_KEX]],
+            'mlkem768nistp256-sha256': [[], [], [WARN_DEPRICATED_MLKEM_768_NISTP], [INFO_HYBRID_PQ_NISTP256_KEX]],
+            'mlkem1024nistp384-sha384': [[], [], [], [INFO_HYBRID_PQ_NISTP384_KEX]],
+            
             'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS, FAIL_SHA1], [WARN_NOT_PQ_SAFE]],
             'rsa2048-sha256': [[], [], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
             'sm2kep-sha2-nistp256': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_UNTRUSTED], [WARN_NOT_PQ_SAFE]],
