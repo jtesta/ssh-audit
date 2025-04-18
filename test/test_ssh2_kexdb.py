@@ -53,7 +53,9 @@ class Test_SSH2_KexDB:
             "sntrup761x25519-sha512@openssh.com",
             "sntrup761x25519-sha512",
             "x25519-kyber-512r3-sha256-d00@amazon.com",
-            "x25519-kyber512-sha512@aws.amazon.com"
+            "x25519-kyber512-sha512@aws.amazon.com",
+            "mlkem768nistp256-sha256",  # PQ safe, but has a conventional back-door.
+            "mlkem1024nistp384-sha384"  # PQ safe, but has a conventional back-door.
         ]
 
         failures = []

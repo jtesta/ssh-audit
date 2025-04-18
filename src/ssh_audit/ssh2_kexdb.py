@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2024 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2025 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -72,6 +72,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     INFO_DISABLED_IN_OPENSSH70 = 'disabled in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
     INFO_NEVER_IMPLEMENTED_IN_OPENSSH = 'despite the @openssh.com tag, this was never implemented in OpenSSH'
     INFO_HYBRID_PQ_X25519_KEX = 'hybrid key exchange based on post-quantum resistant algorithm and proven conventional X25519 algorithm'
+    INFO_HYBRID_PQ_NISTP_KEX = 'hybrid key exchange based on post-quantum resistant algorithm and a suspected back-doored NIST P-curve'
     INFO_REMOVED_IN_OPENSSH61 = 'removed since OpenSSH 6.1, removed from specification'
     INFO_REMOVED_IN_OPENSSH69 = 'removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9'
     INFO_REMOVED_IN_OPENSSH70 = 'removed in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
@@ -193,6 +194,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'm383-sha384@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
             'm511-sha512@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
             'mlkem768x25519-sha256': [['9.9'], [], [], [INFO_HYBRID_PQ_X25519_KEX]],
+            'mlkem768nistp256-sha256': [[], [FAIL_NSA_BACKDOORED_CURVE], [], [INFO_HYBRID_PQ_NISTP_KEX]],
+            'mlkem1024nistp384-sha384': [[], [FAIL_NSA_BACKDOORED_CURVE], [], [INFO_HYBRID_PQ_NISTP_KEX]],
             'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS, FAIL_SHA1], [WARN_NOT_PQ_SAFE]],
             'rsa2048-sha256': [[], [], [WARN_2048BIT_MODULUS, WARN_NOT_PQ_SAFE]],
             'sm2kep-sha2-nistp256': [[], [FAIL_NSA_BACKDOORED_CURVE, FAIL_UNTRUSTED], [WARN_NOT_PQ_SAFE]],
