@@ -301,6 +301,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             '3des-ofb': [[], [FAIL_3DES], [WARN_CIPHER_MODE]],
             'AEAD_AES_128_GCM': [[]],
             'AEAD_AES_256_GCM': [[]],
+            'AEAD_CAMELLIA_128_GCM': [[]],
+            'AEAD_CAMELLIA_256_GCM': [[]],
             'aes128-cbc': [['2.3.0,d0.28,l10.2', '6.6', None], [], [WARN_CIPHER_MODE]],
             'aes128-ctr': [['3.7,d0.52,l10.4.1']],
             'aes128-gcm': [[]],
