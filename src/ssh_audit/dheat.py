@@ -759,9 +759,9 @@ class DHEat:
         r = socket.getaddrinfo(host, 0, family, socket.SOCK_STREAM)
         for address_family, socktype, _, _, addr in r:
             if socktype == socket.SOCK_STREAM:
-                return address_family, addr[0]
+                return int(address_family), str(addr[0])
 
-        return -1, ''
+        return int(socket.AF_UNSPEC), ''
 
 
     def _run(self) -> bool:
