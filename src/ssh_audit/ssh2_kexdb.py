@@ -66,7 +66,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     INFO_DEFAULT_OPENSSH_KEX_65_TO_73 = 'default key exchange from OpenSSH 6.5 to 7.3'
     INFO_DEFAULT_OPENSSH_KEX_74_TO_89 = 'default key exchange from OpenSSH 7.4 to 8.9'
     INFO_DEFAULT_OPENSSH_KEX_90_TO_98 = 'default key exchange from OpenSSH 9.0 to 9.8'
-    INFO_DEFAULT_OPENSSH_KEX_99 = 'default key exchange since OpenSSH 9.9'
+    INFO_DEFAULT_OPENSSH_KEX_99 = 'default key exchange in OpenSSH 9.9'
+    INFO_DEFAULT_OPENSSH_KEX_100 = 'default key exchange since OpenSSH 10.0'
     INFO_DEPRECATED_IN_OPENSSH88 = 'deprecated in OpenSSH 8.8: https://www.openssh.com/txt/release-8.8'
     INFO_DISABLED_IN_DBEAR67 = 'disabled in Dropbear SSH 2015.67'
     INFO_DISABLED_IN_OPENSSH70 = 'disabled in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
@@ -193,7 +194,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'kexguess2@matt.ucc.asn.au': [['d2013.57'], [], [WARN_NOT_PQ_SAFE]],
             'm383-sha384@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
             'm511-sha512@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
-            'mlkem768x25519-sha256': [['9.9'], [], [], [INFO_HYBRID_PQ_X25519_KEX]],
+            'mlkem768x25519-sha256': [['9.9'], [], [], [INFO_DEFAULT_OPENSSH_KEX_100, INFO_HYBRID_PQ_X25519_KEX]],
             'mlkem768nistp256-sha256': [[], [FAIL_NSA_BACKDOORED_CURVE], [], [INFO_HYBRID_PQ_NISTP_KEX]],
             'mlkem1024nistp384-sha384': [[], [FAIL_NSA_BACKDOORED_CURVE], [], [INFO_HYBRID_PQ_NISTP_KEX]],
             'rsa1024-sha1': [[], [FAIL_1024BIT_MODULUS, FAIL_SHA1], [WARN_NOT_PQ_SAFE]],
