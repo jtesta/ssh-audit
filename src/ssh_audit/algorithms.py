@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2025 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -29,8 +29,6 @@ from typing import Callable, Optional, Union, Any  # noqa: F401
 from ssh_audit.algorithm import Algorithm
 from ssh_audit.product import Product
 from ssh_audit.software import Software
-from ssh_audit.ssh1_kexdb import SSH1_KexDB
-from ssh_audit.ssh1_publickeymessage import SSH1_PublicKeyMessage
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.timeframe import Timeframe
@@ -38,27 +36,12 @@ from ssh_audit.utils import Utils
 
 
 class Algorithms:
-    def __init__(self, pkm: Optional[SSH1_PublicKeyMessage], kex: Optional[SSH2_Kex]) -> None:
-        self.__ssh1kex = pkm
+    def __init__(self, kex: Optional[SSH2_Kex]) -> None:
         self.__ssh2kex = kex
-
-    @property
-    def ssh1kex(self) -> Optional[SSH1_PublicKeyMessage]:
-        return self.__ssh1kex
 
     @property
     def ssh2kex(self) -> Optional[SSH2_Kex]:
         return self.__ssh2kex
-
-    @property
-    def ssh1(self) -> Optional['Algorithms.Item']:
-        if self.ssh1kex is None:
-            return None
-        item = Algorithms.Item(1, SSH1_KexDB.get_db())
-        item.add('key', ['ssh-rsa1'])
-        item.add('enc', self.ssh1kex.supported_ciphers)
-        item.add('aut', self.ssh1kex.supported_authentications)
-        return item
 
     @property
     def ssh2(self) -> Optional['Algorithms.Item']:
@@ -73,7 +56,7 @@ class Algorithms:
 
     @property
     def values(self) -> Iterable['Algorithms.Item']:
-        for item in [self.ssh1, self.ssh2]:
+        for item in [self.ssh2]:
             if item is not None:
                 yield item
 
@@ -82,10 +65,6 @@ class Algorithms:
         def _ml(items: Sequence[str]) -> int:
             return max(len(i) for i in items)
         maxlen = 0
-        if self.ssh1kex is not None:
-            maxlen = max(_ml(self.ssh1kex.supported_ciphers),
-                         _ml(self.ssh1kex.supported_authentications),
-                         maxlen)
         if self.ssh2kex is not None:
             maxlen = max(_ml(self.ssh2kex.kex_algorithms),
                          _ml(self.ssh2kex.key_algorithms),

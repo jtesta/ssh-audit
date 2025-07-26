@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2025 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -88,11 +88,11 @@ class KexDH:  # pragma: nocover
         self.__ca_key_type = ''
         self.__ca_n_len = 0
 
-        packet_type, payload = s.read_packet(2)
+        packet_type, payload = s.read_packet()
 
         # Skip any & all MSG_DEBUG messages.
         while packet_type == Protocol.MSG_DEBUG:
-            packet_type, payload = s.read_packet(2)
+            packet_type, payload = s.read_packet()
 
         if packet_type != -1 and packet_type not in [Protocol.MSG_KEXDH_REPLY, Protocol.MSG_KEXDH_GEX_REPLY]:  # pylint: disable=no-else-raise
             raise KexDHException('Expected MSG_KEXDH_REPLY (%d) or MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (Protocol.MSG_KEXDH_REPLY, Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
@@ -380,13 +380,13 @@ class KexGroupExchange(KexDH):
         s.write_int(maxbits)
         s.send_packet()
 
-        packet_type, payload = s.read_packet(2)
+        packet_type, payload = s.read_packet()
         if packet_type not in [Protocol.MSG_KEXDH_GEX_GROUP, Protocol.MSG_DEBUG]:
             raise KexDHException('Expected MSG_KEXDH_GEX_REPLY (%d), but got %d instead.' % (Protocol.MSG_KEXDH_GEX_REPLY, packet_type))
 
         # Skip any & all MSG_DEBUG messages.
         while packet_type == Protocol.MSG_DEBUG:
-            packet_type, payload = s.read_packet(2)
+            packet_type, payload = s.read_packet()
 
         try:
             # Parse the modulus (p) and generator (g) values from the server.

@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2025 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -39,7 +39,6 @@ from ssh_audit.globals import SSH_HEADER
 from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.protocol import Protocol
 from ssh_audit.readbuf import ReadBuf
-from ssh_audit.ssh1 import SSH1
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh2_kexparty import SSH2_KexParty
 from ssh_audit.utils import Utils
@@ -173,7 +172,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
             errm = 'cannot connect to {} port {}: {}'.format(*errt)
         return '[exception] {}'.format(errm)
 
-    def get_banner(self, sshv: int = 2) -> Tuple[Optional['Banner'], List[str], Optional[str]]:
+    def get_banner(self) -> Tuple[Optional['Banner'], List[str], Optional[str]]:
         self.__outputbuffer.d('Getting banner...', write_now=True)
 
         if self.__sock is None:
@@ -181,7 +180,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
         if self.__banner is not None:
             return self.__banner, self.__header, None
 
-        banner = SSH_HEADER.format('1.5' if sshv == 1 else '2.0')
+        banner = SSH_HEADER.format('2.0')
         if self.__state < self.SM_BANNER_SENT:
             self.send_banner(banner)
 
@@ -254,47 +253,27 @@ class SSH_Socket(ReadBuf, WriteBuf):
             if s < 0:
                 raise SSH_Socket.InsufficientReadException(e)
 
-    def read_packet(self, sshv: int = 2) -> Tuple[int, bytes]:
+    def read_packet(self) -> Tuple[int, bytes]:
         try:
             header = WriteBuf()
             self.ensure_read(4)
             packet_length = self.read_int()
             header.write_int(packet_length)
             # XXX: validate length
-            if sshv == 1:
-                padding_length = 8 - packet_length % 8
-                self.ensure_read(padding_length)
-                padding = self.read(padding_length)
-                header.write(padding)
-                payload_length = packet_length
-                check_size = padding_length + payload_length
-            else:
-                self.ensure_read(1)
-                padding_length = self.read_byte()
-                header.write_byte(padding_length)
-                payload_length = packet_length - padding_length - 1
-                check_size = 4 + 1 + payload_length + padding_length
+            self.ensure_read(1)
+            padding_length = self.read_byte()
+            header.write_byte(padding_length)
+            payload_length = packet_length - padding_length - 1
+            check_size = 4 + 1 + payload_length + padding_length
             if check_size % self.__block_size != 0:
                 self.__outputbuffer.fail('[exception] invalid ssh packet (block size)').write()
                 sys.exit(exitcodes.CONNECTION_ERROR)
             self.ensure_read(payload_length)
-            if sshv == 1:
-                payload = self.read(payload_length - 4)
-                header.write(payload)
-                crc = self.read_int()
-                header.write_int(crc)
-            else:
-                payload = self.read(payload_length)
-                header.write(payload)
+            payload = self.read(payload_length)
+            header.write(payload)
             packet_type = ord(payload[0:1])
-            if sshv == 1:
-                rcrc = SSH1.crc32(padding + payload)
-                if crc != rcrc:
-                    self.__outputbuffer.fail('[exception] packet checksum CRC32 mismatch.').write()
-                    sys.exit(exitcodes.CONNECTION_ERROR)
-            else:
-                self.ensure_read(padding_length)
-                padding = self.read(padding_length)
+            self.ensure_read(padding_length)
+            _ = self.read(padding_length)
             payload = payload[1:]
             return packet_type, payload
         except SSH_Socket.InsufficientReadException as ex:

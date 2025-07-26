@@ -26,8 +26,7 @@
 - [ChangeLog](#changelog)
 
 ## Features
-- SSH1 and SSH2 protocol server support;
-- analyze SSH client configuration;
+- analyze SSH both server and client configuration;
 - grab banner, recognize device or software and operating system, detect compression;
 - gather key-exchange, host-key, encryption and message authentication code algorithms;
 - output algorithm security information (available since, removed/disabled, unsafe/weak/legacy, etc);
@@ -41,7 +40,7 @@
 
 ## Usage
 ```
-usage: ssh-audit.py [-h] [-1] [-2] [-4] [-6] [-b] [-c] [-d]
+usage: ssh-audit.py [-h] [-4] [-6] [-b] [-c] [-d]
                     [-g <min1:pref1:max1[,min2:pref2:max2,...]> / <x-y[:step]>] [-j] [-l {info,warn,fail}] [-L]
                     [-M custom_policy.txt] [-m] [-n] [-P "Built-In Policy Name" / custom_policy.txt] [-p N]
                     [-T targets.txt] [-t N] [-v] [--conn-rate-test N[:max_rate]] [--dheat N[:kex[:e_len]]]
@@ -53,8 +52,6 @@ positional arguments:
 
 optional arguments:
   -h, --help            show this help message and exit
-  -1, --ssh1            force ssh version 1 only
-  -2, --ssh2            force ssh version 2 only
   -4, --ipv4            enable IPv4 (order of precedence)
   -6, --ipv6            enable IPv6 (order of precedence)
   -b, --batch           batch output
@@ -218,6 +215,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ### v3.4.0-dev
  - Added warning to all key exchanges that do not include protections against quantum attacks due to the Harvest Now, Decrypt Later strategy (see https://en.wikipedia.org/wiki/Harvest_now,_decrypt_later).
+ - Removed SSHv1 support (rationale is documented in: https://github.com/jtesta/ssh-audit/issues/298).
  - Migrated from deprecated `getopt` module to `argparse`; partial credit [oam7575](https://github.com/oam7575).
  - When running against multiple hosts, now prints each target host regardless of output level.
  - Batch mode (`-b`) no longer automatically enables verbose mode, due to sometimes confusing results; users can still explicitly enable verbose mode using the `-v` flag.

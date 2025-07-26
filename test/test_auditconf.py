@@ -15,8 +15,6 @@ class TestAuditConf:
         options = {
             'host': '',
             'port': 22,
-            'ssh1': True,
-            'ssh2': True,
             'batch': False,
             'colors': True,
             'verbose': False,
@@ -28,8 +26,6 @@ class TestAuditConf:
             options[k] = v
         assert conf.host == options['host']
         assert conf.port == options['port']
-        assert conf.ssh1 is options['ssh1']
-        assert conf.ssh2 is options['ssh2']
         assert conf.batch is options['batch']
         assert conf.colors is options['colors']
         assert conf.verbose is options['verbose']
@@ -43,7 +39,7 @@ class TestAuditConf:
 
     def test_audit_conf_booleans(self):
         conf = self.AuditConf()
-        for p in ['ssh1', 'ssh2', 'batch', 'colors', 'verbose']:
+        for p in ['batch', 'colors', 'verbose']:
             for v in [True, 1]:
                 setattr(conf, p, v)
                 assert getattr(conf, p) is True
@@ -147,12 +143,6 @@ class TestAuditConf:
             conf = c('localhost:99999')
         with pytest.raises(SystemExit):
             conf = c('-p 99999 localhost')
-        conf = c('-1 localhost')
-        self._test_conf(conf, host='localhost', ssh1=True, ssh2=False)
-        conf = c('-2 localhost')
-        self._test_conf(conf, host='localhost', ssh1=False, ssh2=True)
-        conf = c('-12 localhost')
-        self._test_conf(conf, host='localhost', ssh1=True, ssh2=True)
         conf = c('-4 localhost')
         self._test_conf(conf, host='localhost', ipv4=True, ipv6=False, ipvo=(4,))
         conf = c('-6 localhost')

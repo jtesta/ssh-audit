@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2023 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2025 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -64,7 +64,7 @@ class GEXTest:
 
         try:
             # Parse the server's KEX.
-            _, payload = s.read_packet(2)
+            _, payload = s.read_packet()
             SSH2_Kex.parse(out, payload)
         except (KexDHException, struct.error):
             out.v("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()), write_now=True)

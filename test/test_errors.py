@@ -166,7 +166,6 @@ class TestErrors:
         vsocket.rdata.append(b'SSH-1.3-ssh-audit-test\r\n')
         vsocket.rdata.append(b'Protocol major versions differ.\n')
         conf = self._conf()
-        conf.ssh1, conf.ssh2 = True, False
         lines = self._audit(output_spy, conf)
         assert len(lines) == 4
         assert 'error reading packet' in lines[-1]
