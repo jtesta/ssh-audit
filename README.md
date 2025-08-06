@@ -214,6 +214,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v3.4.0-dev
+ - BIG THANKS to [realmiwi](https://github.com/realmiwi) for being the project's *very first sponsor!!*
  - Added warning to all key exchanges that do not include protections against quantum attacks due to the Harvest Now, Decrypt Later strategy (see https://en.wikipedia.org/wiki/Harvest_now,_decrypt_later).
  - Removed SSHv1 support (rationale is documented in: https://github.com/jtesta/ssh-audit/issues/298).
  - Migrated from deprecated `getopt` module to `argparse`; partial credit [oam7575](https://github.com/oam7575).
