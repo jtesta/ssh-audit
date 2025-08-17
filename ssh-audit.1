@@ -1,4 +1,4 @@
-.TH SSH-AUDIT 1 "July 26, 2025"
+.TH SSH-AUDIT 1 "August 17, 2025"
 .SH NAME
 \fBssh-audit\fP \- SSH server & client configuration auditor
 .SH SYNOPSIS
@@ -52,6 +52,11 @@ Enable debug output.
 Run the DHEat DoS attack (CVE-2002-20001) against the target server (which will consume all available CPU resources).  The number of concurrent sockets, N, needed to achieve this effect will be highly dependent on the CPU resources available on the target, as well as the latency between the source and target machines.  The key exchange is automatically chosen based on which would cause maximum effect, unless explicitly chosen in the second field.  Lastly, an (experimental) option allows the length in bytes of the fake e value sent to the server to be specified in the third field.  Normally, the length of e is roughly the length of the modulus of the Diffie-Hellman exchange (hence, an 8192-bit / 1024-byte value of e is sent in each connection when targeting the diffie-hellman-group18-sha512 algorithm).  Instead, it was observed that many SSH implementations accept small values, such as 4 bytes; this results in a much more network-efficient attack.
 
 .TP
+.B \-\-get\-hardening\-guide=<platform_name>
+.br
+Retrieves the hardening guide for the specified platform name (use \-\-list\-hardening\-guides to see list of available guides).
+
+.TP
 .B -g, \-\-gex-test=<x[,y,...] | min1:pref1:max1[,min2:pref2:max2,...] | x-y[:step]>
 .br
 Runs a Diffie-Hellman Group Exchange modulus size test against a server.
@@ -92,9 +97,14 @@ Output results in JSON format.  Specify twice (-jj) to enable indent printing (u
 Specify the minimum output level.  Default is info.
 
 .TP
+.B \-\-list-hardening-guides
+.br
+List all official, built-in hardening guides for common systems.  Their full names can then be passed to \-\-get\-hardening\-guide.  Add \-v to this option to view hardening guide change logs and prior versions.
+
+.TP
 .B -L, \-\-list-policies
 .br
-List all official, built-in policies for common systems.  Their full names can then be passed to -P/--policy.  Add \-v to \-L to view policy change logs.
+List all official, built-in policies for common systems.  Their full names can then be passed to \-P/\-\-policy.  Add \-v to \-L to view policy change logs.
 
 .TP
 .B \-\-lookup=<alg1,alg2,...>
