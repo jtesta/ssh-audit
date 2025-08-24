@@ -30,6 +30,7 @@ from typing import Callable, Optional, Union, Any  # noqa: F401
 
 from ssh_audit.banner import Banner
 from ssh_audit.kexdh import KexDHException, KexGroupExchange, KexGroupExchange_SHA1, KexGroupExchange_SHA256
+from ssh_audit.software import Software
 from ssh_audit.ssh2_kexdb import SSH2_KexDB
 from ssh_audit.ssh2_kex import SSH2_Kex
 from ssh_audit.ssh_socket import SSH_Socket
@@ -158,9 +159,22 @@ class GEXTest:
 
                     smallest_modulus, reconnect_failed = GEXTest._send_init(out, s, kex_group, kex, gex_alg, bits, bits, bits)
 
-                # If the smallest modulus is 2048 and the server is OpenSSH, then we may have triggered the fallback mechanism, which tends to happen in testing scenarios such as this but not in most real-world conditions (see X).  To better test this condition, we will do an additional check to see if the server supports sizes between 2048 and 4096, and consider this the definitive result.
+                # If the banner exists, then parse it into a Software object.  Next, if the target host is OpenSSH, check if its version is 9.9 or less; these versions are known to have a GEX fallback mechanism.
+                software = None if banner is None else Software.parse(banner)
+                is_openssh = False
+                has_fallback_mechanism = False
+                if (software is not None) and (software.product == "OpenSSH"):
+                    is_openssh = True
+                    try:
+                        if float(software.version) <= 9.9:
+                            has_fallback_mechanism = True
+                            out.d(f"Found version of OpenSSH that includes GEX fallback mechanism: {software}")
+                    except ValueError:
+                        pass
+
+                # If the smallest modulus is 2048 and the server is OpenSSH v9.9 or less, then we may have triggered the fallback mechanism, which tends to happen in testing scenarios such as this but not in most real-world conditions.  To better test this condition, we will do an additional check to see if the server supports sizes between 2048 and 4096, and consider this the definitive result.
                 openssh_test_updated = False
-                if (smallest_modulus == 2048) and (banner is not None) and (banner.software is not None) and (banner.software.find('OpenSSH') != -1):
+                if (smallest_modulus == 2048) and is_openssh and has_fallback_mechanism:
                     out.d('First pass found a minimum GEX modulus of 2048 against OpenSSH server.  Performing a second pass to get a more accurate result...')
                     smallest_modulus, _ = GEXTest._send_init(out, s, kex_group, kex, gex_alg, 2048, 3072, 4096)
                     out.d('Modulus size returned by server during second pass: %d bits' % smallest_modulus, write_now=True)
