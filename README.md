@@ -35,7 +35,7 @@
 - historical information from OpenSSH, Dropbear SSH and libssh;
 - policy scans to ensure adherence to a hardened/standard configuration;
 - runs on Linux and Windows;
-- supports Python 3.8 - 3.13;
+- supports Python 3.9 - 3.13;
 - no dependencies
 
 ## Usage
@@ -251,6 +251,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ### v3.4.0-dev
  - BIG THANKS to [realmiwi](https://github.com/realmiwi) for being the project's *very first sponsor!!*
+ - Dropped support for Python 3.8, as it reached end-of-life in October 2024.
  - Added warning to all key exchanges that do not include protections against quantum attacks due to the Harvest Now, Decrypt Later strategy (see https://en.wikipedia.org/wiki/Harvest_now,_decrypt_later).
  - Removed SSHv1 support (rationale is documented in: https://github.com/jtesta/ssh-audit/issues/298).
  - Added hardening guides (see `--list-hardening-guides` and `--get-hardening-guide`).  Previously, they were only available at <https://ssh-audit.com/hardening_guides.html>, but now they are built-in for convenience; partial credit [oam7575](https://github.com/oam7575).
