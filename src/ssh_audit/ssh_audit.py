@@ -333,7 +333,7 @@ def output_info(out: OutputBuffer, software: Optional['Software'], client_audit:
 
         # If any warnings or failures were given, print a link to the hardening guides.
         if any_problems:
-            out.warn('(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>')
+            out.warn('(nfo) For hardening guides on common OSes, a built-in list can be viewed with --list-hardening-guides, or an online list can be found at: <https://www.ssh-audit.com/hardening_guides.html>')
 
         # Add any additional notes.
         for additional_note in additional_notes:

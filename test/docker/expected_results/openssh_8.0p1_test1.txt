@@ -104,5 +104,5 @@
 [0;33m(rec) -umac-64@openssh.com                  -- mac algorithm to remove [0m
 
 [0;36m# additional info[0m
-[0;33m(nfo) For hardening guides on common OSes, please see: <https://www.ssh-audit.com/hardening_guides.html>[0m
+[0;33m(nfo) For hardening guides on common OSes, a built-in list can be viewed with --list-hardening-guides, or an online list can be found at: <https://www.ssh-audit.com/hardening_guides.html>[0m
 
