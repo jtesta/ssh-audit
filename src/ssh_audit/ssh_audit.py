@@ -53,7 +53,7 @@ from ssh_audit.gextest import GEXTest
 from ssh_audit.hostkeytest import HostKeyTest
 from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.policy import Policy
-from ssh_audit.hardeningguides import Hardening_Guides
+from ssh_audit.hardening_guides import Hardening_Guides
 from ssh_audit.product import Product
 from ssh_audit.protocol import Protocol
 from ssh_audit.software import Software

@@ -1,6 +1,6 @@
 import pytest
 
-from ssh_audit.hardeningguides import Hardening_Guides
+from ssh_audit.hardening_guides import Hardening_Guides
 
 
 class TestHardeningGuides:
