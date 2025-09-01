@@ -60,9 +60,6 @@ class TestPolicy:
             except ValueError:
                 assert False, "version field of %s policy is not parseable as an integer." % policy_name
 
-            # Ensure no extra fields are present.
-            assert len(required_fields) == len(BUILTIN_POLICIES[policy_name])
-
             # Ensure that the changelog field is a string and non-empty.
             assert type(BUILTIN_POLICIES[policy_name]['changelog']) is str
             assert len(BUILTIN_POLICIES[policy_name]['changelog']) > 0
@@ -158,7 +155,7 @@ ciphers = cipher_alg1, cipher_alg2, cipher_alg3
 macs = mac_alg1, mac_alg2, mac_alg3'''
 
         policy = self.Policy(policy_data=policy_data)
-        assert str(policy) == "Name: [Test Policy]\nVersion: [1]\nAllow Algorithm Subset and/or Reordering: False\nBanner: {undefined}\nCompressions: comp_alg1\nHost Keys: key_alg1\nOptional Host Keys: {undefined}\nKey Exchanges: kex_alg1, kex_alg2\nCiphers: cipher_alg1, cipher_alg2, cipher_alg3\nMACs: mac_alg1, mac_alg2, mac_alg3\nHost Key Sizes: {undefined}\nDH Modulus Sizes: {undefined}\nServer Policy: True"
+        assert str(policy) == "Name: [Test Policy]\nVersion: [1]\nAllow Algorithm Subset and/or Reordering: False\nAllow Host Key Subset and/or Reordering: False\nBanner: {undefined}\nCompressions: comp_alg1\nHost Keys: key_alg1\nOptional Host Keys: {undefined}\nKey Exchanges: kex_alg1, kex_alg2\nCiphers: cipher_alg1, cipher_alg2, cipher_alg3\nMACs: mac_alg1, mac_alg2, mac_alg3\nHost Key Sizes: {undefined}\nDH Modulus Sizes: {undefined}\nServer Policy: True"
 
 
     def test_policy_invalid_1(self):
@@ -305,7 +302,7 @@ macs = mac_alg1, mac_alg2, mac_alg3'''
         pol_data = pol_data.replace(date.today().strftime('%Y/%m/%d'), '[todays date]')
 
         # Instead of writing out the entire expected policy--line by line--just check that it has the expected hash.
-        assert hashlib.sha256(pol_data.encode('ascii')).hexdigest() == 'fb84bce442cff2bce9bf653d6373a8a938e3bfcfbd1e876f51a08c1842df3cff'
+        assert hashlib.sha256(pol_data.encode('ascii')).hexdigest() == '3862e56ea60c1ecba6dffbf724216c4391b6fe00a790b0075617477d4addf761'
 
 
     def test_policy_evaluate_passing_1(self):

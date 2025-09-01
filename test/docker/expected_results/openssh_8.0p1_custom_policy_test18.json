@@ -1,0 +1,8 @@
+{
+    "errors": [],
+    "host": "localhost",
+    "passed": true,
+    "policy": "Docker policy: test18 (version 1)",
+    "port": 2222,
+    "warnings": []
+}

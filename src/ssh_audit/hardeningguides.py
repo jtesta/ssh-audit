@@ -373,6 +373,40 @@ class Hardening_Guides:
         "Ubuntu 24.04": [
             {
                 "server_guide": True,
+                "version": 3,
+                "version_date": "2025-09-01",
+                "change_log": "Removed commands directly editing sshd_config to make system updates easier for users.",
+                "notes": "all commands below are to be executed as the root user.",
+                "commands": [
+                    {
+                        "heading": "Re-generate the ED25519 and RSA keys",
+                        "comment": "",
+                        "command": "rm /etc/ssh/ssh_host_*\nssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N \"\"\nssh-keygen -t rsa -b 4096 -f /etc/ssh/ssh_host_rsa_key -N \"\""
+                    },
+                    {
+                        "heading": "Remove small Diffie-Hellman moduli",
+                        "comment": "",
+                        "command": "awk '$5 >= 3071' /etc/ssh/moduli > /etc/ssh/moduli.safe\nmv /etc/ssh/moduli.safe /etc/ssh/moduli"
+                    },
+                    {
+                        "heading": "Restrict supported key exchange, cipher, and MAC algorithms",
+                        "comment": "",
+                        "command": "echo -e \"# Restrict key exchange, cipher, and MAC algorithms, as per sshaudit.com\\n# hardening guide.\\nKexAlgorithms sntrup761x25519-sha512@openssh.com,gss-curve25519-sha256-,curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group18-sha512,diffie-hellman-group-exchange-sha256,gss-group16-sha512-,diffie-hellman-group16-sha512\\n\\nCiphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-gcm@openssh.com,aes128-ctr\\n\\nMACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com\\n\\nRequiredRSASize 3072\\n\\nHostKeyAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256\\n\\nCASignatureAlgorithms sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256\\n\\nGSSAPIKexAlgorithms gss-curve25519-sha256-,gss-group16-sha512-\\n\\nHostbasedAcceptedAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256\\n\\nPubkeyAcceptedAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256\" > /etc/ssh/sshd_config.d/ssh-audit_hardening.conf"
+                    },
+                    {
+                        "heading": "Restart OpenSSH server",
+                        "comment": "",
+                        "command": "service ssh restart"
+                    },
+                    {
+                        "heading": "Implement connection rate throttling",
+                        "comment": "Connection rate throttling is needed in order to protect against the DHEat denial-of-service attack. A complete and flexible solution is to use iptables to allow up to 10 connections every 10 seconds from any one source address. An alternate solution is to set OpenSSH's PerSourceMaxStartups directive to 1 (note, however, that this can cause incomplete results during ssh-audit scans, as well as other client failures when bursts of connections are made).",
+                        "command": "iptables -I INPUT -p tcp --dport 22 -m state --state NEW -m recent --set\niptables -I INPUT -p tcp --dport 22 -m state --state NEW -m recent --update --seconds 10 --hitcount 10 -j DROP\nip6tables -I INPUT -p tcp --dport 22 -m state --state NEW -m recent --set\nip6tables -I INPUT -p tcp --dport 22 -m state --state NEW -m recent --update --seconds 10 --hitcount 10 -j DROP\nDEBIAN_FRONTEND=noninteractive apt install -q -y netfilter-persistent iptables-persistent\nservice netfilter-persistent save"
+                    },
+                ]
+            },
+            {
+                "server_guide": True,
                 "version": 2,
                 "version_date": "2024-10-01",
                 "change_log": "Added RequiredRSASize directive to enforce a minimum of 3072-bit user and host-based authentication keys.",

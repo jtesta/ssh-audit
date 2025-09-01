@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2020-2024 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2020-2025 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -55,6 +55,7 @@ class Policy:
         self._dh_modulus_sizes: Optional[Dict[str, int]] = None
         self._server_policy = True
         self._allow_algorithm_subset_and_reordering = False
+        self._allow_hostkey_subset_and_reordering = False
         self._allow_larger_keys = False
         self._errors: List[Any] = []
         self._updated_builtin_policy_available = False  # If True, an outdated built-in policy was loaded.
@@ -116,7 +117,7 @@ class Policy:
             key = key.strip()
             val = val.strip()
 
-            if key not in ['name', 'version', 'banner', 'compressions', 'host keys', 'optional host keys', 'key exchanges', 'ciphers', 'macs', 'client policy', 'host_key_sizes', 'dh_modulus_sizes', 'allow_algorithm_subset_and_reordering', 'allow_larger_keys'] and not key.startswith('hostkey_size_') and not key.startswith('cakey_size_') and not key.startswith('dh_modulus_size_'):
+            if key not in ['name', 'version', 'banner', 'compressions', 'host keys', 'optional host keys', 'key exchanges', 'ciphers', 'macs', 'client policy', 'host_key_sizes', 'dh_modulus_sizes', 'allow_algorithm_subset_and_reordering', 'allow_hostkey_subset_and_reordering', 'allow_larger_keys'] and not key.startswith('hostkey_size_') and not key.startswith('cakey_size_') and not key.startswith('dh_modulus_size_'):
                 raise ValueError("invalid field found in policy: %s" % line)
 
             if key in ['name', 'banner']:
@@ -211,6 +212,9 @@ class Policy:
                 self._server_policy = False
             elif key == 'allow_algorithm_subset_and_reordering' and val.lower() == 'true':
                 self._allow_algorithm_subset_and_reordering = True
+                self._allow_hostkey_subset_and_reordering = True  # We force subsets/reorderings of the host keys as well in this case.
+            elif key == 'allow_hostkey_subset_and_reordering' and val.lower() == 'true':
+                self._allow_hostkey_subset_and_reordering = True
             elif key == 'allow_larger_keys' and val.lower() == 'true':
                 self._allow_larger_keys = True
 
@@ -300,8 +304,11 @@ name = "Custom Policy (based on %s on %s)"
 # The version of this policy (displayed in the output during scans).  Not parsed, and may be any value, including strings.
 version = 1
 
-# When false, host keys, kex, ciphers, and MAC lists must match exactly.  When true, the target host may support a subset of the specified algorithms and/or algorithms may appear in a different order; this feature is useful for specifying a baseline and allowing some hosts the option to implement stricter controls.
+# When false, host keys, kex, ciphers, and MAC lists must match exactly.  When true, the target host may support a subset of the specified algorithms and/or algorithms may appear in a different order; this feature is useful for specifying a baseline and allowing some hosts the option to implement stricter controls.  A value of true automatically sets "allow_hostkey_subset_and_reordering" to true as well.
 allow_algorithm_subset_and_reordering = false
+
+# When false, the host key list must match exactly.  When true, the target host may support a subset of the specified host keys and/or the keys may appear in a different order.
+allow_hostkey_subset_and_reordering = true
 
 # When false, host keys, CA keys, and Diffie-Hellman key sizes must exactly match what's specified in this policy.  When true, target systems are allowed to have larger keys; this feature is useful for specifying a baseline and allowing some hosts the option to implement stricter controls.
 allow_larger_keys = false
@@ -358,7 +365,7 @@ macs = %s
         # Check host keys.
         if self._host_keys is not None:
             # If the policy allows subsets and re-ordered algorithms...
-            if self._allow_algorithm_subset_and_reordering:
+            if self._allow_hostkey_subset_and_reordering:
                 for hostkey_t in kex.key_algorithms:
                     if hostkey_t not in self._host_keys:
                         ret = False
@@ -467,11 +474,18 @@ macs = %s
     def _get_errors(self) -> Tuple[List[Any], str]:
         '''Returns the list of errors, along with the string representation of those errors.'''
 
-        subset_and_reordering_semicolon = "; subset and/or reordering allowed" if self._allow_algorithm_subset_and_reordering else "; exact match"
-        subset_and_reordering_parens = " (subset and/or reordering allowed)" if self._allow_algorithm_subset_and_reordering else ""
+        all_subset_and_reordering_semicolon = "; subset and/or reordering allowed" if self._allow_algorithm_subset_and_reordering else "; exact match"
+        all_subset_and_reordering_parens = " (subset and/or reordering allowed)" if self._allow_algorithm_subset_and_reordering else ""
+        hostkey_subset_and_reordering_semicolon = "; subset and/or reordering allowed" if self._allow_hostkey_subset_and_reordering else "; exact match"
+        hostkey_subset_and_reordering_parens = " (subset and/or reordering allowed)" if self._allow_hostkey_subset_and_reordering else ""
+
         error_list = []
         spacer = ''
         for e in self._errors:
+
+            subset_and_reordering_semicolon = hostkey_subset_and_reordering_semicolon if e["mismatched_field"] == "Host keys" else all_subset_and_reordering_semicolon
+            subset_and_reordering_parens = hostkey_subset_and_reordering_parens if e["mismatched_field"] == "Host keys" else all_subset_and_reordering_parens
+
             e_str = "  * %s did not match.\n" % e['mismatched_field']
 
             if ('expected_optional' in e) and (e['expected_optional'] != ['']):
@@ -579,6 +593,7 @@ macs = %s
             p._dh_modulus_sizes = cast(Optional[Dict[str, int]], policy_struct['dh_modulus_sizes'])  # pylint: disable=protected-access
             p._server_policy = cast(bool, policy_struct['server_policy'])  # pylint: disable=protected-access
             p._name_and_version = "%s (version %s)" % (p._name, p._version)  # pylint: disable=protected-access
+            p._allow_hostkey_subset_and_reordering = cast(bool, policy_struct['allow_hostkey_subset_and_reordering']) if 'allow_hostkey_subset_and_reordering' in policy_struct else False  # pylint: disable=protected-access
 
             # Ensure this struct has all the necessary fields.
             p._normalize_hostkey_sizes()  # pylint: disable=protected-access
@@ -646,7 +661,7 @@ macs = %s
         if self._dh_modulus_sizes is not None:
             dh_modulus_sizes_str = str(self._dh_modulus_sizes)
 
-        return "Name: %s\nVersion: %s\nAllow Algorithm Subset and/or Reordering: %r\nBanner: %s\nCompressions: %s\nHost Keys: %s\nOptional Host Keys: %s\nKey Exchanges: %s\nCiphers: %s\nMACs: %s\nHost Key Sizes: %s\nDH Modulus Sizes: %s\nServer Policy: %r" % (name, version, self._allow_algorithm_subset_and_reordering, banner, compressions_str, host_keys_str, optional_host_keys_str, kex_str, ciphers_str, macs_str, hostkey_sizes_str, dh_modulus_sizes_str, self._server_policy)
+        return "Name: %s\nVersion: %s\nAllow Algorithm Subset and/or Reordering: %r\nAllow Host Key Subset and/or Reordering: %r\nBanner: %s\nCompressions: %s\nHost Keys: %s\nOptional Host Keys: %s\nKey Exchanges: %s\nCiphers: %s\nMACs: %s\nHost Key Sizes: %s\nDH Modulus Sizes: %s\nServer Policy: %r" % (name, version, self._allow_algorithm_subset_and_reordering, self._allow_hostkey_subset_and_reordering, banner, compressions_str, host_keys_str, optional_host_keys_str, kex_str, ciphers_str, macs_str, hostkey_sizes_str, dh_modulus_sizes_str, self._server_policy)
 
 
     def __getstate__(self) -> Dict[str, Any]:
