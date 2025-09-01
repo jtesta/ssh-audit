@@ -259,6 +259,8 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Migrated from deprecated `getopt` module to `argparse`; partial credit [oam7575](https://github.com/oam7575).
  - When running against multiple hosts, now prints each target host regardless of output level.
  - Batch mode (`-b`) no longer automatically enables verbose mode, due to sometimes confusing results; users can still explicitly enable verbose mode using the `-v` flag.
+ - Added built-in policy for OpenSSH 10.0.
+ - Added hardening guides and policies for Debian 13.
  - Added 2 new key exchanges: `mlkem768nistp256-sha256`, `mlkem1024nistp384-sha384`.
  - Added 2 new ciphers: `AEAD_CAMELLIA_128_GCM`, `AEAD_CAMELLIA_256_GCM`.
 
