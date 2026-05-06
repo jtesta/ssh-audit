@@ -67,6 +67,7 @@ class AuditConf:
         self.conn_rate_test_enabled = False
         self.conn_rate_test_threads = 0
         self.conn_rate_test_target_rate = 0
+        self.socks_proxy: Optional[str] = None  # SOCKS5 proxy in "host:port" format
 
 
     def __setattr__(self, name: str, value: Union[str, int, float, bool, Sequence[int]]) -> None:
@@ -95,7 +96,7 @@ class AuditConf:
             if value == -1.0:
                 raise ValueError('invalid timeout: {}'.format(value))
             valid = True
-        elif name in ['ip_version_preference', 'lookup', 'policy_file', 'policy', 'target_file', 'target_list', 'gex_test']:
+        elif name in ['ip_version_preference', 'lookup', 'policy_file', 'policy', 'target_file', 'target_list', 'gex_test', 'socks_proxy']:
             valid = True
         elif name == "threads":
             valid, num_threads = True, Utils.parse_int(value)
