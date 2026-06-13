@@ -51,7 +51,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
     SM_BANNER_SENT = 1
 
-    def __init__(self, outputbuffer: 'OutputBuffer', host: Optional[str], port: int, ip_version_preference: List[int] = [], timeout: Union[int, float] = 5, timeout_set: bool = False) -> None:  # pylint: disable=dangerous-default-value
+    def __init__(self, outputbuffer: 'OutputBuffer', host: Optional[str], port: int, ip_version_preference: List[int] = [], timeout: Union[int, float] = 5, timeout_set: bool = False, sock_path: Optional[str] = None) -> None:  # pylint: disable=dangerous-default-value
         super(SSH_Socket, self).__init__()
         self.__outputbuffer = outputbuffer
         self.__sock: Optional[socket.socket] = None
@@ -60,16 +60,20 @@ class SSH_Socket(ReadBuf, WriteBuf):
         self.__state = 0
         self.__header: List[str] = []
         self.__banner: Optional[Banner] = None
-        if host is None:
-            raise ValueError('undefined host')
-        nport = Utils.parse_int(port)
-        if nport < 1 or nport > 65535:
-            raise ValueError('invalid port: {}'.format(port))
+        if sock_path is None:
+            if host is None:
+                raise ValueError('undefined host')
+            nport = Utils.parse_int(port)
+            if nport < 1 or nport > 65535:
+                raise ValueError('invalid port: {}'.format(port))
+        else:
+            nport = 0
         self.__host = host
         self.__port = nport
         self.__ip_version_preference = ip_version_preference  # Holds only 5 possible values: [] (no preference), [4] (use IPv4 only), [6] (use IPv6 only), [46] (use both IPv4 and IPv6, but prioritize v4), and [64] (use both IPv4 and IPv6, but prioritize v6).
         self.__timeout = timeout
         self.__timeout_set = timeout_set
+        self.__sock_path = sock_path
         self.client_host: Optional[str] = None
         self.client_port = None
 

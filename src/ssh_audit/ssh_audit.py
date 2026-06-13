@@ -1144,7 +1144,7 @@ def audit(out: OutputBuffer, aconf: AuditConf, print_target: bool = False) -> in
     out.debug = aconf.debug
     out.level = aconf.level
     out.use_colors = aconf.colors
-    s = SSH_Socket(out, aconf.host, aconf.port, aconf.ip_version_preference, aconf.timeout, aconf.timeout_set)
+    s = SSH_Socket(out, aconf.host, aconf.port, aconf.ip_version_preference, aconf.timeout, aconf.timeout_set, sock_path=getattr(aconf, 'sock_path', None))
 
     if aconf.client_audit:
         out.v("Listening for client connection on port %d..." % aconf.port, write_now=True)
