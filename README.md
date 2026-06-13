@@ -263,6 +263,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added built-in policy for OpenSSH 10.0.
  - Added hardening guides and policies for Debian 13.
  - Added 2 new key exchanges: `mlkem768nistp256-sha256`, `mlkem1024nistp384-sha384`.
+ - Added 1 new host key: `webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com`.
  - Added 2 new ciphers: `AEAD_CAMELLIA_128_GCM`, `AEAD_CAMELLIA_256_GCM`.
 
 ### v3.3.0 (2024-10-15)

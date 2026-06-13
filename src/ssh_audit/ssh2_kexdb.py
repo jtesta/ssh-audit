@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2025 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2026 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -272,6 +272,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ssh-xmss-cert-v01@openssh.com': [['7.7'], [WARN_EXPERIMENTAL]],
             'ssh-xmss@openssh.com': [['7.7'], [WARN_EXPERIMENTAL]],
             'webauthn-sk-ecdsa-sha2-nistp256@openssh.com': [['8.3'], [FAIL_NSA_BACKDOORED_CURVE]],
+            'webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com': [['10.3'], [FAIL_NSA_BACKDOORED_CURVE]],
             'x509v3-ecdsa-sha2-1.3.132.0.10': [[], [FAIL_UNKNOWN]],
             'x509v3-ecdsa-sha2-nistp256': [[], [FAIL_NSA_BACKDOORED_CURVE]],
             'x509v3-ecdsa-sha2-nistp384': [[], [FAIL_NSA_BACKDOORED_CURVE]],
