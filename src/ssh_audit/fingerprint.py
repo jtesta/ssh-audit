@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2021 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2026 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -32,7 +32,7 @@ class Fingerprint:
 
     @property
     def md5(self) -> str:
-        h = hashlib.md5(self.__fpd).hexdigest()
+        h = hashlib.md5(self.__fpd, usedforsecurity=False).hexdigest()
         r = ':'.join(h[i:i + 2] for i in range(0, len(h), 2))
         return 'MD5:{}'.format(r)
 
