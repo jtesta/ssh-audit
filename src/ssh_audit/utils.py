@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2020 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2026 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -133,6 +133,10 @@ class Utils:
         '''Parses a string into a tuple of its host and port.  The port is 0 if not specified.'''
         host = host_and_port
         port = default_port
+
+        # If we have a UNIX socket path, do no further processing.
+        if host.startswith("unix://"):
+            return host, 1
 
         mx = re.match(r'^\[([^\]]+)\](?::(\d+))?$', host_and_port)
         if mx is not None:

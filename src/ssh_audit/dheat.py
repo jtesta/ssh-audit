@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2023-2024 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2023-2026 Joe Testa (jtesta@positronsecurity.com)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
    of this software and associated documentation files (the "Software"), to deal
@@ -435,7 +435,11 @@ class DHEat:
                 s.setblocking(False)
 
                 # out.d("Creating socket (%u of %u already exist)..." % (len(socket_dict), concurrent_sockets), write_now=True)
-                ret = s.connect_ex((target_ip_address, aconf.port))
+                if target_address_family == socket.AF_UNIX:
+                    ret = s.connect_ex(target_ip_address)
+                else:
+                    ret = s.connect_ex((target_ip_address, aconf.port))
+
                 num_attempted_connections += 1
                 if ret in [0, errno.EINPROGRESS, errno.EWOULDBLOCK]:
                     socket_dict[s] = now
@@ -751,6 +755,10 @@ class DHEat:
     @staticmethod
     def _resolve_hostname(host: str, ip_version_preference: List[int]) -> Tuple[int, str]:
         '''Resolves a hostname to its IPv4 or IPv6 address, depending on user preference.'''
+
+        # First check if this is a UNIX socket.
+        if host.startswith("unix://"):
+            return int(socket.AF_UNIX), host[7:]
 
         family = socket.AF_UNSPEC
         if len(ip_version_preference) == 1:

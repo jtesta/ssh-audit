@@ -93,7 +93,8 @@ optional arguments:
                         used)
   -T targets.txt, --targets targets.txt
                         a file containing a list of target hosts (one per
-                        line, format HOST[:PORT]). Use -p/--port to set the
+                        line, format 'HOST[:PORT]'; for UNIX socket servers,
+                        use 'unix:///path/socket'). Use -p/--port to set the
                         default port for all hosts. Use --threads to control
                         concurrent scans
   -t N, --timeout N     timeout (in seconds) for connection and reading
@@ -142,6 +143,7 @@ ssh-audit 127.0.0.1
 ssh-audit 127.0.0.1:222
 ssh-audit ::1
 ssh-audit [::1]:222
+ssh-audit unix:///run/ssh-unix-local/socket
 ```
 
 To run a standard audit against many servers (place targets into servers.txt, one on each line in the format of `HOST[:PORT]`):
@@ -150,13 +152,13 @@ To run a standard audit against many servers (place targets into servers.txt, on
 ssh-audit -T servers.txt
 ```
 
-To audit a client configuration (listens on port 2222 by default; connect using `ssh -p 2222 anything@localhost`):
+To audit a client configuration (listens on port 2222/tcp by default; connect using `ssh -p 2222 anything@localhost`):
 
 ```
 ssh-audit -c
 ```
 
-To audit a client configuration, with a listener on port 4567:
+To audit a client configuration, with a listener on port 4567/tcp:
 ```
 ssh-audit -c -p 4567
 ```
@@ -260,6 +262,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Migrated from deprecated `getopt` module to `argparse`; partial credit [oam7575](https://github.com/oam7575).
  - When running against multiple hosts, now prints each target host regardless of output level.
  - Batch mode (`-b`) no longer automatically enables verbose mode, due to sometimes confusing results; users can still explicitly enable verbose mode using the `-v` flag.
+ - Added UNIX server socket scanning (specify the target with `unix:///path/to/socket`).
  - Added built-in policy for OpenSSH 10.0.
  - Added hardening guides and policies for Debian 13.
  - Added 2 new key exchanges: `mlkem768nistp256-sha256`, `mlkem1024nistp384-sha384`.

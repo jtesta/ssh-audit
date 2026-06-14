@@ -2,7 +2,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2025 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2026 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -915,19 +915,21 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
         Hardening_Guides.print_hardening_guide(out, argument.get_hardening_guide)
         sys.exit(exitcodes.GOOD)
 
+    # If we're doing a server audit against a single target.
     if aconf.client_audit is False and aconf.target_file is None:
-        if oport is not None:
-            host = argument.host
-        else:
+        host = argument.host
+        if oport is None:
             host, port = Utils.parse_host_and_port(argument.host)
 
         if not host and aconf.target_file is None:
             out.fail("target host is not specified", write_now=True)
             sys.exit(exitcodes.UNKNOWN_ERROR)
 
-    if oport is None and aconf.client_audit:  # The default port to listen on during a client audit is 2222.
+    # For client audits, if an explicit port isn't set, default to 2222/tcp.
+    if aconf.client_audit and oport is None:
         port = 2222
 
+    # If an explicit port was set by the user, parse it.
     if oport is not None:
         port = Utils.parse_int(oport)
         if port < 1 or port > 65535:

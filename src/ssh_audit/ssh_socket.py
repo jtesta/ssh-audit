@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2025 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2026 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -51,6 +51,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
     SM_BANNER_SENT = 1
 
+
     def __init__(self, outputbuffer: 'OutputBuffer', host: Optional[str], port: int, ip_version_preference: List[int] = [], timeout: Union[int, float] = 5, timeout_set: bool = False) -> None:  # pylint: disable=dangerous-default-value
         super(SSH_Socket, self).__init__()
         self.__outputbuffer = outputbuffer
@@ -72,6 +73,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
         self.__timeout_set = timeout_set
         self.client_host: Optional[str] = None
         self.client_port = None
+
 
     def _resolve(self) -> Iterable[Tuple[int, Tuple[Any, ...]]]:
         """Resolves a hostname into a list of IPs
@@ -95,11 +97,13 @@ class SSH_Socket(ReadBuf, WriteBuf):
             if socktype == socket.SOCK_STREAM:
                 yield af, addr
 
-    # Listens on a server socket and accepts one connection (used for
-    # auditing client connections).
+
     def listen_and_accept(self) -> None:
+        '''Listens on a server socket and accepts one connection (used for auditing client connections).'''
 
         try:
+            self.__outputbuffer.d(f"Listening on 0.0.0.0:{self.__port}...", write_now=True)
+
             # Socket to listen on all IPv4 addresses.
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -110,6 +114,8 @@ class SSH_Socket(ReadBuf, WriteBuf):
             print("Warning: failed to listen on any IPv4 interfaces: %s" % str(e), file=sys.stderr)
 
         try:
+            self.__outputbuffer.d(f"Listening on [::]:{self.__port}...", write_now=True)
+
             # Socket to listen on all IPv6 addresses.
             s = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -150,18 +156,31 @@ class SSH_Socket(ReadBuf, WriteBuf):
         c.settimeout(self.__timeout)
         self.__sock = c
 
+
     def connect(self) -> Optional[str]:
         '''Returns None on success, or an error string.'''
         err = None
         s = None
         try:
-            for af, addr in self._resolve():
-                s = socket.socket(af, socket.SOCK_STREAM)
+
+            # If we're connecting to a UNIX socket.
+            if self.__host.startswith("unix://"):
+                s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 s.settimeout(self.__timeout)
-                self.__outputbuffer.d(("Connecting to %s:%d..." % ('[%s]' % addr[0] if Utils.is_ipv6_address(addr[0]) else addr[0], addr[1])), write_now=True)
-                s.connect(addr)
+                s.connect(self.__host[7:])
                 self.__sock = s
                 return None
+
+            # We're connecting to an Internet host.
+            else:
+                for af, addr in self._resolve():
+                    s = socket.socket(af, socket.SOCK_STREAM)
+                    s.settimeout(self.__timeout)
+                    self.__outputbuffer.d(("Connecting to %s:%d..." % ('[%s]' % addr[0] if Utils.is_ipv6_address(addr[0]) else addr[0], addr[1])), write_now=True)
+                    s.connect(addr)
+                    self.__sock = s
+                    return None
+
         except socket.error as e:
             err = e
             self._close_socket(s)
@@ -170,7 +189,9 @@ class SSH_Socket(ReadBuf, WriteBuf):
         else:
             errt = (self.__host, self.__port, err)
             errm = 'cannot connect to {} port {}: {}'.format(*errt)
+
         return '[exception] {}'.format(errm)
+
 
     def get_banner(self) -> Tuple[Optional['Banner'], List[str], Optional[str]]:
         self.__outputbuffer.d('Getting banner...', write_now=True)
@@ -201,6 +222,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
         return self.__banner, self.__header, e
 
+
     def recv(self, size: int = 2048) -> Tuple[int, Optional[str]]:
         if self.__sock is None:
             return -1, 'not connected'
@@ -220,6 +242,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
         self._len += len(data)
         self._buf.seek(pos, 0)
         return len(data), None
+
 
     def send(self, data: bytes) -> Tuple[int, Optional[str]]:
         if self.__sock is None:
@@ -243,15 +266,18 @@ class SSH_Socket(ReadBuf, WriteBuf):
         kex.write(self)
         self.send_packet()
 
+
     def send_banner(self, banner: str) -> None:
         self.send(banner.encode() + b'\r\n')
         self.__state = max(self.__state, self.SM_BANNER_SENT)
+
 
     def ensure_read(self, size: int) -> None:
         while self.unread_len < size:
             s, e = self.recv()
             if s < 0:
                 raise SSH_Socket.InsufficientReadException(e)
+
 
     def read_packet(self) -> Tuple[int, bytes]:
         try:
@@ -284,6 +310,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
                 e = ex.args[0].encode('utf-8')
             return -1, e
 
+
     def send_packet(self) -> Tuple[int, Optional[str]]:
         payload = self.write_flush()
         padding = -(len(payload) + 5) % 8
@@ -294,9 +321,11 @@ class SSH_Socket(ReadBuf, WriteBuf):
         data = struct.pack('>Ib', plen, padding) + payload + pad_bytes
         return self.send(data)
 
+
     def is_connected(self) -> bool:
         """Returns true if this Socket is connected, False otherwise."""
         return self.__sock is not None
+
 
     def close(self) -> None:
         self.__cleanup()
@@ -304,6 +333,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
         self.__state = 0
         self.__header = []
         self.__banner = None
+
 
     def _close_socket(self, s: Optional[socket.socket]) -> None:
         try:
@@ -313,8 +343,10 @@ class SSH_Socket(ReadBuf, WriteBuf):
         except Exception:
             pass
 
+
     def __del__(self) -> None:
         self.__cleanup()
+
 
     def __cleanup(self) -> None:
         self._close_socket(self.__sock)
