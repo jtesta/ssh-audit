@@ -23,7 +23,7 @@
 IMAGE_VERSION=3
 
 # This is the name of our docker image.
-IMAGE_NAME=positronsecurity/ssh-audit-test-framework
+IMAGE_NAME=docker.io/positronsecurity/ssh-audit-test-framework
 
 
 # Terminal colors.
