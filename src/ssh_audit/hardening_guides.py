@@ -347,6 +347,52 @@ class Hardening_Guides:
             },
         ],
 
+        "Rocky Linux 10": [
+            {
+                "server_guide": True,
+                "version": 1,
+                "version_date": "2026-06-17",
+                "change_log": "Initial revision. In comparison to the Rocky Linux 9 hardening guide, the following changes were made: the key exchange list was set to include post-quantum algorithms only.",
+                "notes": "all commands below are to be executed as the root user.",
+                "commands": [
+                    {
+                        "heading": "Disable RedHat Crypto Policies",
+                        "comment": "",
+                        "command": "rm -f /etc/ssh/sshd_config.d/40-redhat-crypto-policies.conf"
+                    },
+                    {
+                        "heading": "Re-generate the RSA and ED25519 keys",
+                        "comment": "",
+                        "command": "rm -f /etc/ssh/ssh_host_*\nssh-keygen -t rsa -b 4096 -f /etc/ssh/ssh_host_rsa_key -N \"\"\nssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N \"\""
+                    },
+                    {
+                        "heading": "Restrict supported key exchange, cipher, and MAC algorithms",
+                        "comment": "",
+                        "command": "echo -e \"# Restrict key exchange, cipher, and MAC algorithms, as per sshaudit.com\\n# hardening guide.\\nHostKey /etc/ssh/ssh_host_ed25519_key\\nHostKey /etc/ssh/ssh_host_rsa_key\\n\\nKexAlgorithms mlkem768x25519-sha256,sntrup761x25519-sha512,sntrup761x25519-sha512@openssh.com\\n\\nCiphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-gcm@openssh.com,aes128-ctr\\n\\nMACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com\\n\\nHostKeyAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256\\n\\nRequiredRSASize 3072\\n\\nCASignatureAlgorithms sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256\\n\\nGSSAPIKexAlgorithms gss-curve25519-sha256-,gss-group16-sha512-\\n\\nHostbasedAcceptedAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-256-cert-v01@openssh.com,rsa-sha2-256\\n\\nPubkeyAcceptedAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256\\n\\n\" > /etc/ssh/sshd_config.d/rocky10_ssh-audit_hardening.conf"
+                    },
+                    {
+                        "heading": "Restart OpenSSH server",
+                        "comment": "",
+                        "command": "systemctl restart sshd"
+                    },
+                ]
+            },
+            {
+                "server_guide": False,
+                "version": 1,
+                "version_date": "2026-06-17",
+                "change_log": "Initial revision. In comparison to the Rocky Linux 9 hardening guide, the following changes were made: the key exchange list was set to include post-quantum algorithms only.",
+                "notes": "",
+                "commands": [
+                    {
+                        "heading": "Run the following in a terminal to harden the SSH client for the local user:",
+                        "comment": "",
+                        "command": "mkdir -p -m 0700 ~/.ssh; echo -e \"\\nHost *\\n Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-gcm@openssh.com,aes128-ctr\\n\\n KexAlgorithms mlkem768x25519-sha256,sntrup761x25519-sha512,sntrup761x25519-sha512@openssh.com\\n\\n MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com\\n\\n RequiredRSASize 3072\\n\\n HostKeyAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-256-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256\\n\\n CASignatureAlgorithms sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512,rsa-sha2-256\\n\\n GSSAPIKexAlgorithms gss-curve25519-sha256-,gss-group16-sha512-\\n\\n HostbasedAcceptedAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-256-cert-v01@openssh.com,rsa-sha2-256\\n\\n PubkeyAcceptedAlgorithms sk-ssh-ed25519-cert-v01@openssh.com,ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,ssh-ed25519,rsa-sha2-512-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-256-cert-v01@openssh.com,rsa-sha2-256\\n\\n\" >> ~/.ssh/config"
+                    },
+                ]
+            },
+        ],
+
         "Ubuntu 22.04": [
             {
                 "server_guide": True,

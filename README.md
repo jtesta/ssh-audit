@@ -265,6 +265,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added UNIX server socket scanning (specify the target with `unix:///path/to/socket`).
  - Added built-in policy for OpenSSH 10.0.
  - Added hardening guides and policies for Debian 13.
+ - Added hardening guides and policies for Rocky Linux 10.
  - Added hardening guides and policies for Ubuntu 26.04.
  - Added 2 new key exchanges: `mlkem768nistp256-sha256`, `mlkem1024nistp384-sha384`.
  - Added 1 new host key: `webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com`.
