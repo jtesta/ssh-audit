@@ -254,6 +254,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ### v3.4.0-dev
  - BIG THANKS to [realmiwi](https://github.com/realmiwi) for being the project's *very first sponsor!!*
+ - Added support for Python 3.14.
  - Dropped support for Python 3.8, as it reached end-of-life in October 2024.
  - Dropped support for Python 3.9, as it reached end-of-life in October 2025.
  - Added warning to all key exchanges that do not include protections against quantum attacks due to the Harvest Now, Decrypt Later strategy (see https://en.wikipedia.org/wiki/Harvest_now,_decrypt_later).
