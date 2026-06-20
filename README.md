@@ -272,7 +272,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - Added hardening guides and policies for Rocky Linux 10.
  - Added hardening guides and policies for Ubuntu 26.04.
  - Added 2 new key exchanges: `mlkem768nistp256-sha256`, `mlkem1024nistp384-sha384`.
- - Added 1 new host key: `webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com`.
+ - Added 10 new host keys: `webauthn-sk-ecdsa-sha2-nistp256-cert-v01@openssh.com`, `mldsa-44`, `mldsa-65`, `mldsa-87`, `ssh-mldsa-44`, `ssh-mldsa-65`, `ssh-mldsa-87`, `ssh-mldsa44`, `ssh-mldsa65`, `ssh-mldsa87`.
  - Added 2 new ciphers: `AEAD_CAMELLIA_128_GCM`, `AEAD_CAMELLIA_256_GCM`.
 
 ### v3.3.0 (2024-10-15)

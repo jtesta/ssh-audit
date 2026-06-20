@@ -81,6 +81,11 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     INFO_EXTENSION_NEGOTIATION = 'pseudo-algorithm that denotes the peer supports RFC8308 extensions'
     INFO_STRICT_KEX = 'pseudo-algorithm that denotes the peer supports a stricter key exchange method as a counter-measure to the Terrapin attack (CVE-2023-48795)'
 
+    # NIST PQC security levels: https://blog.cloudflare.com/pq-2025/
+    INFO_NIST_PQC_LEVEL_2 = 'rated at NIST PQC level 2 (at least as hard to break as SHA256)'
+    INFO_NIST_PQC_LEVEL_3 = 'rated at NIST PQC level 3 (at least as hard to break as AES-192)'
+    INFO_NIST_PQC_LEVEL_5 = 'rated at NIST PQC level 5 (at least as hard to break as AES-256)'
+
     # Maintains a dictionary per calling thread that yields its own copy of MASTER_DB.  This prevents results from one thread polluting the results of another thread.
     DB_PER_THREAD: Dict[int, Dict[str, Dict[str, List[List[Optional[str]]]]]] = {}
 
@@ -230,6 +235,9 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ecdsa-sha2-nistt571': [[], [FAIL_UNPROVEN], [WARN_RNDSIG_KEY]],
             'eddsa-e382-shake256@libassh.org': [[], [FAIL_UNPROVEN]],
             'eddsa-e521-shake256@libassh.org': [[], [FAIL_UNPROVEN]],
+            'mldsa-44': [[], [], [], [INFO_NIST_PQC_LEVEL_2]],
+            'mldsa-65': [[], [], [], [INFO_NIST_PQC_LEVEL_3]],
+            'mldsa-87': [[], [], [], [INFO_NIST_PQC_LEVEL_5]],
             'null': [[], [FAIL_PLAINTEXT]],
             'pgp-sign-dss': [[], [FAIL_1024BIT_MODULUS]],
             'pgp-sign-rsa': [[], [FAIL_1024BIT_MODULUS]],
@@ -259,6 +267,12 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ssh-gost2001': [[], [FAIL_UNTRUSTED]],
             'ssh-gost2012-256': [[], [FAIL_UNTRUSTED]],
             'ssh-gost2012-512': [[], [FAIL_UNTRUSTED]],
+            'ssh-mldsa-44': [[], [], [], [INFO_NIST_PQC_LEVEL_2]],
+            'ssh-mldsa-65': [[], [], [], [INFO_NIST_PQC_LEVEL_3]],
+            'ssh-mldsa-87': [[], [], [], [INFO_NIST_PQC_LEVEL_5]],
+            'ssh-mldsa44': [[], [], [], [INFO_NIST_PQC_LEVEL_2]],
+            'ssh-mldsa65': [[], [], [], [INFO_NIST_PQC_LEVEL_3]],
+            'ssh-mldsa87': [[], [], [], [INFO_NIST_PQC_LEVEL_5]],
             'ssh-rsa1': [[], [FAIL_SHA1]],
             'ssh-rsa': [['2.5.0,d0.28,l10.2'], [FAIL_SHA1], [], [INFO_DEPRECATED_IN_OPENSSH88]],
             'ssh-rsa-cert-v00@openssh.com': [['5.4', '6.9'], [FAIL_SHA1], [], [INFO_REMOVED_IN_OPENSSH70]],
