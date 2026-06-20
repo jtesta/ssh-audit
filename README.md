@@ -263,6 +263,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - When running against multiple hosts, now prints each target host regardless of output level.
  - Batch mode (`-b`) no longer automatically enables verbose mode, due to sometimes confusing results; users can still explicitly enable verbose mode using the `-v` flag.
  - Added UNIX server socket scanning (specify the target with `unix:///path/to/socket`).
+ - Updated built-in policy for Debian 12.
  - Added built-in policies for OpenSSH 10.0, 10.1, 10.2, and 10.3.
  - Added hardening guides and policies for Debian 13.
  - Added hardening guides and policies for Rocky Linux 10.
