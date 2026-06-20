@@ -51,7 +51,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
     SM_BANNER_SENT = 1
 
-    def __init__(self, outputbuffer: 'OutputBuffer', host: Optional[str], port: int, ip_version_preference: List[int] = [], timeout: Union[int, float] = 5, timeout_set: bool = False, socks_proxy: Optional[str] = None) -> None:  # pylint: disable=dangerous-default-value
+    def __init__(self, outputbuffer: 'OutputBuffer', host: Optional[str], port: int, ip_version_preference: List[int] = [], timeout: Union[int, float] = 5, timeout_set: bool = False, socks5_proxy: Optional[str] = None) -> None:  # pylint: disable=dangerous-default-value
         super(SSH_Socket, self).__init__()
         self.__outputbuffer = outputbuffer
         self.__sock: Optional[socket.socket] = None
@@ -72,7 +72,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
         self.__timeout_set = timeout_set
         self.client_host: Optional[str] = None
         self.client_port = None
-        self.__socks_proxy = socks_proxy  # SOCKS5 proxy in "host:port" format, or None
+        self.__socks5_proxy = socks5_proxy  # SOCKS5 proxy in "host:port" format, or None
 
 
     def _resolve(self) -> Iterable[Tuple[int, Tuple[Any, ...]]]:
@@ -165,16 +165,16 @@ class SSH_Socket(ReadBuf, WriteBuf):
         try:
             # If we're connecting to a UNIX socket.
             if self.__host.startswith("unix://"):
-                if self.__socks_proxy is not None:
-                    return '[exception] cannot use a SOCKS5 proxy with UNIX socket targets'
                 s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
                 s.settimeout(self.__timeout)
                 s.connect(self.__host[7:])
                 self.__sock = s
                 return None
 
-            if self.__socks_proxy is not None:
-                return self._connect_via_socks5()
+            # If we're connecting through a SOCKS5 proxy.
+            if self.__socks5_proxy is not None:
+                self.__sock = self._connect_via_socks5()
+                return None
 
             # We're connecting to an Internet host.
             for af, addr in self._resolve():
@@ -188,6 +188,7 @@ class SSH_Socket(ReadBuf, WriteBuf):
         except socket.error as e:
             err = e
             self._close_socket(s)
+
         if err is None:
             errm = 'host {} has no DNS records'.format(self.__host)
         else:
@@ -196,87 +197,98 @@ class SSH_Socket(ReadBuf, WriteBuf):
 
         return '[exception] {}'.format(errm)
 
-    def _connect_via_socks5(self) -> Optional[str]:
-        '''Connect to the target host:port via a SOCKS5 proxy. Returns None on success, or an error string.'''
-        assert self.__socks_proxy is not None
-        proxy_parts = self.__socks_proxy.rsplit(':', 1)
-        proxy_host = proxy_parts[0]
-        proxy_port = int(proxy_parts[1])
 
-        s = None
-        try:
-            self.__outputbuffer.d("Connecting to SOCKS5 proxy %s:%d..." % (proxy_host, proxy_port), write_now=True)
-            s = socket.create_connection((proxy_host, proxy_port), timeout=self.__timeout)
+    def _connect_via_socks5(self) -> socket.socket:
+        '''Connect to the target host:port via a SOCKS5 proxy. Returns a socket on success, or raises an exception.'''
 
-            # SOCKS5 greeting: version=5, nmethods=1, method=0 (no auth)
-            s.sendall(b'\x05\x01\x00')
-            resp = self._socks5_recv_exact(s, 2)
-            if resp is None:
-                raise socket.error("no response from SOCKS5 proxy during handshake")
-            if resp[0] != 5:
-                raise socket.error("SOCKS5 proxy returned unexpected version: {}".format(resp[0]))
-            if resp[1] == 0xff:
-                raise socket.error("SOCKS5 proxy rejected all authentication methods")
-            if resp[1] != 0:
-                raise socket.error("SOCKS5 proxy requires authentication (method {:d}), but only no-auth is supported".format(resp[1]))
+        def __socks5_recv_exact(s: socket.socket, n: int) -> Optional[bytes]:
+            '''Read exactly n bytes from socket s, returning None on EOF.'''
+            buf = b''
+            while len(buf) < n:
+                chunk = s.recv(n - len(buf))
+                if not chunk:
+                    return None
+                buf += chunk
+            return buf
 
-            # SOCKS5 connect request: version=5, cmd=1 (connect), rsv=0, atyp=3 (domain name)
-            host_bytes = self.__host.encode('idna')
-            request = struct.pack('!BBBB', 5, 1, 0, 3) + struct.pack('!B', len(host_bytes)) + host_bytes + struct.pack('!H', self.__port)
-            self.__outputbuffer.d("Requesting SOCKS5 proxy to connect to %s:%d..." % (self.__host, self.__port), write_now=True)
-            s.sendall(request)
+        # Parse the "host:port" string into its parts.
+        proxy_host, proxy_port = Utils.parse_host_and_port(self.__socks5_proxy) if self.__socks5_proxy is not None else ("", 0)
 
-            # Read the fixed part of the response (4 bytes: ver, rep, rsv, atyp)
-            hdr = self._socks5_recv_exact(s, 4)
-            if hdr is None:
-                raise socket.error("no response from SOCKS5 proxy during connect")
-            if hdr[0] != 5:
-                raise socket.error("SOCKS5 proxy returned unexpected version in connect response: {}".format(hdr[0]))
-            if hdr[1] != 0:
-                socks5_errors = {
-                    1: "general SOCKS server failure",
-                    2: "connection not allowed by ruleset",
-                    3: "network unreachable",
-                    4: "host unreachable",
-                    5: "connection refused",
-                    6: "TTL expired",
-                    7: "command not supported",
-                    8: "address type not supported",
-                }
-                msg = socks5_errors.get(hdr[1], "unknown error {:d}".format(hdr[1]))
-                raise socket.error("SOCKS5 proxy connect failed: {}".format(msg))
+        self.__outputbuffer.d("Connecting to SOCKS5 proxy %s:%d..." % (proxy_host, proxy_port), write_now=True)
+        s = socket.create_connection((proxy_host, proxy_port), timeout=self.__timeout)
 
-            # Read and discard the bound address from the response
-            atyp = hdr[3]
-            if atyp == 1:    # IPv4
-                self._socks5_recv_exact(s, 4 + 2)
-            elif atyp == 4:  # IPv6
-                self._socks5_recv_exact(s, 16 + 2)
-            elif atyp == 3:  # domain name
-                alen_data = self._socks5_recv_exact(s, 1)
-                if alen_data is None:
-                    raise socket.error("truncated SOCKS5 response")
-                self._socks5_recv_exact(s, alen_data[0] + 2)
-            else:
-                raise socket.error("SOCKS5 proxy returned unknown address type: {}".format(atyp))
+        # SOCKS5 greeting: version=5, nmethods=1, method=0 (no auth)
+        s.sendall(b'\x05\x01\x00')
+        resp = __socks5_recv_exact(s, 2)
+        if resp is None:
+            raise socket.error("no response from SOCKS5 proxy during handshake")
+        if resp[0] != 5:
+            raise socket.error("SOCKS5 proxy returned unexpected version: {}".format(resp[0]))
+        if resp[1] == 0xff:
+            raise socket.error("SOCKS5 proxy rejected all authentication methods")
+        if resp[1] != 0:
+            raise socket.error("SOCKS5 proxy requires authentication (method {:d}), but only no-auth is supported".format(resp[1]))
 
-            self.__sock = s
-            return None
+        # Set the type and host encoding appropriately, depending on if we're sending a hostname, IPv4, or IPv6 address. The ATYP field is 3 when the client is sending a hostname.
+        atyp = 3
+        _enc_host = self.__host.encode('idna')
+        dst_addr = struct.pack('!B', len(_enc_host)) + _enc_host
+        if Utils.is_ipv4_address(self.__host):
+            atyp = 1
+            dst_addr = socket.inet_pton(socket.AF_INET, self.__host)
+        elif Utils.is_ipv6_address(self.__host):
+            atyp = 4
+            dst_addr = socket.inet_pton(socket.AF_INET6, self.__host)
 
-        except socket.error as e:
-            self._close_socket(s)
-            return '[exception] cannot connect via SOCKS5 proxy to {} port {}: {}'.format(self.__host, self.__port, e)
+        # SOCKS5 connect request: version=5, cmd=1 (connect), rsv=0, atyp
+        request = struct.pack('!BBBB', 5, 1, 0, atyp) + dst_addr + struct.pack('!H', self.__port)
+        self.__outputbuffer.d("Requesting SOCKS5 proxy to connect to %s:%d..." % (self.__host, self.__port), write_now=True)
+        s.sendall(request)
 
-    @staticmethod
-    def _socks5_recv_exact(s: socket.socket, n: int) -> Optional[bytes]:
-        '''Read exactly n bytes from socket s, returning None on EOF.'''
-        buf = b''
-        while len(buf) < n:
-            chunk = s.recv(n - len(buf))
-            if not chunk:
-                return None
-            buf += chunk
-        return buf
+        # Read the fixed part of the response (4 bytes: ver, rep, rsv, atyp)
+        hdr = __socks5_recv_exact(s, 4)
+        if hdr is None:
+            raise socket.error("no response from SOCKS5 proxy during connect")
+
+        server_version = hdr[0]
+        reply = hdr[1]
+        # rsv = hdr[2]  # Reserved, set to 0 as per RFC1928.
+        atyp = hdr[3]
+
+        if server_version != 5:
+            raise socket.error("SOCKS5 proxy returned unexpected version in connect response: {}".format(hdr[0]))
+
+        if reply != 0:
+            socks5_errors = {
+                1: "general SOCKS server failure",
+                2: "connection not allowed by ruleset",
+                3: "network unreachable",
+                4: "host unreachable",
+                5: "connection refused",
+                6: "TTL expired",
+                7: "command not supported",
+                8: "address type not supported",
+            }
+
+            err = socks5_errors[reply] if reply in socks5_errors else f"unknown error: {reply}"
+            raise socket.error("SOCKS5 proxy connect failed: {}".format(err))
+
+        # Read and discard the bound address from the response
+        if atyp == 1:    # IPv4
+            __socks5_recv_exact(s, 4 + 2)
+        elif atyp == 4:  # IPv6
+            __socks5_recv_exact(s, 16 + 2)
+        elif atyp == 3:  # domain name
+            alen_data = __socks5_recv_exact(s, 1)
+            if alen_data is None:
+                raise socket.error("truncated SOCKS5 response")
+            __socks5_recv_exact(s, alen_data[0] + 2)
+        else:
+            raise socket.error("SOCKS5 proxy returned unknown address type: {}".format(atyp))
+
+        self.__outputbuffer.d("Successfully established SOCKS5 connection.", write_now=True)
+        return s
+
 
     def get_banner(self) -> Tuple[Optional['Banner'], List[str], Optional[str]]:
         self.__outputbuffer.d('Getting banner...', write_now=True)

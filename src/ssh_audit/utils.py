@@ -154,6 +154,17 @@ class Utils:
         return host, port
 
     @staticmethod
+    def is_ipv4_address(address: str) -> bool:
+        '''Returns True if address is an IPv4 address, otherwise False.'''
+        is_ipv4 = True
+        try:
+            ipaddress.IPv4Address(address)
+        except ipaddress.AddressValueError:
+            is_ipv4 = False
+
+        return is_ipv4
+
+    @staticmethod
     def is_ipv6_address(address: str) -> bool:
         '''Returns True if address is an IPv6 address, otherwise False.'''
         is_ipv6 = True

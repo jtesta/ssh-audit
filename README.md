@@ -48,7 +48,7 @@ usage: ssh-audit.py [-h] [-4] [-6] [-b] [-c] [-d]
                     [--conn-rate-test N[:max_rate]] [--dheat N[:kex[:e_len]]]
                     [--get-hardening-guide platform] [--list-hardening-guides]
                     [--lookup alg1[,alg2,...]] [--skip-rate-test]
-                    [--threads N]
+                    [--socks5 host:port] [--threads N]
                     [host]
 
 # ssh-audit.py v3.4.0-dev, https://github.com/jtesta/ssh-audit
@@ -128,6 +128,7 @@ optional arguments:
   --skip-rate-test      skip the connection rate test during standard audits
                         (used to safely infer whether the DHEat attack is
                         viable)
+  --socks5 host:port    connect via a SOCKS5 proxy (implies --skip-rate-test)
   --threads N           number of threads to use when scanning multiple
                         targets (-T/--targets) (default: 32)
 ```
@@ -263,6 +264,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - When running against multiple hosts, now prints each target host regardless of output level.
  - Batch mode (`-b`) no longer automatically enables verbose mode, due to sometimes confusing results; users can still explicitly enable verbose mode using the `-v` flag.
  - Added UNIX server socket scanning (specify the target with `unix:///path/to/socket`).
+ - Added SOCKS5 proxy support (specify the proxy with `--socks5 host:port`); partial credit [Michał Majchrowicz](https://github.com/sectroyer).
  - Updated built-in policy for Debian 12.
  - Added built-in policies for OpenSSH 10.0, 10.1, 10.2, and 10.3.
  - Added hardening guides and policies for Debian 13.

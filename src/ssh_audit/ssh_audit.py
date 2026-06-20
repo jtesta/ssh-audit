@@ -794,7 +794,7 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
     parser.add_argument("--list-hardening-guides", action="store_true", dest="list_hardening_guides", default=False, help="list all official, built-in hardening guides for common systems.  Their full names can then be passed to --get-hardening-guide.  Add -v to this option to view hardening guide change logs and prior versions.")
     parser.add_argument("--lookup", action="store", dest="lookup", metavar="alg1[,alg2,...]", type=str, default=None, help="looks up an algorithm(s) without connecting to a server.")
     parser.add_argument("--skip-rate-test", action="store_true", dest="skip_rate_test", default=False, help="skip the connection rate test during standard audits (used to safely infer whether the DHEat attack is viable)")
-    parser.add_argument("--socks", action="store", dest="socks_proxy", metavar="host:port", type=str, default=None, help="connect via a SOCKS5 proxy (e.g. 127.0.0.1:1080)")
+    parser.add_argument("--socks5", action="store", dest="socks5_proxy", metavar="host:port", type=str, default=None, help="connect via a SOCKS5 proxy (implies --skip-rate-test)")
     parser.add_argument("--threads", action="store", dest="threads", metavar="N", type=int, default=32, help="number of threads to use when scanning multiple targets (-T/--targets) (default: %(default)s)")
 
 
@@ -818,22 +818,16 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
         aconf.list_policies = argument.list_policies
         aconf.manual = argument.manual
         aconf.skip_rate_test = argument.skip_rate_test
+        aconf.socks5_proxy = argument.socks5_proxy
         oport = argument.oport
-
-        if argument.socks_proxy is not None:
-            # Validate format: must be "host:port"
-            socks_parts = argument.socks_proxy.rsplit(':', 1)
-            if len(socks_parts) != 2 or not socks_parts[1].isdigit():
-                out.fail("--socks must be in host:port format (e.g. 127.0.0.1:1080)", write_now=True)
-                sys.exit(exitcodes.UNKNOWN_ERROR)
-            socks_port = int(socks_parts[1])
-            if socks_port < 1 or socks_port > 65535:
-                out.fail("SOCKS proxy port must be between 1 and 65535", write_now=True)
-                sys.exit(exitcodes.UNKNOWN_ERROR)
-            aconf.socks_proxy = argument.socks_proxy
 
         if argument.batch is True:
             aconf.batch = True
+
+        # Skip the rate test if we're using a SOCKS5 proxy.
+        if aconf.socks5_proxy is not None:
+            out.d("Disabling rate test since SOCKS5 proxy is set.", write_now=True)
+            aconf.skip_rate_test = True
 
         # If one -j was given, turn on JSON output.  If -jj was given, enable indentation.
         aconf.json = argument.json > 0
@@ -901,8 +895,8 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
             aconf.verbose = True
             out.verbose = True
 
-    except argparse.ArgumentError as err:
-        out.fail(str(err), write_now=True)
+    except (argparse.ArgumentError, ValueError) as err:
+        out.fail(f"Error: {str(err)}", write_now=True)
         parser.print_help()
         sys.exit(exitcodes.UNKNOWN_ERROR)
 
@@ -1159,7 +1153,7 @@ def audit(out: OutputBuffer, aconf: AuditConf, print_target: bool = False) -> in
     out.debug = aconf.debug
     out.level = aconf.level
     out.use_colors = aconf.colors
-    s = SSH_Socket(out, aconf.host, aconf.port, aconf.ip_version_preference, aconf.timeout, aconf.timeout_set, aconf.socks_proxy)
+    s = SSH_Socket(out, aconf.host, aconf.port, aconf.ip_version_preference, aconf.timeout, aconf.timeout_set, aconf.socks5_proxy)
 
     if aconf.client_audit:
         out.v("Listening for client connection on port %d..." % aconf.port, write_now=True)

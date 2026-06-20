@@ -40,8 +40,3 @@ class TestSocket:
         s, e = sock.send_packet()
         assert s == -1
         assert e == 'not connected'
-
-    def test_socks_proxy_rejected_for_unix_socket_targets(self, virtual_socket):
-        sock = self.ssh_socket(self.OutputBuffer(), 'unix:///tmp/test.sock', 22, socks_proxy='127.0.0.1:1080')
-        err = sock.connect()
-        assert err == '[exception] cannot use a SOCKS5 proxy with UNIX socket targets'

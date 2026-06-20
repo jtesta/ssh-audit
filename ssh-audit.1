@@ -1,4 +1,4 @@
-.TH SSH-AUDIT 1 "June 14, 2026"
+.TH SSH-AUDIT 1 "June 20, 2026"
 .SH NAME
 \fBssh-audit\fP \- SSH server & client configuration auditor
 .SH SYNOPSIS
@@ -140,6 +140,11 @@ Runs a policy audit against a target using the specified policy (see \fBPOLICY A
 .B     \-\-skip\-rate\-test
 .br
 Skips the connection rate test during standard audits.  By default, a few dozen TCP connections are created with the target host to see if connection throttling is implemented (this can safely infer whether the target is vulnerable to the DHEat attack; see CVE-2002-20001).
+
+.TP
+.B     \-\-socks5 host:port
+.br
+Connects through a SOCKS5 proxy. Rate tests are automatically skipped (i.e.: implies \-\-skip\-rate\-test).
 
 .TP
 .B -t, \-\-timeout=<secs>

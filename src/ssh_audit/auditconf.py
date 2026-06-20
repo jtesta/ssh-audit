@@ -1,7 +1,7 @@
 """
    The MIT License (MIT)
 
-   Copyright (C) 2017-2025 Joe Testa (jtesta@positronsecurity.com)
+   Copyright (C) 2017-2026 Joe Testa (jtesta@positronsecurity.com)
    Copyright (C) 2017 Andris Raugulis (moo@arthepsy.eu)
 
    Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -67,7 +67,7 @@ class AuditConf:
         self.conn_rate_test_enabled = False
         self.conn_rate_test_threads = 0
         self.conn_rate_test_target_rate = 0
-        self.socks_proxy: Optional[str] = None  # SOCKS5 proxy in "host:port" format
+        self.socks5_proxy: Optional[str] = None  # SOCKS5 proxy in "host:port" format
 
 
     def __setattr__(self, name: str, value: Union[str, int, float, bool, Sequence[int]]) -> None:
@@ -96,7 +96,7 @@ class AuditConf:
             if value == -1.0:
                 raise ValueError('invalid timeout: {}'.format(value))
             valid = True
-        elif name in ['ip_version_preference', 'lookup', 'policy_file', 'policy', 'target_file', 'target_list', 'gex_test', 'socks_proxy']:
+        elif name in ['ip_version_preference', 'lookup', 'policy_file', 'policy', 'target_file', 'target_list', 'gex_test']:
             valid = True
         elif name == "threads":
             valid, num_threads = True, Utils.parse_int(value)
@@ -186,6 +186,12 @@ class AuditConf:
             if not isinstance(value, int):
                 valid = False
 
+        elif name == "socks5_proxy":
+            valid = True
+            if isinstance(value, str):
+                host, port = Utils.parse_host_and_port(value, 0)
+                if len(host) == 0 or port <= 0 or port >= 65535:
+                    raise ValueError("SOCKS5 host must be in host:port format.")
 
         if valid:
             object.__setattr__(self, name, value)
