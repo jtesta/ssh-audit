@@ -26,6 +26,7 @@ import multiprocessing
 import os
 import queue
 import random
+import secrets
 import select
 import socket
 import struct
@@ -599,7 +600,7 @@ class DHEat:
         elif chosen_alg == "ecdh-sha2-nistp521":
             e = DHEat.HARDCODED_NISTP521
         else:
-            e = b"\x00" + int.to_bytes(random.randint(0, max_msb), length=1, byteorder="big") + os.urandom(self.e_rand_len)
+            e = b"\x00" + int.to_bytes(secrets.randbelow(max_msb + 1), length=1, byteorder="big") + os.urandom(self.e_rand_len)
 
         payload = message_code + struct.pack("!L", len(e)) + e
         pad_len, padding = self.get_padding(payload)
