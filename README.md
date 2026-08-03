@@ -100,6 +100,7 @@ optional arguments:
   -t N, --timeout N     timeout (in seconds) for connection and reading
                         (default: 5)
   -v, --verbose         enable verbose output
+  -V, --version         show version and exit
   --conn-rate-test N[:max_rate]
                         perform a connection rate test (useful for collecting
                         metrics related to susceptibility of the DHEat vuln).
