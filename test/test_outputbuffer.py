@@ -181,3 +181,13 @@ class TestOutputBuffer:
         out.fail('fail color')
         out.write()
         assert len(output_spy.flush()) == 4
+
+    def test_outputbuffer_always_print_bypasses_level(self):
+        """JSON payloads are written via out.info(..., always_print=True) so --level=warn still emits them (#373)."""
+        out = self.OutputBuffer()
+        out.level = 'warn'
+        out.info('{"json": "payload"}')
+        assert out.get_buffer() == ''
+        out.info('{"json": "payload"}', always_print=True)
+        assert '{"json": "payload"}' in out.get_buffer()
+
