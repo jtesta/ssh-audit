@@ -80,6 +80,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     INFO_WITHDRAWN_PQ_ALG = 'the sntrup4591761 algorithm was withdrawn, as it may not provide strong post-quantum security'
     INFO_EXTENSION_NEGOTIATION = 'pseudo-algorithm that denotes the peer supports RFC8308 extensions'
     INFO_STRICT_KEX = 'pseudo-algorithm that denotes the peer supports a stricter key exchange method as a counter-measure to the Terrapin attack (CVE-2023-48795)'
+    INFO_KEXGUESS2 = 'pseudo-algorithm / negotiation marker used by Dropbear to accelerate KEX guessing; not an actual key exchange'
 
     # NIST PQC security levels: https://blog.cloudflare.com/pq-2025/
     INFO_NIST_PQC_LEVEL_2 = 'rated at NIST PQC level 2 (at least as hard to break as SHA256)'
@@ -196,7 +197,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'kexAlgoECDH256': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
             'kexAlgoECDH384': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
             'kexAlgoECDH521': [[], [FAIL_NSA_BACKDOORED_CURVE], [WARN_NOT_PQ_SAFE]],
-            'kexguess2@matt.ucc.asn.au': [['d2013.57'], [], [WARN_NOT_PQ_SAFE]],
+            'kexguess2@matt.ucc.asn.au': [['d2013.57'], [], [], [INFO_KEXGUESS2]],  # Dropbear KEX guessing marker (not a real algorithm).
             'm383-sha384@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
             'm511-sha512@libassh.org': [[], [FAIL_UNPROVEN], [WARN_NOT_PQ_SAFE]],
             'mlkem768x25519-sha256': [['9.9'], [], [], [INFO_DEFAULT_OPENSSH_KEX_100, INFO_HYBRID_PQ_X25519_KEX]],
