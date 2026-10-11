@@ -583,7 +583,7 @@ def output(out: OutputBuffer, aconf: AuditConf, banner: Optional[Banner], header
     if aconf.json:
         out.reset()
         # Build & write the JSON struct.
-        out.info(json.dumps(build_struct(aconf.host + ":" + str(aconf.port), banner, kex=kex, client_host=client_host, software=software, algorithms=algs, algorithm_recommendation_suppress_list=algorithm_recommendation_suppress_list, additional_notes=additional_notes), indent=4 if aconf.json_print_indent else None, sort_keys=True))
+        out.info(json.dumps(build_struct(aconf.host + ":" + str(aconf.port), banner, kex=kex, client_host=client_host, software=software, algorithms=algs, algorithm_recommendation_suppress_list=algorithm_recommendation_suppress_list, additional_notes=additional_notes), indent=4 if aconf.json_print_indent else None, sort_keys=True), always_print=True)
     elif len(unknown_algorithms) > 0:  # If we encountered any unknown algorithms, ask the user to report them.
         out.warn("\n\n!!! WARNING: unknown algorithm(s) found!: %s.  If this is the latest version of ssh-audit (see <https://github.com/jtesta/ssh-audit/releases>), please create a new Github issue at <https://github.com/jtesta/ssh-audit/issues> with the full output above.\n" % ','.join(unknown_algorithms))
 
@@ -603,7 +603,7 @@ def evaluate_policy(out: OutputBuffer, aconf: AuditConf, banner: Optional['Banne
 
         json_struct = {'host': aconf.host, 'port': aconf.port, 'policy': aconf.policy.get_name_and_version(), 'passed': passed, 'errors': error_struct, 'warnings': warnings}
 
-        out.info(json.dumps(json_struct, indent=4 if aconf.json_print_indent else None, sort_keys=True))
+        out.info(json.dumps(json_struct, indent=4 if aconf.json_print_indent else None, sort_keys=True), always_print=True)
     else:
         spacing = ''
         if aconf.client_audit:
@@ -1436,7 +1436,7 @@ def run_gex_granular_modulus_size_test(out: OutputBuffer, s: 'SSH_Socket', kex: 
     if mod_dict:
         if aconf.json:
             json_struct = {'dh-gex-modulus-size': mod_dict}
-            out.info(json.dumps(json_struct, indent=4 if aconf.json_print_indent else None, sort_keys=True))
+            out.info(json.dumps(json_struct, indent=4 if aconf.json_print_indent else None, sort_keys=True), always_print=True)
         else:
             out.head('# diffie-hellman group exchange modulus size')
             max_key_len = len(max(mod_dict, key=len))
