@@ -48,6 +48,7 @@ class Test_SSH2_KexDB:
             "ext-info-s",
             "kex-strict-c-v00@openssh.com",
             "kex-strict-s-v00@openssh.com",
+            "kexguess2@matt.ucc.asn.au",  # Dropbear negotiation marker, not a KEX algorithm
             "mlkem768x25519-sha256",
             "sntrup4591761x25519-sha512@tinyssh.org",
             "sntrup761x25519-sha512@openssh.com",
