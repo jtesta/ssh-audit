@@ -786,6 +786,7 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
     parser.add_argument("-T", "--targets", action="store", dest="targets", metavar="targets.txt", type=str, default=None, help="a file containing a list of target hosts (one per line, format HOST[:PORT]). Use -p/--port to set the default port for all hosts.  Use --threads to control concurrent scans")
     parser.add_argument("-t", "--timeout", action="store", dest="timeout", metavar="N", type=int, default=5, help="timeout (in seconds) for connection and reading (default: %(default)s)")
     parser.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False, help="enable verbose output")
+    parser.add_argument("-V", "--version", action="store_true", dest="version", default=False, help="show version and exit")
 
     # Add long options to the parser
     parser.add_argument("--conn-rate-test", action="store", dest="conn_rate_test", metavar="N[:max_rate]", type=str, default=None, help="perform a connection rate test (useful for collecting metrics related to susceptibility of the DHEat vuln). Testing is conducted with N concurrent sockets with an optional maximum rate of connections per second")
@@ -809,6 +810,11 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
     oport: Optional[int] = None
     try:
         argument = parser.parse_args(args=args)
+
+        # Print version and exit.
+        if argument.version is True:
+            print(VERSION)
+            sys.exit(exitcodes.GOOD)
 
         # Set simple flags.
         aconf.client_audit = argument.client_audit

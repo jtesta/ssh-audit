@@ -100,6 +100,7 @@ optional arguments:
   -t N, --timeout N     timeout (in seconds) for connection and reading
                         (default: 5)
   -v, --verbose         enable verbose output
+  -V, --version         show version and exit
   --conn-rate-test N[:max_rate]
                         perform a connection rate test (useful for collecting
                         metrics related to susceptibility of the DHEat vuln).
@@ -253,8 +254,10 @@ For convenience, a web front-end on top of the command-line tool is available at
 ## ChangeLog
 
 ### v3.9.1-dev
+ - Added support for Python 3.15.
  - Fixed a perhaps rare crash when performing connection rate tests during standard audits.
  - Added 1 new host key: `ssh-mldsa44-ed25519` (the final name used since OpenSSH 10.6).  The experimental `ssh-mldsa44-ed25519@openssh.com` was removed in OpenSSH 10.6, so it is now marked as such and is no longer recommended for OpenSSH 10.6 and later.
+ - Added `-V`/`--version` flag to print version and terminate; credit [Christian Krause](https://github.com/wookietreiber).
 
 ### v3.9.0 (2026-07-04)
  - BIG THANKS to [realmiwi](https://github.com/realmiwi) for being the project's *very first sponsor!!*
