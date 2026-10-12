@@ -141,6 +141,17 @@ class Algorithms:
                             break
                         if not matches:
                             continue
+                    removed = False
+                    if (software is not None) and (len(versions) > 1):
+                        # The last version supporting this algorithm is the second entry for servers, and the last entry for clients.
+                        till_versions = versions[1] if for_server else versions[-1]
+                        for v in (till_versions or '').split(','):
+                            ssh_prefix, ssh_version, is_cli = Algorithm.get_ssh_version(v)
+                            if (not ssh_version) or (ssh_prefix != software.product) or (is_cli and for_server):
+                                continue
+                            if software.compare_version(ssh_version) > 0:
+                                removed = True
+                            break
                     adl, faults = len(alg_desc), 0
                     for i in range(1, 3):
                         if not adl > i:
@@ -153,7 +164,7 @@ class Algorithms:
                         if faults > 0 or \
                            (alg_type == 'key' and (('-cert-' in n) or (n.startswith('sk-')))) or \
                            (alg_type == 'kex' and (n.startswith('ext-info-') or n.startswith('kex-strict-'))) or \
-                           empty_version:
+                           empty_version or removed:
                             continue
                         rec[sshv][alg_type]['add'][n] = 0
                     else:

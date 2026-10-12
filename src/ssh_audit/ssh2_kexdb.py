@@ -77,6 +77,7 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
     INFO_REMOVED_IN_OPENSSH61 = 'removed since OpenSSH 6.1, removed from specification'
     INFO_REMOVED_IN_OPENSSH69 = 'removed in OpenSSH 6.9: https://www.openssh.com/txt/release-6.9'
     INFO_REMOVED_IN_OPENSSH70 = 'removed in OpenSSH 7.0: https://www.openssh.com/txt/release-7.0'
+    INFO_REMOVED_IN_OPENSSH106 = 'removed in OpenSSH 10.6 (replaced by ssh-mldsa44-ed25519): https://www.openssh.com/txt/release-10.6'
     INFO_WITHDRAWN_PQ_ALG = 'the sntrup4591761 algorithm was withdrawn, as it may not provide strong post-quantum security'
     INFO_EXTENSION_NEGOTIATION = 'pseudo-algorithm that denotes the peer supports RFC8308 extensions'
     INFO_STRICT_KEX = 'pseudo-algorithm that denotes the peer supports a stricter key exchange method as a counter-measure to the Terrapin attack (CVE-2023-48795)'
@@ -271,7 +272,8 @@ class SSH2_KexDB:  # pylint: disable=too-few-public-methods
             'ssh-mldsa-65': [[], [], [], [INFO_NIST_PQC_LEVEL_3]],
             'ssh-mldsa-87': [[], [], [], [INFO_NIST_PQC_LEVEL_5]],
             'ssh-mldsa44': [[], [], [], [INFO_NIST_PQC_LEVEL_2]],
-            'ssh-mldsa44-ed25519@openssh.com': [['10.4'], [], [], [INFO_NIST_PQC_LEVEL_2]],
+            'ssh-mldsa44-ed25519': [['10.6'], [], [], [INFO_NIST_PQC_LEVEL_2]],
+            'ssh-mldsa44-ed25519@openssh.com': [['10.4', '10.5'], [], [], [INFO_NIST_PQC_LEVEL_2, INFO_REMOVED_IN_OPENSSH106]],
             'ssh-mldsa65': [[], [], [], [INFO_NIST_PQC_LEVEL_3]],
             'ssh-mldsa87': [[], [], [], [INFO_NIST_PQC_LEVEL_5]],
             'ssh-rsa1': [[], [FAIL_SHA1]],
