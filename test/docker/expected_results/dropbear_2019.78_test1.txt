@@ -27,8 +27,8 @@
 [0;33m                                     `- [warn] 2048-bit modulus only provides 112-bits of symmetric strength[0m
 [0;33m                                     `- [warn] does not provide protection against post-quantum attacks[0m
                                      `- [info] available since OpenSSH 3.9, Dropbear SSH 0.53
-[0;33m(kex) kexguess2@matt.ucc.asn.au      -- [warn] does not provide protection against post-quantum attacks[0m
-                                     `- [info] available since Dropbear SSH 2013.57
+[0;32m(kex) kexguess2@matt.ucc.asn.au      -- [info] available since Dropbear SSH 2013.57[0m
+[0;32m                                     `- [info] pseudo-algorithm used by Dropbear to enable kex guessing[0m
 
 [0;36m# host-key algorithms[0m
 [0;31m(key) ecdsa-sha2-nistp256            -- [fail] using elliptic curves that are suspected as being backdoored by the U.S. National Security Agency[0m
@@ -90,7 +90,6 @@
 [0;33m(rec) -curve25519-sha256@libssh.org  -- kex algorithm to remove [0m
 [0;33m(rec) -diffie-hellman-group14-sha256 -- kex algorithm to remove [0m
 [0;33m(rec) -hmac-sha2-256                 -- mac algorithm to remove [0m
-[0;33m(rec) -kexguess2@matt.ucc.asn.au     -- kex algorithm to remove [0m
 
 [0;36m# additional info[0m
 [0;33m(nfo) For hardening guides on common OSes, a built-in list can be viewed with --list-hardening-guides, or an online list can be found at: <https://www.ssh-audit.com/hardening_guides.html>[0m

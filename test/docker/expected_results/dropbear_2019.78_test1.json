@@ -207,10 +207,8 @@
             "algorithm": "kexguess2@matt.ucc.asn.au",
             "notes": {
                 "info": [
+                    "pseudo-algorithm used by Dropbear to enable kex guessing",
                     "available since Dropbear SSH 2013.57"
-                ],
-                "warn": [
-                    "does not provide protection against post-quantum attacks"
                 ]
             }
         }
@@ -395,10 +393,6 @@
                     },
                     {
                         "name": "diffie-hellman-group14-sha256",
-                        "notes": ""
-                    },
-                    {
-                        "name": "kexguess2@matt.ucc.asn.au",
                         "notes": ""
                     }
                 ],
