@@ -256,6 +256,7 @@ For convenience, a web front-end on top of the command-line tool is available at
 ### v3.9.1-dev
  - Added support for Python 3.15.
  - Fixed a perhaps rare crash when performing connection rate tests during standard audits.
+ - No longer mark `kexguess2@matt.ucc.asn.au` (pseudo-kex used by Dropbear) as not PQ-safe.
  - Added `-V`/`--version` flag to print version and terminate; credit [Christian Krause](https://github.com/wookietreiber).
 
 ### v3.9.0 (2026-07-04)

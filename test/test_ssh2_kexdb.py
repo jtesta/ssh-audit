@@ -46,6 +46,7 @@ class Test_SSH2_KexDB:
             "ecdh-nistp521-kyber-1024r3-sha512-d00@openquantumsafe.org",
             "ext-info-c",
             "ext-info-s",
+            "kexguess2@matt.ucc.asn.au",
             "kex-strict-c-v00@openssh.com",
             "kex-strict-s-v00@openssh.com",
             "mlkem768x25519-sha256",
