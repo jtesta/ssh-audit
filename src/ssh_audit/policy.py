@@ -172,7 +172,13 @@ class Policy:
                 if self._hostkey_sizes is None:
                     self._hostkey_sizes = {}
 
-                self._hostkey_sizes[hostkey_type] = {'hostkey_size': hostkey_size, 'ca_key_type': '', 'ca_key_size': 0}
+                # Merge into this host key type's existing entry instead of replacing it: a preceding
+                # cakey_size_ directive for the same type already defined the CA constraint, which this
+                # line must not erase.  Only this type's entry is touched, so no other type's values leak in.
+                hostkey_entry = self._hostkey_sizes.setdefault(hostkey_type, {'ca_key_type': '', 'ca_key_size': 0})
+                hostkey_entry['hostkey_size'] = hostkey_size
+                hostkey_entry.setdefault('ca_key_type', '')
+                hostkey_entry.setdefault('ca_key_size', 0)
 
             elif key.startswith('cakey_size_'):  # Old host key size format.
                 print(Policy.WARNING_DEPRECATED_DIRECTIVES, file=self._warning_target)  # Warn the user that the policy file is using deprecated directives.
@@ -186,7 +192,14 @@ class Policy:
 
                 if self._hostkey_sizes is None:
                     self._hostkey_sizes = {}
-                self._hostkey_sizes[hostkey_type] = {'hostkey_size': hostkey_size, 'ca_key_type': ca_key_type, 'ca_key_size': ca_key_size}
+
+                # A cakey_size_ directive constrains the CA signature only; it says nothing about the host
+                # key's own size, so no hostkey_size is invented here (and none is inherited from an
+                # unrelated hostkey_size_ line).  Merge into this type's entry so a preceding
+                # hostkey_size_ directive for the same type keeps its constraint.
+                ca_key_entry = self._hostkey_sizes.setdefault(hostkey_type, {'ca_key_type': '', 'ca_key_size': 0})
+                ca_key_entry['ca_key_type'] = ca_key_type
+                ca_key_entry['ca_key_size'] = ca_key_size
 
             elif key == 'host_key_sizes':  # New host key size format.
                 self._hostkey_sizes = json.loads(val)
@@ -381,12 +394,14 @@ macs = %s
             hostkey_types = list(self._hostkey_sizes.keys())
             hostkey_types.sort()  # Sorted to make testing output repeatable.
             for hostkey_type in hostkey_types:
-                expected_hostkey_size = cast(int, self._hostkey_sizes[hostkey_type]['hostkey_size'])
+                # A CA-only policy entry has no host key size; do not compare against a guessed one.
+                expected_hostkey_size = cast(Optional[int], self._hostkey_sizes[hostkey_type].get('hostkey_size'))
                 server_host_keys = kex.host_keys()
                 if hostkey_type in server_host_keys:
                     actual_hostkey_size = cast(int, server_host_keys[hostkey_type]['hostkey_size'])
-                    if (self._allow_larger_keys and actual_hostkey_size < expected_hostkey_size) or \
-                       (not self._allow_larger_keys and actual_hostkey_size != expected_hostkey_size):
+                    if expected_hostkey_size is not None and \
+                       ((self._allow_larger_keys and actual_hostkey_size < expected_hostkey_size) or
+                            (not self._allow_larger_keys and actual_hostkey_size != expected_hostkey_size)):
                         ret = False
                         self._append_error('Host key (%s) sizes' % hostkey_type, [str(expected_hostkey_size)], None, [str(actual_hostkey_size)])
 
