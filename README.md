@@ -259,6 +259,7 @@ For convenience, a web front-end on top of the command-line tool is available at
  - No longer mark `kexguess2@matt.ucc.asn.au` (pseudo-kex used by Dropbear) as not PQ-safe.
  - Mark `mlkem768x25519-sha256`, `sntrup761x25519-sha512`, and `sntrup761x25519-sha512@openssh.com` as supported by Dropbear 2025.87.
  - Added `-V`/`--version` flag to print version and terminate; credit [Christian Krause](https://github.com/wookietreiber).
+ - Added `mlkem768x25519-sha256` and `sntrup761x25519-sha512` to default kex list for client tests to resolve warning message; credit [Denny Page](https://github.com/dennypage).
  - Added 1 new host key: `ssh-mldsa44-ed25519`.
 
 ### v3.9.0 (2026-07-04)
