@@ -715,7 +715,8 @@ def list_policies(out: OutputBuffer, verbose: bool) -> None:
     out.write()
 
 
-def make_policy(aconf: AuditConf, banner: Optional['Banner'], kex: Optional['SSH2_Kex'], client_host: Optional[str]) -> None:
+def make_policy(aconf: AuditConf, banner: Optional['Banner'], kex: Optional['SSH2_Kex'], client_host: Optional[str]) -> int:
+    '''Creates a policy file.  Returns exitcodes.GOOD if the file was written, otherwise exitcodes.UNKNOWN_ERROR.'''
 
     # Set the source of this policy to the server host if this is a server audit, otherwise set it to the client address.
     source: Optional[str] = aconf.host
@@ -746,8 +747,10 @@ def make_policy(aconf: AuditConf, banner: Optional['Banner'], kex: Optional['SSH
 
     if succeeded:
         print("Wrote policy to %s.  Customize as necessary, then run a policy scan with -P option." % aconf.policy_file)
-    else:
-        print(err)
+        return exitcodes.GOOD
+
+    print(err)
+    return exitcodes.UNKNOWN_ERROR
 
 
 def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # pylint: disable=too-many-statements
@@ -1250,7 +1253,7 @@ def audit(out: OutputBuffer, aconf: AuditConf, print_target: bool = False) -> in
 
     # A new policy should be made from this scan.
     elif (aconf.policy is None) and (aconf.make_policy is True):
-        make_policy(aconf, banner, kex, s.client_host)
+        program_retval = make_policy(aconf, banner, kex, s.client_host)
 
     else:
         raise RuntimeError('Internal error while handling output: %r %r' % (aconf.policy is None, aconf.make_policy))
