@@ -50,6 +50,7 @@ from ssh_audit.dheat import DHEat
 from ssh_audit import exitcodes
 from ssh_audit.fingerprint import Fingerprint
 from ssh_audit.gextest import GEXTest
+from ssh_audit.clientgextest import ClientGEXTest
 from ssh_audit.hostkeytest import HostKeyTest
 from ssh_audit.outputbuffer import OutputBuffer
 from ssh_audit.policy import Policy
@@ -789,6 +790,7 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
     parser.add_argument("-V", "--version", action="store_true", dest="version", default=False, help="show version and exit")
 
     # Add long options to the parser
+    parser.add_argument("--client-gex-test", type=int, choices=[128, 192, 256], default=None, help="with -c, measure the client GEX min/preferred/max sizes using an AES cipher of this strength")
     parser.add_argument("--conn-rate-test", action="store", dest="conn_rate_test", metavar="N[:max_rate]", type=str, default=None, help="perform a connection rate test (useful for collecting metrics related to susceptibility of the DHEat vuln). Testing is conducted with N concurrent sockets with an optional maximum rate of connections per second")
     parser.add_argument("--dheat", action="store", dest="dheat", metavar="N[:kex[:e_len]]", type=str, default=None, help="continuously perform the DHEat DoS attack (CVE-2002-20001) against the target using N concurrent sockets.  Optionally, a specific key exchange algorithm can be specified instead of allowing it to be automatically chosen.  Additionally, a small length of the fake e value sent to the server can be chosen for a more efficient attack (such as 4).")
     parser.add_argument("--get-hardening-guide", action="store", metavar="platform", dest="get_hardening_guide", type=str, default=None, help="retrieves the hardening guide for the specified platform name (use --list-hardening-guides to see list of available guides).")
@@ -849,6 +851,11 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
 
         if argument.dheat is not None:
             aconf.dheat = argument.dheat
+
+        if argument.client_gex_test is not None:
+            if not aconf.client_audit or argument.gex_test is not None or argument.dheat is not None or argument.conn_rate_test is not None or argument.policy is not None or argument.make_policy is not None or argument.targets is not None:
+                parser.error('--client-gex-test requires -c and cannot be combined with other test or policy modes')
+            aconf.client_gex_test = argument.client_gex_test
 
         if argument.gex_test is not None:
             dh_gex = argument.gex_test
@@ -1186,7 +1193,10 @@ def audit(out: OutputBuffer, aconf: AuditConf, print_target: bool = False) -> in
         else:
             err = '[exception] did not receive banner: {}'.format(err)
     if err is None:
-        s.send_kexinit()  # Send the algorithms we support (except we don't since this isn't a real SSH connection).
+        if aconf.client_gex_test:
+            s.send_kexinit(key_exchanges=ClientGEXTest.ALGORITHMS, ciphers=['aes%d-ctr' % aconf.client_gex_test])
+        else:
+            s.send_kexinit()  # Send the algorithms we support (except we don't since this isn't a real SSH connection).
 
         packet_type, payload = s.read_packet()
         if packet_type < 0:
@@ -1217,6 +1227,9 @@ def audit(out: OutputBuffer, aconf: AuditConf, print_target: bool = False) -> in
     except Exception:
         out.fail("Failed to parse server's kex.  Stack trace:\n%s" % str(traceback.format_exc()))
         return exitcodes.CONNECTION_ERROR
+
+    if aconf.client_gex_test:
+        return ClientGEXTest.run(out, s, kex, aconf)
 
     if aconf.dheat is not None:
         DHEat(out, aconf, banner, kex).run()
