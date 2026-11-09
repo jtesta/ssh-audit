@@ -39,11 +39,10 @@
 [0;36m# algorithm recommendations (for OpenSSH 8.0)[0m
 [0;32m(rec) +rsa-sha2-256                         -- key algorithm to append [0m
 [0;32m(rec) +rsa-sha2-512                         -- key algorithm to append [0m
-[0;33m(rec) !diffie-hellman-group-exchange-sha256 -- kex algorithm to change (increase modulus size to 3072 bits or larger) [0m
 [0;33m(rec) -chacha20-poly1305@openssh.com        -- enc algorithm to remove [0m
 [0;33m(rec) -curve25519-sha256                    -- kex algorithm to remove [0m
 [0;33m(rec) -curve25519-sha256@libssh.org         -- kex algorithm to remove [0m
+[0;33m(rec) -diffie-hellman-group-exchange-sha256 -- kex algorithm to remove [0m
 
 [0;36m# additional info[0m
 [0;33m(nfo) For hardening guides on common OSes, a built-in list can be viewed with --list-hardening-guides, or an online list can be found at: <https://www.ssh-audit.com/hardening_guides.html>[0m
-
