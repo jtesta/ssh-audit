@@ -58,6 +58,7 @@ class AuditConf:
         self.manual = False
         self.debug = False
         self.gex_test = ''
+        self.client_gex_test = 0
         self.dheat: Optional[str] = None
         self.dheat_concurrent_connections: int = 0
         self.dheat_e_length: int = 0
@@ -80,6 +81,10 @@ class AuditConf:
                 valid = False
             elif value:
                 self.ip_version_preference.append(4 if name == 'ipv4' else 6)
+        elif name == 'client_gex_test':
+            if value not in (0, 128, 192, 256):
+                raise ValueError('client GEX cipher strength must be 128, 192, or 256')
+            valid = True
         elif name == 'port':
             valid, port = True, Utils.parse_int(value)
             if port < 1 or port > 65535:
