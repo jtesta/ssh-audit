@@ -168,14 +168,6 @@
             }
         },
         "warning": {
-            "chg": {
-                "kex": [
-                    {
-                        "name": "diffie-hellman-group-exchange-sha256",
-                        "notes": "increase modulus size to 3072 bits or larger"
-                    }
-                ]
-            },
             "del": {
                 "enc": [
                     {
@@ -190,6 +182,10 @@
                     },
                     {
                         "name": "curve25519-sha256@libssh.org",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group-exchange-sha256",
                         "notes": ""
                     }
                 ]

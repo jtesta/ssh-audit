@@ -433,14 +433,6 @@
             }
         },
         "warning": {
-            "chg": {
-                "kex": [
-                    {
-                        "name": "diffie-hellman-group-exchange-sha256",
-                        "notes": "increase modulus size to 3072 bits or larger"
-                    }
-                ]
-            },
             "del": {
                 "enc": [
                     {
@@ -467,6 +459,10 @@
                     },
                     {
                         "name": "diffie-hellman-group18-sha512",
+                        "notes": ""
+                    },
+                    {
+                        "name": "diffie-hellman-group-exchange-sha256",
                         "notes": ""
                     }
                 ],
