@@ -134,8 +134,8 @@ optional arguments:
                         targets (-T/--targets) (default: 32)
 ```
 * if both IPv4 and IPv6 are used, order of precedence can be set by using either `-46` or `-64`.
-* batch flag `-b` will output sections without header and without empty lines (implies verbose flag).
-* verbose flag `-v` will prefix each line with section type and algorithm name.
+* batch flag `-b` suppresses section headers, blank separator lines, and alignment padding. It does not enable verbose mode; combine it with `-v` (for example, `ssh-audit -bv localhost`) to repeat the section type and algorithm name on each algorithm detail line.
+* verbose flag `-v` repeats the section type and algorithm name on each algorithm detail line, including continuation lines.
 * an exit code of 0 is returned when all algorithms are considered secure (for a standard audit), or when a policy check passes (for a policy audit).
 
 Basic server auditing:
