@@ -363,3 +363,13 @@ Please file bug reports as a Github Issue at: <https://github.com/jtesta/ssh\-au
 .br
 .LP
 Maintainership was assumed and development was resumed in 2017 by Joe Testa <jtesta@positronsecurity.com>.
+
+.SH CLIENT GROUP EXCHANGE PROBE
+.B ssh-audit -c --client-gex-test 128
+listens for an SSH client and advertises only Diffie-Hellman group exchange
+and AES-128-CTR. The client minimum, preferred and maximum modulus sizes are
+reported, then the connection closes before group exchange or authentication.
+Use 192 or 256 for the corresponding AES key lengths. Use -p to change the
+listening port, -t to set the timeout, and -j for JSON output. This probe is
+separate from a regular client audit and cannot be combined with other test
+or policy modes. The connecting client is expected to report a closed connection.

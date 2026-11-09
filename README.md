@@ -512,3 +512,16 @@ For convenience, a web front-end on top of the command-line tool is available at
 
 ### v1.0.20151223
  - initial version
+
+### Inspecting a client's group-exchange request
+
+Use `ssh-audit -c --client-gex-test 128` to offer only Diffie-Hellman
+group exchange and AES-128-CTR to a connecting SSH client. Connect the client
+to port 2222 (or the port selected with `-p`). The probe reports the client's
+minimum, preferred, and maximum DH modulus sizes. Repeat with `192` or `256`
+to compare its requests at other AES key lengths. `-j` produces JSON.
+
+This is a separate probe, not a full client audit. It stops after reading the
+group-size request, before sending a DH group or authenticating, so the client
+will report that the connection closed. No keys or credentials are requested.
+Regular client and server audits are unchanged when this option is absent.
