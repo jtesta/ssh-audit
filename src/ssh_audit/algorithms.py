@@ -149,6 +149,14 @@ class Algorithms:
                         if fc > 0:
                             faults += pow(10, 2 - i) * fc
                     if n not in alg_list:
+                        # Upper bounds are the last supported release, not its
+                        # portable patch level. Only suppress additions: an
+                        # advertised legacy algorithm must still be audited.
+                        if software is not None and not unknown_software:
+                            till = Timeframe().update(versions, for_server).get_till(software.product, for_server)
+                            release = Software(None, software.product, software.version, None, None)
+                            if till is not None and release.compare_version(till) > 0:
+                                continue
                         # Don't recommend certificate or token types; these will only appear in the server's list if they are fully configured & functional on the server.  Also don't recommend 'ext-info-[cs]' nor 'kex-strict-[cs]-v00@openssh.com' key exchanges.
                         if faults > 0 or \
                            (alg_type == 'key' and (('-cert-' in n) or (n.startswith('sk-')))) or \
