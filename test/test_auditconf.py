@@ -1,5 +1,8 @@
 import pytest
-from ssh_audit.ssh_audit import process_commandline
+import sys
+
+from ssh_audit import exitcodes
+from ssh_audit.ssh_audit import main, process_commandline
 
 
 # pylint: disable=attribute-defined-outside-init
@@ -181,3 +184,36 @@ class TestAuditConf:
 
         with pytest.raises(SystemExit):
             c('--socks5 localhost:65536 localhost')
+
+    def test_audit_conf_unreadable_targets_file(self, tmp_path):
+        # A missing file and a directory used to escape as FileNotFoundError / IsADirectoryError tracebacks.
+        for path in (str(tmp_path / 'missing.txt'), str(tmp_path)):
+            with pytest.raises(SystemExit):
+                self.process_commandline(self.OutputBuffer, ['-T', path])
+
+    def test_audit_conf_non_utf8_targets_file(self, tmp_path):
+        path = tmp_path / 'targets.txt'
+        path.write_bytes(b'\xff\xfe127.0.0.1\n')
+
+        with pytest.raises(SystemExit):
+            self.process_commandline(self.OutputBuffer, ['-T', str(path)])
+
+    def test_audit_conf_invalid_target_in_targets_file(self, tmp_path, monkeypatch, capsys):
+        path = tmp_path / 'targets.txt'
+        path.write_text('127.0.0.1\n127.0.0.1:abc\n')
+
+        monkeypatch.setattr(sys, 'argv', ['ssh-audit.py', '-T', str(path)])
+        assert main() == exitcodes.UNKNOWN_ERROR
+
+        out = capsys.readouterr().out
+        assert 'Error: invalid target "127.0.0.1:abc" on line 2 of %s: invalid port number "abc" in "127.0.0.1:abc"' % path in out
+
+    def test_audit_conf_out_of_range_port_in_targets_file(self, tmp_path, monkeypatch, capsys):
+        path = tmp_path / 'targets.txt'
+        path.write_text('127.0.0.1:70000\n')
+
+        monkeypatch.setattr(sys, 'argv', ['ssh-audit.py', '-T', str(path)])
+        assert main() == exitcodes.UNKNOWN_ERROR
+
+        out = capsys.readouterr().out
+        assert 'Error: invalid port 70000 for target "127.0.0.1:70000" on line 1 of %s' % path in out

@@ -129,6 +129,14 @@ class Utils:
             return -1.0
 
     @staticmethod
+    def parse_port(port_str: str, host_and_port: str = '') -> int:
+        '''Parses a port number, raising a ValueError that names the offending input when it is not a number.'''
+        try:
+            return int(port_str)
+        except ValueError:
+            raise ValueError('invalid port number "%s" in "%s"' % (port_str, host_and_port)) from None
+
+    @staticmethod
     def parse_host_and_port(host_and_port: str, default_port: int = 22) -> Tuple[str, int]:
         '''Parses a string into a tuple of its host and port.  The port is 0 if not specified.'''
         host = host_and_port
@@ -143,13 +151,13 @@ class Utils:
             host = mx.group(1)
             port_str = mx.group(2)
             if port_str is not None:
-                port = int(port_str)
+                port = Utils.parse_port(port_str, host_and_port)
         else:
             s = host_and_port.split(':')
             if len(s) == 2:
                 host = s[0]
                 if len(s[1]) > 0:
-                    port = int(s[1])
+                    port = Utils.parse_port(s[1], host_and_port)
 
         return host, port
 
