@@ -62,6 +62,24 @@ class TestUtils:
         assert self.utils.parse_int('-123') == -123
         assert self.utils.parse_int('abc') == 0
 
+    def test_parse_port(self):
+        assert self.utils.parse_port('22') == 22
+        assert self.utils.parse_port('65535') == 65535
+        with pytest.raises(ValueError) as e:
+            self.utils.parse_port('abc', 'example.com:abc')
+        assert str(e.value) == 'invalid port number "abc" in "example.com:abc"'
+
+    def test_parse_host_and_port(self):
+        assert self.utils.parse_host_and_port('example.com') == ('example.com', 22)
+        assert self.utils.parse_host_and_port('example.com:2222') == ('example.com', 2222)
+        assert self.utils.parse_host_and_port('[2001:db8::1]:2222') == ('2001:db8::1', 2222)
+        assert self.utils.parse_host_and_port('unix:///tmp/sshd.sock') == ('unix:///tmp/sshd.sock', 1)
+
+        # A port that is not a number used to escape as a bare ValueError from int(); it now names the offending input.
+        with pytest.raises(ValueError) as e:
+            self.utils.parse_host_and_port('example.com:abc')
+        assert str(e.value) == 'invalid port number "abc" in "example.com:abc"'
+
     def test_unique_seq(self):
         assert self.utils.unique_seq((1, 2, 2, 3, 3, 3)) == (1, 2, 3)
         assert self.utils.unique_seq((3, 3, 3, 2, 2, 1)) == (3, 2, 1)
