@@ -538,3 +538,260 @@ macs = mac_alg2, mac_alg1, mac_alg3, mac_alg0'''
         assert ret is False
         assert len(errors) == 1
         assert error_str.find("Key exchanges did not match.") != -1
+
+    # ------------------------------------------------------------------
+    # Legacy hostkey_size_* / cakey_size_* directive regression tests.
+    #
+    # Each fixture below is a genuine product KEX object: the KEXINIT payload is
+    # synthesized with the product's WriteBuf and parsed by SSH2_Kex.parse(), and
+    # the host keys are registered through SSH2_Kex.set_host_key(), the same API
+    # the live protocol handler uses.  No sockets are involved.
+    # ------------------------------------------------------------------
+
+    LEGACY_POLICY_HEADER = 'name = "Test Policy"\nversion = 1\n'
+
+
+    def _legacy_policy(self, directives):
+        '''Loads a policy that consists of the standard header plus the given legacy directives.'''
+
+        return self.Policy(policy_data=self.LEGACY_POLICY_HEADER + directives)
+
+
+    def _get_kex_with_host_keys(self, host_key_specs):
+        '''Returns an SSH2_Kex object with real host key entries: (type, size, ca_type, ca_size) tuples.'''
+
+        key_algs = [spec[0] for spec in host_key_specs]
+
+        w = self.wbuf()
+        w.write(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff')
+        w.write_list(['kex_alg1', 'kex_alg2'])
+        w.write_list(key_algs)
+        w.write_list(['cipher_alg1', 'cipher_alg2', 'cipher_alg3'])
+        w.write_list(['cipher_alg1', 'cipher_alg2', 'cipher_alg3'])
+        w.write_list(['mac_alg1', 'mac_alg2', 'mac_alg3'])
+        w.write_list(['mac_alg1', 'mac_alg2', 'mac_alg3'])
+        w.write_list(['none'])
+        w.write_list(['none'])
+        w.write_list([''])
+        w.write_list([''])
+        w.write_byte(False)
+        w.write_int(0)
+        kex = self.ssh2_kex.parse(self.OutputBuffer(), w.write_flush())
+
+        for (key_type, hostkey_size, ca_key_type, ca_key_size) in host_key_specs:
+            kex.set_host_key(key_type, b'\x00' * 8, hostkey_size, ca_key_type, ca_key_size)
+
+        return kex
+
+
+    def _hostkey_entry(self, policy, hostkey_type):
+        '''Returns the parsed host key size entry for a type, with protected access made explicit.'''
+
+        return policy._hostkey_sizes[hostkey_type]  # pylint: disable=protected-access
+
+
+    def test_policy_legacy_cakey_size_only_loads_and_enforces_ca(self):
+        '''A policy with only a cakey_size_ directive must load and keep enforcing the CA signature.'''
+
+        policy = self._legacy_policy('cakey_size_ssh-rsa-cert-v01@openssh.com = 4096\n')
+        entry = self._hostkey_entry(policy, 'ssh-rsa-cert-v01@openssh.com')
+        assert entry['ca_key_type'] == 'ssh-rsa'
+        assert entry['ca_key_size'] == 4096
+        # No host key size was specified, so none may be invented for the CA-only entry.
+        assert 'hostkey_size' not in entry
+
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 4096)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is True
+        assert len(errors) == 0, error_str
+
+
+    def test_policy_legacy_cakey_size_only_ca_mismatch_detected(self):
+        '''A CA-only policy must still detect a CA signature that is too small.'''
+
+        policy = self._legacy_policy('cakey_size_ssh-rsa-cert-v01@openssh.com = 4096\n')
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 2048)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is False
+        assert len(errors) == 1, error_str
+        assert error_str.find('CA signature size (ssh-rsa)') != -1
+        # The CA-only entry must not produce a host key size error of its own.
+        assert error_str.find('Host key (') == -1
+
+
+    def test_policy_legacy_cakey_size_only_ca_type_mismatch_detected(self):
+        '''A CA-only policy must still detect the wrong CA signature type.'''
+
+        policy = self._legacy_policy('cakey_size_ssh-ed25519-cert-v01@openssh.com = 256\n')
+        entry = self._hostkey_entry(policy, 'ssh-ed25519-cert-v01@openssh.com')
+        assert entry['ca_key_type'] == 'ssh-ed25519'
+
+        kex = self._get_kex_with_host_keys([('ssh-ed25519-cert-v01@openssh.com', 256, 'ssh-rsa', 4096)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is False
+        assert len(errors) == 1, error_str
+        assert error_str.find('CA signature type') != -1
+
+
+    def test_policy_legacy_foreign_hostkey_size_not_inherited(self):
+        '''An unrelated hostkey_size_ line must not supply the size of a CA-only certificate type.'''
+
+        policy = self._legacy_policy('hostkey_size_ssh-ed25519 = 256\n'
+                                     'cakey_size_ssh-rsa-cert-v01@openssh.com = 4096\n')
+        cert_entry = self._hostkey_entry(policy, 'ssh-rsa-cert-v01@openssh.com')
+        assert cert_entry['ca_key_type'] == 'ssh-rsa'
+        assert cert_entry['ca_key_size'] == 4096
+        assert 'hostkey_size' not in cert_entry
+        assert self._hostkey_entry(policy, 'ssh-ed25519')['hostkey_size'] == 256
+
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 4096),
+                                            ('ssh-ed25519', 256, '', 0)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is True
+        assert len(errors) == 0, error_str
+
+
+    def test_policy_legacy_hostkey_then_cakey_same_type(self):
+        '''hostkey_size_ followed by cakey_size_ for the same type keeps both constraints.'''
+
+        policy = self._legacy_policy('hostkey_size_ssh-rsa-cert-v01@openssh.com = 2048\n'
+                                     'cakey_size_ssh-rsa-cert-v01@openssh.com = 4096\n')
+        entry = self._hostkey_entry(policy, 'ssh-rsa-cert-v01@openssh.com')
+        assert entry['hostkey_size'] == 2048
+        assert entry['ca_key_size'] == 4096
+
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 4096)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is True
+        assert len(errors) == 0, error_str
+
+        # The host key size constraint written first is still enforced.
+        policy = self._legacy_policy('hostkey_size_ssh-rsa-cert-v01@openssh.com = 2048\n'
+                                     'cakey_size_ssh-rsa-cert-v01@openssh.com = 4096\n')
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 4096, 'ssh-rsa', 4096)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is False
+        assert len(errors) == 1, error_str
+        assert error_str.find('Host key (ssh-rsa-cert-v01@openssh.com) sizes') != -1
+
+
+    def test_policy_legacy_cakey_then_hostkey_same_type(self):
+        '''cakey_size_ followed by hostkey_size_ for the same type must not lose the CA constraint.'''
+
+        policy = self._legacy_policy('cakey_size_ssh-rsa-cert-v01@openssh.com = 4096\n'
+                                     'hostkey_size_ssh-rsa-cert-v01@openssh.com = 2048\n')
+        entry = self._hostkey_entry(policy, 'ssh-rsa-cert-v01@openssh.com')
+        assert entry['hostkey_size'] == 2048
+        assert entry['ca_key_type'] == 'ssh-rsa'
+        assert entry['ca_key_size'] == 4096
+
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 4096)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is True
+        assert len(errors) == 0, error_str
+
+        # The CA constraint written first is still enforced.
+        policy = self._legacy_policy('cakey_size_ssh-rsa-cert-v01@openssh.com = 4096\n'
+                                     'hostkey_size_ssh-rsa-cert-v01@openssh.com = 2048\n')
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 2048)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is False
+        assert len(errors) == 1, error_str
+        assert error_str.find('CA signature size (ssh-rsa)') != -1
+
+
+    def test_policy_legacy_multiple_certificate_types(self):
+        '''Each certificate type keeps its own CA constraint; values never cross types.'''
+
+        policy = self._legacy_policy('cakey_size_ssh-rsa-cert-v01@openssh.com = 4096\n'
+                                     'cakey_size_rsa-sha2-512-cert-v01@openssh.com = 4096\n'
+                                     'cakey_size_ssh-ed25519-cert-v01@openssh.com = 256\n')
+        assert self._hostkey_entry(policy, 'ssh-rsa-cert-v01@openssh.com')['ca_key_type'] == 'ssh-rsa'
+        assert self._hostkey_entry(policy, 'rsa-sha2-512-cert-v01@openssh.com')['ca_key_type'] == 'ssh-rsa'
+        assert self._hostkey_entry(policy, 'ssh-ed25519-cert-v01@openssh.com')['ca_key_type'] == 'ssh-ed25519'
+        assert 'hostkey_size' not in self._hostkey_entry(policy, 'ssh-ed25519-cert-v01@openssh.com')
+
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 4096),
+                                            ('rsa-sha2-512-cert-v01@openssh.com', 3072, 'ssh-rsa', 4096),
+                                            ('ssh-ed25519-cert-v01@openssh.com', 256, 'ssh-ed25519', 256)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is True
+        assert len(errors) == 0, error_str
+
+        # Only the ed25519 certificate's CA is wrong here; exactly one error is expected.
+        policy = self._legacy_policy('cakey_size_ssh-rsa-cert-v01@openssh.com = 4096\n'
+                                     'cakey_size_rsa-sha2-512-cert-v01@openssh.com = 4096\n'
+                                     'cakey_size_ssh-ed25519-cert-v01@openssh.com = 256\n')
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 4096),
+                                            ('rsa-sha2-512-cert-v01@openssh.com', 3072, 'ssh-rsa', 4096),
+                                            ('ssh-ed25519-cert-v01@openssh.com', 256, 'ssh-ed25519', 4096)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is False
+        assert len(errors) == 1, error_str
+        assert error_str.find('CA signature size (ssh-ed25519)') != -1
+        assert error_str.find('CA signature size (ssh-rsa)') == -1
+
+
+    def test_policy_legacy_hostkey_size_checks_preserved(self):
+        '''The legacy hostkey_size_ directives keep their exact and allow_larger_keys semantics.'''
+
+        policy = self._legacy_policy('hostkey_size_ssh-rsa = 4096\n')
+        kex = self._get_kex_with_host_keys([('ssh-rsa', 2048, '', 0)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is False
+        assert len(errors) == 1, error_str
+        assert error_str.find('Host key (ssh-rsa) sizes') != -1
+
+        policy = self._legacy_policy('allow_larger_keys = true\nhostkey_size_ssh-rsa = 2048\n')
+        kex = self._get_kex_with_host_keys([('ssh-rsa', 4096, '', 0)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is True
+        assert len(errors) == 0, error_str
+
+        policy = self._legacy_policy('allow_larger_keys = true\nhostkey_size_ssh-rsa = 2048\n')
+        kex = self._get_kex_with_host_keys([('ssh-rsa', 1024, '', 0)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is False
+        assert len(errors) == 1, error_str
+        assert error_str.find('Host key (ssh-rsa) sizes') != -1
+
+
+    def test_policy_legacy_cakey_size_allow_larger_keys(self):
+        '''A CA-only entry keeps the allow_larger_keys semantics for CA signature sizes.'''
+
+        policy = self._legacy_policy('allow_larger_keys = true\n'
+                                     'cakey_size_ssh-rsa-cert-v01@openssh.com = 2048\n')
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 4096)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is True
+        assert len(errors) == 0, error_str
+
+        policy = self._legacy_policy('allow_larger_keys = true\n'
+                                     'cakey_size_ssh-rsa-cert-v01@openssh.com = 2048\n')
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 1024)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is False
+        assert len(errors) == 1, error_str
+        assert error_str.find('CA signature size (ssh-rsa)') != -1
+
+
+    def test_policy_new_hostkey_sizes_format_unchanged(self):
+        '''The new host_key_sizes format still enforces both host key and CA sizes.'''
+
+        policy_data = self.LEGACY_POLICY_HEADER + \
+            'host_key_sizes = {"ssh-rsa-cert-v01@openssh.com": {"hostkey_size": 2048, "ca_key_type": "ssh-rsa", "ca_key_size": 4096}, ' \
+            '"ssh-ed25519": {"hostkey_size": 256}}\n'
+        policy = self.Policy(policy_data=policy_data)
+
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 2048, 'ssh-rsa', 4096),
+                                            ('ssh-ed25519', 256, '', 0)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is True
+        assert len(errors) == 0, error_str
+
+        kex = self._get_kex_with_host_keys([('ssh-rsa-cert-v01@openssh.com', 3072, 'ssh-rsa', 4096),
+                                            ('ssh-ed25519', 256, '', 0)])
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', kex)
+        assert ret is False
+        assert len(errors) == 1, error_str
+        assert error_str.find('Host key (ssh-rsa-cert-v01@openssh.com) sizes') != -1
