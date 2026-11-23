@@ -522,6 +522,221 @@ macs = mac_alg2, mac_alg1, mac_alg3, mac_alg0'''
         assert error_str.find("Key exchanges did not match.") != -1
 
 
+    UBUNTU_24_04_V2_POLICY = 'Hardened Ubuntu Server 24.04 LTS (version 2)'
+
+    # Host key sizes and CA signatures that a real Ubuntu 24.04 OpenSSH server reports for the
+    # host key types used by the built-in Ubuntu 24.04 LTS (version 2) policy.
+    _HOST_KEY_META = {
+        'ssh-ed25519': (256, '', 0),
+        'rsa-sha2-512': (4096, '', 0),
+        'rsa-sha2-256': (4096, '', 0),
+        'sk-ssh-ed25519@openssh.com': (256, '', 0),
+        'ssh-ed25519-cert-v01@openssh.com': (256, 'ssh-ed25519', 256),
+        'sk-ssh-ed25519-cert-v01@openssh.com': (256, 'ssh-ed25519', 256),
+        'rsa-sha2-256-cert-v01@openssh.com': (4096, 'ssh-rsa', 4096),
+        'rsa-sha2-512-cert-v01@openssh.com': (4096, 'ssh-rsa', 4096),
+    }
+
+
+    def _get_builtin_ubuntu_24_04_kex(self, host_keys, kex_algs=None, ciphers=None, macs=None):
+        '''Returns an SSH2_Kex object modeled on a real Ubuntu 24.04 OpenSSH server, with host key sizes populated.'''
+
+        policy_struct = BUILTIN_POLICIES[self.UBUNTU_24_04_V2_POLICY]
+        if kex_algs is None:
+            kex_algs = policy_struct['kex']
+        if ciphers is None:
+            ciphers = policy_struct['ciphers']
+        if macs is None:
+            macs = policy_struct['macs']
+
+        w = self.wbuf()
+        w.write(b'\x00\x11\x22\x33\x44\x55\x66\x77\x88\x99\xaa\xbb\xcc\xdd\xee\xff')
+        w.write_list(kex_algs)
+        w.write_list(host_keys)
+        w.write_list(ciphers)
+        w.write_list(ciphers)
+        w.write_list(macs)
+        w.write_list(macs)
+        w.write_list(['none'])
+        w.write_list(['none'])
+        w.write_list([''])
+        w.write_list([''])
+        w.write_byte(False)
+        w.write_int(0)
+        kex = self.ssh2_kex.parse(self.OutputBuffer, w.write_flush())
+
+        # Populate the host key sizes/CA signatures that a real server would report.  Without this,
+        # Policy.evaluate() silently skips the host key size checks in the built-in policy.
+        for key_type in host_keys:
+            if key_type in self._HOST_KEY_META and key_type not in kex.host_keys():
+                hostkey_size, ca_key_type, ca_key_size = self._HOST_KEY_META[key_type]
+                kex.set_host_key(key_type, b'\x00' * 32, hostkey_size, ca_key_type, ca_key_size)
+
+        return kex
+
+
+    def test_policy_evaluate_builtin_ubuntu_24_04_required_only(self):
+        '''A real Ubuntu 24.04 v2 server that presents only the required host keys still passes.'''
+
+        policy = self.Policy.load_builtin_policy(self.UBUNTU_24_04_V2_POLICY)
+        assert policy is not None
+        kex = self._get_builtin_ubuntu_24_04_kex(BUILTIN_POLICIES[self.UBUNTU_24_04_V2_POLICY]['host_keys'])
+        ret, errors, error_str = policy.evaluate('SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13', kex)
+        assert ret is True
+        assert len(errors) == 0
+        assert error_str == ''
+
+
+    def test_policy_evaluate_builtin_ubuntu_24_04_required_plus_optional_reordered(self):
+        '''A real Ubuntu 24.04 v2 server that also presents optional host keys (re-ordered and repeated) passes.
+
+        The optional host keys are neither required nor forbidden by the policy, so they must be pruned
+        before the subset check.  Otherwise a compliant server is reported as a false failure.
+        '''
+
+        policy = self.Policy.load_builtin_policy(self.UBUNTU_24_04_V2_POLICY)
+        assert policy is not None
+        host_keys = [
+            'rsa-sha2-512-cert-v01@openssh.com',
+            'ssh-ed25519',
+            'sk-ssh-ed25519@openssh.com',
+            'rsa-sha2-512',
+            'ssh-ed25519-cert-v01@openssh.com',
+            'rsa-sha2-256',
+            'sk-ssh-ed25519-cert-v01@openssh.com',
+            'rsa-sha2-256-cert-v01@openssh.com',
+            'ssh-ed25519',  # Repeated on purpose.
+        ]
+        kex = self._get_builtin_ubuntu_24_04_kex(host_keys)
+        ret, errors, error_str = policy.evaluate('SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13', kex)
+        assert ret is True
+        assert len(errors) == 0
+        assert error_str == ''
+
+
+    def test_policy_evaluate_builtin_ubuntu_24_04_required_plus_optional_subset(self):
+        '''A real Ubuntu 24.04 v2 server may present fewer required host keys plus any optional keys.'''
+
+        policy = self.Policy.load_builtin_policy(self.UBUNTU_24_04_V2_POLICY)
+        assert policy is not None
+        host_keys = ['ssh-ed25519', 'sk-ssh-ed25519@openssh.com', 'rsa-sha2-256']
+        kex = self._get_builtin_ubuntu_24_04_kex(host_keys)
+        ret, errors, error_str = policy.evaluate('SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13', kex)
+        assert ret is True
+        assert len(errors) == 0
+        assert error_str == ''
+
+
+    def test_policy_evaluate_builtin_ubuntu_24_04_optional_only_subset(self):
+        '''Existing subset semantics are preserved: a server may support a subset (even none) of the required host keys.
+
+        This locks in the current meaning of "subset" (fewer keys are allowed), which this fix must not change.
+        '''
+
+        policy = self.Policy.load_builtin_policy(self.UBUNTU_24_04_V2_POLICY)
+        assert policy is not None
+        host_keys = ['ssh-ed25519-cert-v01@openssh.com', 'rsa-sha2-256-cert-v01@openssh.com']
+        kex = self._get_builtin_ubuntu_24_04_kex(host_keys)
+        ret, errors, error_str = policy.evaluate('SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13', kex)
+        assert ret is True
+        assert len(errors) == 0
+        assert error_str == ''
+
+
+    def test_policy_evaluate_builtin_ubuntu_24_04_all_keys_exact_mode(self):
+        '''In exact mode, all required host keys (plus optional ones) pass when the pruned list matches exactly.'''
+
+        policy = self.Policy.load_builtin_policy(self.UBUNTU_24_04_V2_POLICY)
+        assert policy is not None
+        policy._allow_hostkey_subset_and_reordering = False
+        policy_struct = BUILTIN_POLICIES[self.UBUNTU_24_04_V2_POLICY]
+        host_keys = list(policy_struct['host_keys']) + list(policy_struct['optional_host_keys'])
+        kex = self._get_builtin_ubuntu_24_04_kex(host_keys)
+        ret, errors, error_str = policy.evaluate('SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13', kex)
+        assert ret is True
+        assert len(errors) == 0
+        assert error_str == ''
+
+
+    def test_policy_evaluate_builtin_ubuntu_24_04_missing_required_exact_mode(self):
+        '''In exact mode, a missing required host key still fails and the full actual list is reported.'''
+
+        policy = self.Policy.load_builtin_policy(self.UBUNTU_24_04_V2_POLICY)
+        assert policy is not None
+        policy._allow_hostkey_subset_and_reordering = False
+        policy_struct = BUILTIN_POLICIES[self.UBUNTU_24_04_V2_POLICY]
+        host_keys = ['rsa-sha2-512', 'rsa-sha2-256', 'sk-ssh-ed25519@openssh.com', 'rsa-sha2-512-cert-v01@openssh.com']
+        kex = self._get_builtin_ubuntu_24_04_kex(host_keys)
+        ret, errors, error_str = policy.evaluate('SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13', kex)
+        assert ret is False
+        assert len(errors) == 1
+        assert 'Host keys did not match.' in error_str
+        assert 'exact match' in error_str
+        # The error payload must contain the complete actual list, not the pruned one.
+        assert 'sk-ssh-ed25519@openssh.com' in error_str
+        assert 'rsa-sha2-512-cert-v01@openssh.com' in error_str
+        assert policy_struct['optional_host_keys'] is not None
+
+
+    def test_policy_evaluate_builtin_ubuntu_24_04_unrelated_host_key_fails(self):
+        '''In subset mode, a host key that is neither required nor optional is still rejected.'''
+
+        policy = self.Policy.load_builtin_policy(self.UBUNTU_24_04_V2_POLICY)
+        assert policy is not None
+        policy_struct = BUILTIN_POLICIES[self.UBUNTU_24_04_V2_POLICY]
+        host_keys = list(policy_struct['host_keys']) + ['ecdsa-sha2-nistp256'] + list(policy_struct['optional_host_keys'])
+        kex = self._get_builtin_ubuntu_24_04_kex(host_keys)
+        ret, errors, error_str = policy.evaluate('SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13', kex)
+        assert ret is False
+        assert len(errors) == 1
+        assert 'Host keys did not match.' in error_str
+        # Optional keys are reported as a separate expected list, and the actual list is complete.
+        assert 'Expected (optional):' in error_str
+        assert 'ecdsa-sha2-nistp256' in error_str
+        assert 'sk-ssh-ed25519@openssh.com' in error_str
+        assert 'rsa-sha2-512-cert-v01@openssh.com' in error_str
+
+
+    def test_policy_evaluate_no_optional_host_keys_extra_key_fails(self):
+        '''A policy without optional host keys must keep rejecting an extra host key in subset mode.'''
+
+        policy_data = '''name = "Test Policy"
+version = 1
+allow_algorithm_subset_and_reordering = true
+compressions = comp_alg1, comp_alg2
+host keys = key_alg1
+key exchanges = kex_alg1, kex_alg2
+ciphers = cipher_alg1, cipher_alg2, cipher_alg3
+macs = mac_alg1, mac_alg2, mac_alg3'''
+
+        policy = self.Policy(policy_data=policy_data)
+        ret, errors, error_str = policy.evaluate('SSH Server 1.0', self._get_kex())
+        assert ret is False
+        assert len(errors) == 1
+        assert 'Host keys did not match.' in error_str
+        assert 'key_alg2' in error_str
+
+
+    def test_policy_evaluate_builtin_ubuntu_24_04_other_alg_categories_unchanged(self):
+        '''Optional host keys do not weaken the kex, cipher, or MAC checks of the built-in Ubuntu 24.04 policy.'''
+
+        policy = self.Policy.load_builtin_policy(self.UBUNTU_24_04_V2_POLICY)
+        assert policy is not None
+        policy_struct = BUILTIN_POLICIES[self.UBUNTU_24_04_V2_POLICY]
+        host_keys = list(policy_struct['host_keys']) + list(policy_struct['optional_host_keys'])
+        kex_algs = list(policy_struct['kex']) + ['diffie-hellman-group1-sha1']
+        ciphers = list(policy_struct['ciphers']) + ['aes128-cbc']
+        macs = list(policy_struct['macs']) + ['hmac-sha1']
+        kex = self._get_builtin_ubuntu_24_04_kex(host_keys, kex_algs=kex_algs, ciphers=ciphers, macs=macs)
+        ret, errors, error_str = policy.evaluate('SSH-2.0-OpenSSH_9.6p1 Ubuntu-3ubuntu13', kex)
+        assert ret is False
+        assert len(errors) == 3
+        assert 'Host keys did not match.' not in error_str
+        assert 'Key exchanges did not match.' in error_str
+        assert 'Ciphers did not match.' in error_str
+        assert 'MACs did not match.' in error_str
+
+
     def test_policy_evaluate_subset_failing_3(self):
         '''Ensure that subset parsing returns a failure when policy includes kex-strict-c-v00@openssh.com, but target does not.'''
 

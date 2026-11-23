@@ -366,7 +366,7 @@ macs = %s
         if self._host_keys is not None:
             # If the policy allows subsets and re-ordered algorithms...
             if self._allow_hostkey_subset_and_reordering:
-                for hostkey_t in kex.key_algorithms:
+                for hostkey_t in pruned_host_keys:
                     if hostkey_t not in self._host_keys:
                         ret = False
                         self._append_error('Host keys', self._host_keys, self._optional_host_keys, kex.key_algorithms)
