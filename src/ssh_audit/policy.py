@@ -110,7 +110,7 @@ class Policy:
             key = None
             val = None
             try:
-                key, val = line.split('=')
+                key, val = line.split('=', 1)
             except ValueError as ve:
                 raise ValueError("could not parse line: %s" % line) from ve
 
