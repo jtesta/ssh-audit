@@ -964,6 +964,12 @@ def process_commandline(out: OutputBuffer, args: List[str]) -> 'AuditConf':  # p
             else:
                 print("Error: insufficient permissions: %s" % str(e))
             sys.exit(exitcodes.UNKNOWN_ERROR)
+        except OSError as e:
+            print("Error: could not read targets file: %s" % str(e))
+            sys.exit(exitcodes.UNKNOWN_ERROR)
+        except UnicodeDecodeError as e:
+            print("Error: targets file is not valid UTF-8: %s" % str(e))
+            sys.exit(exitcodes.UNKNOWN_ERROR)
 
         # Strip out whitespace from each line in target file, and skip empty lines.
         aconf.target_list = [target.strip() for target in aconf.target_list if target not in ("", "\n")]
@@ -1450,7 +1456,12 @@ def run_gex_granular_modulus_size_test(out: OutputBuffer, s: 'SSH_Socket', kex: 
 
 def main() -> int:
     out = OutputBuffer()
-    aconf = process_commandline(out, sys.argv[1:])
+    try:
+        aconf = process_commandline(out, sys.argv[1:])
+    except ValueError as e:
+        # AuditConf rejects invalid values (port numbers, thread counts, timeouts, ...) by raising ValueError.  Report those the same way as the other configuration errors instead of letting a traceback escape.
+        out.fail("Error: %s" % str(e), write_now=True)
+        return exitcodes.UNKNOWN_ERROR
 
     # If we're on Windows, but the colorama module could not be imported, print a warning if we're in verbose mode.
     if (sys.platform == 'win32') and ('colorama' not in sys.modules):
@@ -1479,15 +1490,22 @@ def main() -> int:
     if len(aconf.target_list) > 0:
         ret = exitcodes.GOOD
 
+        # Loop through each target in the list.  Entries can specify a port number to use, otherwise the value provided on the command line (--port=N) will be used by default (set to 22 if --port is not used).  Validation happens before any output is written so that a malformed entry cannot leave a half-written report behind.
+        target_servers = []
+        for line_number, target in enumerate(aconf.target_list, start=1):
+            try:
+                host, port = Utils.parse_host_and_port(target, default_port=aconf.port)
+            except ValueError as e:
+                out.fail('Error: invalid target "%s" on line %d of %s: %s' % (target, line_number, aconf.target_file, str(e)), write_now=True)
+                return exitcodes.UNKNOWN_ERROR
+            if port < 1 or port > 65535:
+                out.fail('Error: invalid port %d for target "%s" on line %d of %s' % (port, target, line_number, aconf.target_file), write_now=True)
+                return exitcodes.UNKNOWN_ERROR
+            target_servers.append((host, port))
+
         # If JSON output is desired, each target's results will be reported in its own list entry.
         if aconf.json:
             print('[', end='')
-
-        # Loop through each target in the list.  Entries can specify a port number to use, otherwise the value provided on the command line (--port=N) will be used by default (set to 22 if --port is not used).
-        target_servers = []
-        for _, target in enumerate(aconf.target_list):
-            host, port = Utils.parse_host_and_port(target, default_port=aconf.port)
-            target_servers.append((host, port))
 
         # A ranked list of return codes.  Those with higher indices will take precedence over lower ones.  For example, if three servers are scanned, yielding WARNING, GOOD, and UNKNOWN_ERROR, the overall result will be UNKNOWN_ERROR, since its index is the highest.  Errors have highest priority, followed by failures, then warnings.
         ranked_return_codes = [exitcodes.GOOD, exitcodes.WARNING, exitcodes.FAILURE, exitcodes.CONNECTION_ERROR, exitcodes.UNKNOWN_ERROR]
